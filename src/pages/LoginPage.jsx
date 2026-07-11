@@ -1,10 +1,10 @@
 import React from 'react';
+import LoginForm from '../features/identity/components/LoginForm';
 
 function LoginPage() {
   return (
-    <div style={{ padding: '2rem' }}>
-      <h1>Unified Login</h1>
-      <p>Sign in to access your Academic Gateway portal.</p>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f1f3f5' }}>
+      <LoginForm />
     </div>
   );
 }
