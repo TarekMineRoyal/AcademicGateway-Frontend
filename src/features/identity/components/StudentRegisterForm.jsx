@@ -41,7 +41,7 @@ function StudentRegisterForm() {
       } catch (err) {
         setError('Failed to load curriculum configuration or technical competency lookups.');
       } finally {
-        setLoadingLookups = false;
+        setLoadingLookups(false);
       }
     };
     fetchLookupData();
