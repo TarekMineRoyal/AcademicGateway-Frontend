@@ -19,27 +19,14 @@ function LoginForm() {
 
     try {
       const data = await loginUser(email, password);
-      // Pass token to AuthContext to save session and extract the user's role
-      const role = login(data.token);
+      
+      // Pass the token to AuthContext to save the session and update global state
+      login(data.token);
 
-      // Dynamically route the user depending on their decoded JWT Claim
-      switch (role?.toLowerCase()) {
-        case 'admin':
-          navigate('/admin/dashboard');
-          break;
-        case 'student':
-          navigate('/student/dashboard');
-          break;
-        case 'professor':
-          navigate('/professor/dashboard');
-          break;
-        case 'provider':
-        case 'researcher':
-          navigate('/researcher/dashboard');
-          break;
-        default:
-          navigate('/'); // Fallback
-      }
+      // All authenticated roles now route directly into our unified dashboard shell frame.
+      // The ProtectedRoute and WorkspaceLayout components handle personalization automatically.
+      navigate('/dashboard');
+      
     } catch (err) {
       setError(err.response?.data?.message || 'Authentication failed. Please try again.');
     } finally {
