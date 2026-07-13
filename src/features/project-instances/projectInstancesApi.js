@@ -9,12 +9,12 @@ import apiClient from '../../api/apiClient';
  */
 export const initializeProjectInstance = async (projectTemplateId, professorId = null) => {
   const payload = {
-    projectTemplateId,
-    // Transmits the supervisor GUID key, or null to immediately initialize in Solo mode
+    // Aligned key to match backend DTO property 'TemplateId'
+    templateId: projectTemplateId, 
+    // Aligned key to match backend DTO property 'ProfessorId'
     professorId: professorId || null 
   };
 
-  // Uses clean relative pathing matching your apiClient base configuration
   const response = await apiClient.post('/project-instances', payload);
   return response.data;
 };
