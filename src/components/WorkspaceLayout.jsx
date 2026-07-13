@@ -78,8 +78,8 @@ function WorkspaceLayout() {
               key={idx}
               to={link.path}
               style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', color: '#cbd5e0', textDecoration: 'none', borderRadius: '6px', fontWeight: '500', transition: 'all 0.2s' }}
-              onMouseEnter={(e) => { e.target.style.backgroundColor = '#2d3748'; e.target.style.color = '#fff'; }}
-              onMouseLeave={(e) => { e.target.style.backgroundColor = 'transparent'; e.target.style.color = '#cbd5e0'; }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#2d3748'; e.currentTarget.style.color = '#fff'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#cbd5e0'; }}
             >
               {link.icon}
               {link.label}
@@ -92,8 +92,8 @@ function WorkspaceLayout() {
           <button
             onClick={handleLogoutClick}
             style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%', padding: '0.75rem 1rem', backgroundColor: '#e53e3e', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', transition: 'background-color 0.2s' }}
-            onMouseEnter={(e) => e.target.style.backgroundColor = '#c53030'}
-            onMouseLeave={(e) => e.target.style.backgroundColor = '#e53e3e'}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#c53030'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#e53e3e'}
           >
             <LogOut size={18} />
             Sign Out Session
@@ -106,12 +106,28 @@ function WorkspaceLayout() {
         
         {/* Synchronized Top Identity Context Bar */}
         <header style={{ height: '64px', backgroundColor: '#fff', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 2rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#4a5568', fontWeight: '500', fontSize: '0.95rem' }}>
-            <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#edf2f7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4a5568' }}>
+          {/* Clickable Identity Context Core Element linking to profile route */}
+          <Link 
+            to="/dashboard/profile"
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '0.75rem', 
+              color: '#4a5568', 
+              fontWeight: '500', 
+              fontSize: '0.95rem',
+              textDecoration: 'none',
+              cursor: 'pointer',
+              transition: 'color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.color = '#3182ce'}
+            onMouseLeave={(e) => e.currentTarget.style.color = '#4a5568'}
+          >
+            <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#edf2f7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'inherit' }}>
               <User size={16} />
             </div>
             <span>{user?.unique_name || user?.email || 'Authenticated Account'}</span>
-          </div>
+          </Link>
         </header>
 
         {/* Scalable Container Window for Nested Child Routes */}

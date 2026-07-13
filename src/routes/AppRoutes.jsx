@@ -7,6 +7,7 @@ import ProtectedRoute from './ProtectedRoute';
 import WorkspaceLayout from '../components/WorkspaceLayout';
 import StudentDashboard from '../features/student/components/StudentDashboard';
 import ProjectMarketplace from '../features/student/components/ProjectMarketplace';
+import StudentProfile from '../features/student/components/StudentProfile';
 
 // Temporary lightweight placeholder views to keep the compilation path clean
 const PlaceholderView = ({ title }) => (
@@ -46,6 +47,7 @@ function AppRoutes() {
           } />
 
           {/* Student Sub-Channel Routes */}
+          <Route path="profile" element={<StudentProfile />} />
           <Route path="marketplace" element={<ProjectMarketplace />} />
           <Route path="applications" element={<PlaceholderView title="Submitted Application Tracker Pipeline" />} />
           <Route path="milestones" element={<PlaceholderView title="Academic Evaluation Milestones Tracker" />} />
