@@ -8,7 +8,6 @@ import WorkspaceLayout from '../components/WorkspaceLayout';
 import StudentDashboard from '../features/student/components/StudentDashboard';
 import ProjectMarketplace from '../features/student/components/ProjectMarketplace';
 import StudentProfile from '../features/student/components/StudentProfile';
-// Updated import path: Points to the centralized role-agnostic feature domain for Step 2
 import ProjectTemplateDetails from '../features/project-templates/components/ProjectTemplateDetails';
 
 // Temporary lightweight placeholder views to keep the compilation path clean
@@ -28,9 +27,7 @@ function AppRoutes() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register/:role" element={<RegisterPage />} />
 
-        {/* Authenticated Workspace Matrix Route Tree
-          Wrapped entirely inside our ProtectedRoute token claim guard framework.
-        */}
+        {/* Authenticated Workspace Matrix Route Tree */}
         <Route 
           path="/dashboard" 
           element={
@@ -40,21 +37,14 @@ function AppRoutes() {
           }
         >
           {/* Default Base Dashboard Workspace Entry Node */}
-          <Route index element={
-            /* A simple dynamic structural router switch. 
-              If a professor logs in, this node will eventually resolve to ProfessorDashboard.
-              For now, we route directly to our StudentDashboard component.
-            */
-            <StudentDashboard />
-          } />
+          <Route index element={<StudentDashboard />} />
 
           {/* Shared & Actor Specific Sub-Channel Routes */}
           <Route path="profile" element={<StudentProfile />} />
           <Route path="marketplace" element={<ProjectMarketplace />} />
-          {/* Dynamic Route Node: Configured to load the centralized details panel */}
           <Route path="marketplace/:templateId" element={<ProjectTemplateDetails />} />
           
-          <Route path="applications" element={<PlaceholderView title="Submitted Application Tracker Pipeline" />} />
+          {/* Removed the redundant /applications route completely */}
           <Route path="milestones" element={<PlaceholderView title="Academic Evaluation Milestones Tracker" />} />
 
           {/* Professor Sub-Channel Routes */}

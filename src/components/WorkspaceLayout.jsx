@@ -31,7 +31,7 @@ function WorkspaceLayout() {
         return [
           { label: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={18} /> },
           { label: 'Browse Marketplace', path: '/dashboard/marketplace', icon: <BookOpen size={18} /> },
-          { label: 'My Applications', path: '/dashboard/applications', icon: <ClipboardList size={18} /> },
+          // Removed the redundant "My Applications" tracking link
           { label: 'Project Milestones', path: '/dashboard/milestones', icon: <CheckSquare size={18} /> },
         ];
       case 'professor':
@@ -106,7 +106,6 @@ function WorkspaceLayout() {
         
         {/* Synchronized Top Identity Context Bar */}
         <header style={{ height: '64px', backgroundColor: '#fff', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 2rem' }}>
-          {/* Clickable Identity Context Core Element linking to profile route */}
           <Link 
             to="/dashboard/profile"
             style={{ 

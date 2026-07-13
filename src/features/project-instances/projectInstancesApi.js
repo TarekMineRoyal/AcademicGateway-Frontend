@@ -18,3 +18,14 @@ export const initializeProjectInstance = async (projectTemplateId, professorId =
   const response = await apiClient.post('/project-instances', payload);
   return response.data;
 };
+
+/**
+ * Command to bypass a stalled supervisor invitation and force-start the project in Solo Mode.
+ * Maps to backend: POST /api/project-instances/{projectInstanceId}/transition-to-solo
+ * @param {string} projectInstanceId - The live tracking database ID of the runtime instance.
+ * @returns {Promise<Object>} The updated project workspace instance data.
+ */
+export const transitionToSolo = async (projectInstanceId) => {
+  const response = await apiClient.post(`/project-instances/${projectInstanceId}/transition-to-solo`);
+  return response.data;
+};
