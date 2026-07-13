@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { getApprovedTemplates } from '../projectMarketplaceApi';
+import { useNavigate } from 'react-router-dom';
+// Corrected import: Points to the shared project-templates feature domain
+import { getApprovedTemplates } from '../../project-templates/projectTemplatesApi';
 import { Search, Building2, Code, ArrowUpRight, Inbox, RefreshCw } from 'lucide-react';
 
 function ProjectMarketplace() {
@@ -7,6 +9,7 @@ function ProjectMarketplace() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
 
   const fetchMarketplace = async () => {
     try {
@@ -132,12 +135,12 @@ function ProjectMarketplace() {
 
                   {/* Dispatch Command Trigger */}
                   <button
-                    onClick={() => alert(`Initiating allocation pipeline query mapping for Blueprint Node ID:\n${id}`)}
+                    onClick={() => navigate(`/dashboard/marketplace/${id}`)}
                     style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem', padding: '0.6rem 1rem', backgroundColor: '#f7fafc', color: '#2b6cb0', border: '1px solid #e2e8f0', borderRadius: '6px', fontWeight: '700', fontSize: '0.875rem', cursor: 'pointer', transition: 'background-color 0.2s' }}
                     onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#ebf8ff'; }}
                     onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#f7fafc'; }}
                   >
-                    Initialize Selection Pipeline
+                    View Project Blueprint
                     <ArrowUpRight size={14} />
                   </button>
                 </div>

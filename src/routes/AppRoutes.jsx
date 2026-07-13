@@ -8,6 +8,8 @@ import WorkspaceLayout from '../components/WorkspaceLayout';
 import StudentDashboard from '../features/student/components/StudentDashboard';
 import ProjectMarketplace from '../features/student/components/ProjectMarketplace';
 import StudentProfile from '../features/student/components/StudentProfile';
+// Updated import path: Points to the centralized role-agnostic feature domain for Step 2
+import ProjectTemplateDetails from '../features/project-templates/components/ProjectTemplateDetails';
 
 // Temporary lightweight placeholder views to keep the compilation path clean
 const PlaceholderView = ({ title }) => (
@@ -46,9 +48,12 @@ function AppRoutes() {
             <StudentDashboard />
           } />
 
-          {/* Student Sub-Channel Routes */}
+          {/* Shared & Actor Specific Sub-Channel Routes */}
           <Route path="profile" element={<StudentProfile />} />
           <Route path="marketplace" element={<ProjectMarketplace />} />
+          {/* Dynamic Route Node: Configured to load the centralized details panel */}
+          <Route path="marketplace/:templateId" element={<ProjectTemplateDetails />} />
+          
           <Route path="applications" element={<PlaceholderView title="Submitted Application Tracker Pipeline" />} />
           <Route path="milestones" element={<PlaceholderView title="Academic Evaluation Milestones Tracker" />} />
 
