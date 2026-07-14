@@ -46,37 +46,37 @@ function StudentDashboard() {
     switch (statusValue) {
       case 1: // ProjectInstanceStatus.AwaitingSupervision
         return (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.75rem', borderRadius: '9999px', backgroundColor: '#fef3c7', color: '#d97706', fontSize: '0.85rem', fontWeight: '600' }}>
-            <Clock size={14} /> Awaiting Supervision Approval
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.35rem 0.75rem', borderRadius: '6px', backgroundColor: '#fffbeb', color: '#b45309', border: '1px solid #fde68a', fontSize: '0.8rem', fontWeight: '600' }}>
+            <Clock size={14} /> Awaiting Supervision
           </span>
         );
       case 2: // ProjectInstanceStatus.Active
         return (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.75rem', borderRadius: '9999px', backgroundColor: '#dcfce7', color: '#15803d', fontSize: '0.85rem', fontWeight: '600' }}>
-            <CheckCircle size={14} /> Live Active Project
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.35rem 0.75rem', borderRadius: '6px', backgroundColor: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', fontSize: '0.8rem', fontWeight: '600' }}>
+            <CheckCircle size={14} /> Active
           </span>
         );
       case 3: // ProjectInstanceStatus.Concluded
         return (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.75rem', borderRadius: '9999px', backgroundColor: '#e0f2fe', color: '#0369a1', fontSize: '0.85rem', fontWeight: '600' }}>
-            <Award size={14} /> Concluded Workspace
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.35rem 0.75rem', borderRadius: '6px', backgroundColor: '#f0f9ff', color: '#0369a1', border: '1px solid #bae6fd', fontSize: '0.8rem', fontWeight: '600' }}>
+            <Award size={14} /> Concluded
           </span>
         );
       default: // ProjectInstanceStatus.Canceled
         return (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.75rem', borderRadius: '9999px', backgroundColor: '#f3f4f6', color: '#4b5563', fontSize: '0.85rem', fontWeight: '600' }}>
-            <AlertTriangle size={14} /> Aborted / Canceled
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.35rem 0.75rem', borderRadius: '6px', backgroundColor: '#f9fafb', color: '#4b5563', border: '1px solid #e5e7eb', fontSize: '0.8rem', fontWeight: '600' }}>
+            <AlertTriangle size={14} /> Canceled
           </span>
         );
     }
   };
 
   if (loading) {
-    return <div style={{ color: '#4a5568', textAlign: 'center', padding: '3rem' }}>Re-indexing student workspaces...</div>;
+    return <div style={{ color: '#4a5568', textAlign: 'center', padding: '6rem font-weight: 500' }}>Re-indexing student workspaces...</div>;
   }
 
   if (error) {
-    return <div style={{ color: '#e53e3e', fontWeight: 'bold', padding: '2rem', backgroundColor: '#fff5f5', borderRadius: '8px' }}>{error}</div>;
+    return <div style={{ color: '#e53e3e', fontWeight: '600', padding: '1.5rem', backgroundColor: '#fff5f5', border: '1px solid #fed7d7', borderRadius: '8px' }}>{error}</div>;
   }
 
   // Segregates projects using both backend status capitalization definitions defensively
@@ -93,29 +93,33 @@ function StudentDashboard() {
 
   return (
     <div>
-      <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '1.75rem', fontWeight: '700', color: '#1a202c' }}>
+      {/* Dashboard Top Header Block */}
+      <div style={{ marginBottom: '2.5rem' }}>
+        <h1 style={{ fontSize: '2rem', fontWeight: '800', color: '#1a202c', letterSpacing: '-0.03em', marginBottom: '0.25rem' }}>
           Welcome back, {studentFullName}
         </h1>
-        <p style={{ color: '#718096', fontSize: '0.95rem' }}>
+        <p style={{ color: '#718096', fontSize: '0.95rem', fontWeight: '500' }}>
           Overview and track your live graduation engineering workspaces and pending mentor claims.
         </p>
       </div>
 
-      {/* Two Column Layout Mesh Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem', alignItems: 'start' }}>
+      {/* Two Column Balanced Layout Mesh Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 2fr)) 1fr', gap: '2rem', alignItems: 'start' }}>
         
         {/* LEFT COLUMN: ACTIVE WORKSPACES & PIPELINES */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           
           {/* Section A: Live Running Capstone Tracks */}
-          <section style={{ backgroundColor: '#fff', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#2d3748', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Folder style={{ color: '#3182ce' }} size={20} /> Active Research Projects ({activeWorkspaces.length})
+          <section style={{ backgroundColor: '#fff', padding: '1.75rem', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1a202c', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Folder style={{ color: '#3182ce' }} size={18} /> Active Research Projects
+              <span style={{ fontSize: '0.8rem', backgroundColor: '#ebf8ff', color: '#2b6cb0', padding: '0.15rem 0.4rem', borderRadius: '4px', fontWeight: '700' }}>{activeWorkspaces.length}</span>
             </h2>
             
             {activeWorkspaces.length === 0 ? (
-              <p style={{ color: '#a0aec0', fontSize: '0.9rem', padding: '1rem 0' }}>No active experimental project channels are assigned to your identity profile at this moment.</p>
+              <div style={{ padding: '2rem 1rem', border: '1px dashed #e2e8f0', borderRadius: '8px', textAlign: 'center', color: '#a0aec0', fontSize: '0.9rem', fontWeight: '500' }}>
+                No active experimental project channels are assigned to your identity profile at this moment.
+              </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 {activeWorkspaces.map(project => {
@@ -125,7 +129,7 @@ function StudentDashboard() {
                   const projectDescription = project.description || project.Description;
                   const projectEndDate = project.endDate || project.EndDate;
 
-                  // Destructuring new redesign telemetry properties
+                  // Redesign telemetry properties
                   const currentMilestoneTitle = project.currentMilestoneTitle || project.CurrentMilestoneTitle || 'Initialization Stage';
                   const currentMilestoneProgress = project.currentMilestoneProgress !== undefined ? project.currentMilestoneProgress : (project.CurrentMilestoneProgress || 0);
                   const totalProjectProgress = project.totalProjectProgress !== undefined ? project.totalProjectProgress : (project.TotalProjectProgress || 0);
@@ -136,23 +140,25 @@ function StudentDashboard() {
                   const providerCompanyName = project.providerCompanyName || project.ProviderCompanyName;
 
                   return (
-                    <div key={projectId} style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1.25rem', backgroundColor: '#ffffff' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                        <h3 style={{ fontSize: '1.05rem', fontWeight: '600', color: '#1a202c' }}>{projectTitle}</h3>
+                    <div key={projectId} style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1.25rem', backgroundColor: '#ffffff', transition: 'all 0.2s' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', marginBottom: '0.5rem' }}>
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1a202c', lineHeight: '1.3' }}>{projectTitle}</h3>
                         {getStatusBadge(projectStatus)}
                       </div>
                       
-                      <p style={{ color: '#4a5568', fontSize: '0.875rem', marginBottom: '1rem', lineHeight: '1.4' }}>{projectDescription}</p>
+                      <p style={{ color: '#4a5568', fontSize: '0.9rem', marginBottom: '1.25rem', lineHeight: '1.5' }}>{projectDescription}</p>
 
-                      {/* Associated Stakeholder References */}
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '1.25rem', fontSize: '0.85rem', color: '#4a5568', borderTop: '1px solid #f7fafc', paddingTop: '0.75rem' }}>
+                      {/* Associated Stakeholder References Anchor Elements */}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '1.25rem', fontSize: '0.85rem', color: '#4a5568', borderTop: '1px solid #edf2f7', paddingTop: '0.75rem' }}>
                         {providerCompanyName && (
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
                             <Building size={14} style={{ color: '#718096' }} />
-                            <strong>Provider:</strong>{' '}
+                            <strong style={{ color: '#718096' }}>Sponsor:</strong>{' '}
                             <span 
                               onClick={() => providerId && navigate(`/providers/${providerId}`)}
-                              style={{ color: '#3182ce', cursor: 'pointer', textDecoration: 'underline', fontWeight: '500' }}
+                              style={{ color: '#3182ce', cursor: 'pointer', fontWeight: '600', transition: 'color 0.15s' }}
+                              onMouseEnter={(e) => e.currentTarget.style.color = '#2b6cb0'}
+                              onMouseLeave={(e) => e.currentTarget.style.color = '#3182ce'}
                             >
                               {providerCompanyName}
                             </span>
@@ -162,49 +168,51 @@ function StudentDashboard() {
                         {!isSoloMode && professorName ? (
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
                             <User size={14} style={{ color: '#718096' }} />
-                            <strong>Professor:</strong>{' '}
+                            <strong style={{ color: '#718096' }}>Advisor:</strong>{' '}
                             <span 
                               onClick={() => professorId && navigate(`/professors/${professorId}`)}
-                              style={{ color: '#3182ce', cursor: 'pointer', textDecoration: 'underline', fontWeight: '500' }}
+                              style={{ color: '#3182ce', cursor: 'pointer', fontWeight: '600', transition: 'color 0.15s' }}
+                              onMouseEnter={(e) => e.currentTarget.style.color = '#2b6cb0'}
+                              onMouseLeave={(e) => e.currentTarget.style.color = '#3182ce'}
                             >
                               {professorName}
                             </span>
                           </span>
                         ) : isSoloMode ? (
-                          <span style={{ color: '#718096', fontStyle: 'italic', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                            <User size={14} /> Solo Project
+                          <span style={{ color: '#718096', fontStyle: 'italic', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontWeight: '500' }}>
+                            <User size={14} /> Solo Project Track
                           </span>
                         ) : null}
                       </div>
 
-                      {/* Double Progress Bar Redesign Section */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', backgroundColor: '#f7fafc', padding: '1rem', borderRadius: '6px' }}>
+                      {/* Double Progress Bar Telemetry Section */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', backgroundColor: '#f8fafc', padding: '1rem 1.25rem', borderRadius: '8px', border: '1px solid #f1f5f9' }}>
                         {/* Milestone Telemetry */}
                         <div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#4a5568', marginBottom: '0.25rem' }}>
-                            <span><strong>Current Milestone:</strong> {currentMilestoneTitle}</span>
-                            <span style={{ fontWeight: '600' }}>{currentMilestoneProgress}%</span>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#4a5568', marginBottom: '0.35rem' }}>
+                            <span style={{ fontWeight: '500' }}><strong style={{ color: '#1a202c' }}>Milestone Node:</strong> {currentMilestoneTitle}</span>
+                            <span style={{ fontWeight: '700', color: '#3182ce' }}>{currentMilestoneProgress}%</span>
                           </div>
-                          <div style={{ width: '100%', height: '8px', backgroundColor: '#e2e8f0', borderRadius: '9999px', overflow: 'hidden' }}>
-                            <div style={{ width: `${currentMilestoneProgress}%`, height: '100%', backgroundColor: '#3182ce', transition: 'width 0.4s ease' }} />
+                          <div style={{ width: '100%', height: '6px', backgroundColor: '#e2e8f0', borderRadius: '9999px', overflow: 'hidden' }}>
+                            <div style={{ width: `${currentMilestoneProgress}%`, height: '100%', backgroundColor: '#3182ce', borderRadius: '9999px', transition: 'width 0.4s ease' }} />
                           </div>
                         </div>
 
                         {/* Totality Project Timeline Telemetry */}
                         <div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#4a5568', marginBottom: '0.25rem' }}>
-                            <span><strong>Total Project Completion</strong></span>
-                            <span style={{ fontWeight: '600' }}>{totalProjectProgress}%</span>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#4a5568', marginBottom: '0.35rem' }}>
+                            <span style={{ fontWeight: '600', color: '#2d3748' }}>Overall Pipeline Completion</span>
+                            <span style={{ fontWeight: '700', color: '#16a34a' }}>{totalProjectProgress}%</span>
                           </div>
-                          <div style={{ width: '100%', height: '8px', backgroundColor: '#e2e8f0', borderRadius: '9999px', overflow: 'hidden' }}>
-                            <div style={{ width: `${totalProjectProgress}%`, height: '100%', backgroundColor: '#48bb78', transition: 'width 0.4s ease' }} />
+                          <div style={{ width: '100%', height: '6px', backgroundColor: '#e2e8f0', borderRadius: '9999px', overflow: 'hidden' }}>
+                            <div style={{ width: `${totalProjectProgress}%`, height: '100%', backgroundColor: '#16a34a', borderRadius: '9999px', transition: 'width 0.4s ease' }} />
                           </div>
                         </div>
                       </div>
 
                       {projectEndDate && (
-                        <div style={{ fontSize: '0.8rem', color: '#718096', marginTop: '0.75rem', textAlign: 'right' }}>
-                          <strong>Administrative Deadline:</strong> {new Date(projectEndDate).toLocaleDateString()}
+                        <div style={{ fontSize: '0.8rem', color: '#a0aec0', marginTop: '0.75rem', textAlign: 'right', fontWeight: '500' }}>
+                          Administrative Deadline: {new Date(projectEndDate).toLocaleDateString()}
                         </div>
                       )}
                     </div>
@@ -215,15 +223,18 @@ function StudentDashboard() {
           </section>
 
           {/* Section B: Vetting Pipeline Channels */}
-          <section style={{ backgroundColor: '#fff', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#2d3748', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Clock style={{ color: '#dd6b20' }} size={20} /> Application Pipeline ({pipelineApplications.length})
+          <section style={{ backgroundColor: '#fff', padding: '1.75rem', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1a202c', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Clock style={{ color: '#d97706' }} size={18} /> Application Pipeline
+              <span style={{ fontSize: '0.8rem', backgroundColor: '#fef3c7', color: '#b45309', padding: '0.15rem 0.4rem', borderRadius: '4px', fontWeight: '700' }}>{pipelineApplications.length}</span>
             </h2>
 
             {pipelineApplications.length === 0 ? (
-              <p style={{ color: '#a0aec0', fontSize: '0.9rem', padding: '1rem 0' }}>Your pipeline registry is empty. Ready to launch a brand new initiative?</p>
+              <div style={{ padding: '2rem 1rem', border: '1px dashed #e2e8f0', borderRadius: '8px', textAlign: 'center', color: '#a0aec0', fontSize: '0.9rem', fontWeight: '500' }}>
+                Your pipeline registry is empty. Ready to launch a brand new initiative?
+              </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
                 {pipelineApplications.map(app => {
                   const appId = app.id || app.Id;
                   const appTitle = app.title || app.Title;
@@ -234,21 +245,25 @@ function StudentDashboard() {
                   const requestedProfessorName = app.requestedProfessorName || app.RequestedProfessorName || 'Pending Assignment';
 
                   return (
-                    <div key={appId} style={{ backgroundColor: '#fffaf0', border: '1px solid #feebc8', borderRadius: '6px', padding: '1rem' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                        <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#2d3748' }}>{appTitle}</h3>
-                        {getStatusBadge(appStatus)}
-                      </div>
-                      
-                      {/* Vetting Metadata Stack */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.85rem', color: '#4a5568', margin: '0.5rem 0 0.75rem 0' }}>
-                        <span><strong>Provider Unit:</strong> {providerCompanyName}</span>
-                        <span><strong>Requested Supervisor:</strong> {requestedProfessorName}</span>
+                    <div key={appId} style={{ backgroundColor: '#fffaf0', border: '1px solid #fef3c7', borderRadius: '8px', padding: '1.25rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                          <h3 style={{ fontSize: '1rem', fontWeight: '700', color: '#1a202c', lineHeight: '1.3' }}>{appTitle}</h3>
+                        </div>
+                        
+                        {/* Vetting Metadata Stack */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.85rem', color: '#4a5568', marginBottom: '1rem' }}>
+                          <span><strong style={{ color: '#718096' }}>Sponsor Unit:</strong> {providerCompanyName}</span>
+                          <span><strong style={{ color: '#718096' }}>Supervisor:</strong> {requestedProfessorName}</span>
+                        </div>
                       </div>
 
-                      <p style={{ color: '#718096', fontSize: '0.8rem', borderTop: '1px dashed #fbd38d', paddingTop: '0.5rem' }}>
-                        Initialized on {new Date(appCreatedAt).toLocaleDateString()}
-                      </p>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px dashed #fde68a', paddingTop: '0.75rem', marginTop: '0.5rem' }}>
+                        <span style={{ color: '#718096', fontSize: '0.8rem', fontWeight: '500' }}>
+                          Opened {new Date(appCreatedAt).toLocaleDateString()}
+                        </span>
+                        {getStatusBadge(appStatus)}
+                      </div>
                     </div>
                   );
                 })}
@@ -258,8 +273,8 @@ function StudentDashboard() {
 
           {/* Section C: Historical / Archive Logs */}
           {historicWorkspaces.length > 0 && (
-            <section style={{ backgroundColor: '#fff', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', opacity: 0.85 }}>
-              <h2 style={{ fontSize: '1rem', fontWeight: '700', color: '#718096', marginBottom: '1rem' }}>Archived Context Entries</h2>
+            <section style={{ backgroundColor: '#fff', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.02)', opacity: 0.85 }}>
+              <h2 style={{ fontSize: '1rem', fontWeight: '700', color: '#718096', marginBottom: '1rem' }}>Archived History Records</h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {historicWorkspaces.map(hist => {
                   const histId = hist.id || hist.Id;
@@ -268,10 +283,14 @@ function StudentDashboard() {
                   const histOverallGrade = hist.overallGrade !== undefined ? hist.overallGrade : hist.OverallGrade;
 
                   return (
-                    <div key={histId} style={{ border: '1px solid #edf2f7', borderRadius: '6px', padding: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div key={histId} style={{ border: '1px solid #edf2f7', borderRadius: '8px', padding: '0.85rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fafafa' }}>
                       <div>
-                        <span style={{ fontSize: '0.9rem', fontWeight: '500', color: '#4a5568' }}>{histTitle}</span>
-                        {histOverallGrade !== null && histOverallGrade !== undefined && <span style={{ marginLeft: '1rem', fontSize: '0.85rem', color: '#2f855a' }}><strong>Grade:</strong> {histOverallGrade}%</span>}
+                        <span style={{ fontSize: '0.95rem', fontWeight: '600', color: '#4a5568' }}>{histTitle}</span>
+                        {histOverallGrade !== null && histOverallGrade !== undefined && (
+                          <span style={{ marginLeft: '1rem', fontSize: '0.85rem', backgroundColor: '#dcfce7', color: '#166534', padding: '0.15rem 0.5rem', borderRadius: '4px', fontWeight: '700' }}>
+                            Grade: {histOverallGrade}%
+                          </span>
+                        )}
                       </div>
                       {getStatusBadge(histStatus)}
                     </div>
@@ -286,48 +305,48 @@ function StudentDashboard() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           
           {/* Identity Snapshot Card Widget */}
-          <section style={{ backgroundColor: '#fff', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-            <div style={{ width: '4.5rem', height: '4.5rem', borderRadius: '50%', backgroundColor: '#ebf8ff', color: '#2b6cb0', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem auto', fontSize: '1.75rem', fontWeight: 'bold' }}>
+          <section style={{ backgroundColor: '#fff', padding: '1.75rem 1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.02)', textAlign: 'center' }}>
+            <div style={{ width: '4rem', height: '4rem', borderRadius: '50%', backgroundColor: '#ebf8ff', color: '#2b6cb0', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem auto', fontSize: '1.5rem', fontWeight: '800', border: '2px solid #bbf7d0' }}>
               {studentFullName.charAt(0)}
             </div>
             
-            <h2 style={{ fontSize: '1.15rem', fontWeight: '700', color: '#1a202c', marginBottom: '0.25rem' }}>{studentFullName}</h2>
-            <p style={{ color: '#718096', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#1a202c', letterSpacing: '-0.02em', marginBottom: '0.25rem' }}>{studentFullName}</h2>
+            <p style={{ color: '#718096', fontSize: '0.85rem', fontWeight: '600', marginBottom: '1.5rem' }}>
               Graduation Target: {graduationYear}
             </p>
 
-            {/* Strategic High Accent Global Operation Trigger Button */}
+            {/* Strategic High Accent Core Operation Trigger Button */}
             <button
               onClick={() => navigate('/dashboard/marketplace')}
-              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.75rem 1rem', backgroundColor: '#3182ce', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '700', fontSize: '0.95rem', cursor: 'pointer', boxShadow: '0 2px 4px rgba(49,130,206,0.2)', transition: 'background-color 0.2s' }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#2b6cb0'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = '#3182ce'}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.75rem 1rem', backgroundColor: '#3182ce', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer', boxShadow: '0 4px 6px -1px rgba(49, 130, 206, 0.15)', transition: 'all 0.15s' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2b6cb0'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#3182ce'}
             >
-              <PlusCircle size={18} />
+              <PlusCircle size={16} />
               Start New Project App
             </button>
           </section>
 
           {/* Academic Records Metric Lists Widget */}
-          <section style={{ backgroundColor: '#fff', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-            <h3 style={{ fontSize: '0.9rem', fontWeight: '700', color: '#4a5568', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              <BookOpen size={16} /> Enrolled Curriculums
+          <section style={{ backgroundColor: '#fff', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+            <h3 style={{ fontSize: '0.75rem', fontWeight: '700', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <BookOpen size={14} /> Enrolled Curriculums
             </h3>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '1.75rem' }}>
               {majorsList.map(m => (
-                <span key={m.id || m.Id} style={{ fontSize: '0.8rem', backgroundColor: '#edf2f7', color: '#2d3748', padding: '0.25rem 0.5rem', borderRadius: '4px', fontWeight: '500' }}>{m.name || m.Name}</span>
+                <span key={m.id || m.Id} style={{ fontSize: '0.75rem', backgroundColor: '#f1f5f9', color: '#334155', padding: '0.25rem 0.6rem', borderRadius: '6px', fontWeight: '600', border: '1px solid #e2e8f0' }}>{m.name || m.Name}</span>
               ))}
               {specialtiesList.map(s => (
-                <span key={s.id || s.Id} style={{ fontSize: '0.8rem', backgroundColor: '#e2e8f0', color: '#4a5568', padding: '0.25rem 0.5rem', borderRadius: '4px', fontStyle: 'italic' }}>{s.name || s.Name}</span>
+                <span key={s.id || s.Id} style={{ fontSize: '0.75rem', backgroundColor: '#f8fafc', color: '#475569', padding: '0.25rem 0.6rem', borderRadius: '6px', fontStyle: 'italic', fontWeight: '500', border: '1px solid #e2e8f0' }}>{s.name || s.Name}</span>
               ))}
             </div>
 
-            <h3 style={{ fontSize: '0.9rem', fontWeight: '700', color: '#4a5568', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              <Shield size={16} /> Verified Competencies
+            <h3 style={{ fontSize: '0.75rem', fontWeight: '700', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <Shield size={14} /> Verified Competencies
             </h3>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
               {skillsList.map(sk => (
-                <span key={sk.id || sk.Id} style={{ fontSize: '0.75rem', backgroundColor: '#ebf8ff', color: '#2b6cb0', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: '600' }}>{sk.name || sk.Name}</span>
+                <span key={sk.id || sk.Id} style={{ fontSize: '0.75rem', backgroundColor: '#eff6ff', color: '#1e40af', padding: '0.25rem 0.6rem', borderRadius: '6px', fontWeight: '600', border: '1px solid #dbeafe' }}>{sk.name || sk.Name}</span>
               ))}
             </div>
           </section>

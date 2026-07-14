@@ -24,101 +24,85 @@ function WorkspaceLayout() {
     navigate('/login');
   };
 
-  // Dynamic Navigation Config Map based on backend aggregate identity matrices
-  const getSidebarLinks = () => {
+  // Dynamic Top Navigation Configuration (Optimized to prevent splitting student attention)
+  const getNavLinks = () => {
     switch (userRole) {
       case 'student':
-        return [
-          { label: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={18} /> },
-          { label: 'Browse Marketplace', path: '/dashboard/marketplace', icon: <BookOpen size={18} /> },
-          // Removed the redundant "My Applications" tracking link
-          { label: 'Project Milestones', path: '/dashboard/milestones', icon: <CheckSquare size={18} /> },
-        ];
+        // Student routing relies on clear in-view action triggers, leaving top bar completely clean
+        return [];
       case 'professor':
         return [
-          { label: 'Console Home', path: '/dashboard', icon: <LayoutDashboard size={18} /> },
-          { label: 'Supervision Requests', path: '/dashboard/supervision-requests', icon: <Users size={18} /> },
-          { label: 'Active Projects', path: '/dashboard/active-projects', icon: <BookOpen size={18} /> },
-          { label: 'Capacity Management', path: '/dashboard/capacity', icon: <Sliders size={18} /> },
+          { label: 'Console Home', path: '/dashboard', icon: <LayoutDashboard size={16} /> },
+          { label: 'Supervision Requests', path: '/dashboard/supervision-requests', icon: <Users size={16} /> },
+          { label: 'Active Projects', path: '/dashboard/active-projects', icon: <BookOpen size={16} /> },
+          { label: 'Capacity Management', path: '/dashboard/capacity', icon: <Sliders size={16} /> },
         ];
       case 'provider':
       case 'researcher':
         return [
-          { label: 'Lab Overview', path: '/dashboard', icon: <LayoutDashboard size={18} /> },
-          { label: 'Propose Template', path: '/dashboard/propose-template', icon: <PlusCircle size={18} /> },
-          { label: 'Sponsored Layouts', path: '/dashboard/my-templates', icon: <ClipboardList size={18} /> },
-          { label: 'Active Lab Groups', path: '/dashboard/lab-groups', icon: <Users size={18} /> },
+          { label: 'Lab Overview', path: '/dashboard', icon: <LayoutDashboard size={16} /> },
+          { label: 'Propose Template', path: '/dashboard/propose-template', icon: <PlusCircle size={16} /> },
+          { label: 'Sponsored Layouts', path: '/dashboard/my-templates', icon: <ClipboardList size={16} /> },
+          { label: 'Active Lab Groups', path: '/dashboard/lab-groups', icon: <Users size={16} /> },
         ];
       case 'admin':
         return [
-          { label: 'Admin Panel', path: '/dashboard', icon: <LayoutDashboard size={18} /> },
-          { label: 'Template Approvals', path: '/dashboard/approve-templates', icon: <CheckSquare size={18} /> },
-          { label: 'Provider Verification', path: '/dashboard/verify-providers', icon: <ShieldAlert size={18} /> },
-          { label: 'User Management', path: '/dashboard/users', icon: <Users size={18} /> },
+          { label: 'Admin Panel', path: '/dashboard', icon: <LayoutDashboard size={16} /> },
+          { label: 'Template Approvals', path: '/dashboard/approve-templates', icon: <CheckSquare size={16} /> },
+          { label: 'Provider Verification', path: '/dashboard/verify-providers', icon: <ShieldAlert size={16} /> },
+          { label: 'User Management', path: '/dashboard/users', icon: <Users size={16} /> },
         ];
       default:
         return [];
     }
   };
 
-  const links = getSidebarLinks();
+  const links = getNavLinks();
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f7fafc', fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#f7fafc', fontFamily: 'system-ui, sans-serif' }}>
       
-      {/* Structural Sidebar Navigation Panel */}
-      <aside style={{ width: '260px', backgroundColor: '#1a202c', color: '#fff', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '1.5rem', borderBottom: '1px solid #2d3748', fontWeight: 'bold', fontSize: '1.2rem', letterSpacing: '-0.05em' }}>
-          Gateway <span style={{ color: '#4299e1', fontSize: '0.85rem', textTransform: 'uppercase', verticalAlign: 'middle' }}>{userRole}</span>
-        </div>
+      {/* Unified Top Navigation & Identity Navbar */}
+      <header style={{ height: '64px', backgroundColor: '#fff', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2rem', position: 'sticky', top: 0, zIndex: 1000 }}>
         
-        <nav style={{ flex: 1, padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          {links.map((link, idx) => (
-            <Link
-              key={idx}
-              to={link.path}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', color: '#cbd5e0', textDecoration: 'none', borderRadius: '6px', fontWeight: '500', transition: 'all 0.2s' }}
-              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#2d3748'; e.currentTarget.style.color = '#fff'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#cbd5e0'; }}
-            >
-              {link.icon}
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-
-        {/* Footer Session Action Segment */}
-        <div style={{ padding: '1.5rem', borderTop: '1px solid #2d3748' }}>
-          <button
-            onClick={handleLogoutClick}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%', padding: '0.75rem 1rem', backgroundColor: '#e53e3e', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', transition: 'background-color 0.2s' }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#c53030'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#e53e3e'}
+        {/* Left Segment: Core Platform Branding & Context Role Identifier */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+          <Link 
+            to="/dashboard" 
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', color: '#1a202c', fontWeight: 'bold', fontSize: '1.2rem', letterSpacing: '-0.05em' }}
           >
-            <LogOut size={18} />
-            Sign Out Session
-          </button>
-        </div>
-      </aside>
+            Gateway 
+            <span style={{ color: '#3182ce', fontSize: '0.75rem', textTransform: 'uppercase', backgroundColor: '#ebf8ff', padding: '0.25rem 0.5rem', borderRadius: '4px', fontWeight: '700', letterSpacing: '0.05em' }}>
+              {userRole}
+            </span>
+          </Link>
 
-      {/* Main Structural Right Window Split Frame */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowX: 'hidden' }}>
-        
-        {/* Synchronized Top Identity Context Bar */}
-        <header style={{ height: '64px', backgroundColor: '#fff', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 2rem' }}>
+          {/* Horizontal Middleware Navigation Layout for Admin/Faculty Roles */}
+          {links.length > 0 && (
+            <nav style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              {links.map((link, idx) => (
+                <Link
+                  key={idx}
+                  to={link.path}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', color: '#4a5568', textDecoration: 'none', borderRadius: '6px', fontWeight: '500', fontSize: '0.9rem', transition: 'all 0.15s' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#edf2f7'; e.currentTarget.style.color = '#1a202c'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#4a5568'; }}
+                >
+                  {link.icon}
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          )}
+        </div>
+
+        {/* Right Segment: Session Actions & User Profile Context Matrix */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+          
+          {/* Identity Context Anchor */}
           <Link 
             to="/dashboard/profile"
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '0.75rem', 
-              color: '#4a5568', 
-              fontWeight: '500', 
-              fontSize: '0.95rem',
-              textDecoration: 'none',
-              cursor: 'pointer',
-              transition: 'color 0.2s'
-            }}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#4a5568', fontWeight: '500', fontSize: '0.9rem', textDecoration: 'none', transition: 'color 0.2s' }}
             onMouseEnter={(e) => e.currentTarget.style.color = '#3182ce'}
             onMouseLeave={(e) => e.currentTarget.style.color = '#4a5568'}
           >
@@ -127,13 +111,26 @@ function WorkspaceLayout() {
             </div>
             <span>{user?.unique_name || user?.email || 'Authenticated Account'}</span>
           </Link>
-        </header>
 
-        {/* Scalable Container Window for Nested Child Routes */}
-        <main style={{ flex: 1, padding: '2rem', overflowY: 'auto' }}>
+          {/* Minimalist, Integrated Session Clearance Trigger */}
+          <button
+            onClick={handleLogoutClick}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.5rem 0.75rem', backgroundColor: 'transparent', color: '#e53e3e', border: '1px solid #fed7d7', borderRadius: '6px', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.2s' }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#fff5f5'; e.currentTarget.style.borderColor = '#e53e3e'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.borderColor = '#fed7d7'; }}
+          >
+            <LogOut size={14} />
+            Sign Out
+          </button>
+        </div>
+      </header>
+
+      {/* Main Structural Window Container Node with Responsive Grid Thresholds */}
+      <main style={{ flex: 1, padding: '2rem 1.5rem', overflowY: 'auto' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', width: '100%' }}>
           <Outlet />
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }

@@ -30,7 +30,7 @@ function AppRoutes() {
         {/* Authenticated Workspace Matrix Route Tree */}
         <Route 
           path="/dashboard" 
-          element={
+          element = {
             <ProtectedRoute>
               <WorkspaceLayout />
             </ProtectedRoute>
@@ -43,9 +43,6 @@ function AppRoutes() {
           <Route path="profile" element={<StudentProfile />} />
           <Route path="marketplace" element={<ProjectMarketplace />} />
           <Route path="marketplace/:templateId" element={<ProjectTemplateDetails />} />
-          
-          {/* Removed the redundant /applications route completely */}
-          <Route path="milestones" element={<PlaceholderView title="Academic Evaluation Milestones Tracker" />} />
 
           {/* Professor Sub-Channel Routes */}
           <Route path="supervision-requests" element={<PlaceholderView title="Incoming Supervision Vetting Board" />} />
