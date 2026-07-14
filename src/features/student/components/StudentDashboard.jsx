@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { getStudentProfile, getStudentProjects } from '../studentDashboardApi';
-import { PlusCircle, Folder, Clock, CheckCircle, AlertTriangle, BookOpen, Award, Shield } from 'lucide-react';
+import { PlusCircle, Folder, Clock, CheckCircle, AlertTriangle, BookOpen, Award, Shield, User, Building } from 'lucide-react';
 
 function StudentDashboard() {
   const { user } = useAuth();
@@ -117,7 +117,7 @@ function StudentDashboard() {
             {activeWorkspaces.length === 0 ? (
               <p style={{ color: '#a0aec0', fontSize: '0.9rem', padding: '1rem 0' }}>No active experimental project channels are assigned to your identity profile at this moment.</p>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 {activeWorkspaces.map(project => {
                   const projectId = project.id || project.Id;
                   const projectTitle = project.title || project.Title;
@@ -125,17 +125,88 @@ function StudentDashboard() {
                   const projectDescription = project.description || project.Description;
                   const projectEndDate = project.endDate || project.EndDate;
 
+                  // Destructuring new redesign telemetry properties
+                  const currentMilestoneTitle = project.currentMilestoneTitle || project.CurrentMilestoneTitle || 'Initialization Stage';
+                  const currentMilestoneProgress = project.currentMilestoneProgress !== undefined ? project.currentMilestoneProgress : (project.CurrentMilestoneProgress || 0);
+                  const totalProjectProgress = project.totalProjectProgress !== undefined ? project.totalProjectProgress : (project.TotalProjectProgress || 0);
+                  const isSoloMode = project.isSoloMode !== undefined ? project.isSoloMode : project.IsSoloMode;
+                  const professorId = project.professorId || project.ProfessorId;
+                  const professorName = project.professorName || project.ProfessorName;
+                  const providerId = project.providerId || project.ProviderId;
+                  const providerCompanyName = project.providerCompanyName || project.ProviderCompanyName;
+
                   return (
-                    <div key={projectId} style={{ border: '1px solid #e2e8f0', borderRadius: '6px', padding: '1rem' }}>
+                    <div key={projectId} style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1.25rem', backgroundColor: '#ffffff' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                        <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1a202c' }}>{projectTitle}</h3>
+                        <h3 style={{ fontSize: '1.05rem', fontWeight: '600', color: '#1a202c' }}>{projectTitle}</h3>
                         {getStatusBadge(projectStatus)}
                       </div>
+                      
                       <p style={{ color: '#4a5568', fontSize: '0.875rem', marginBottom: '1rem', lineHeight: '1.4' }}>{projectDescription}</p>
-                      <div style={{ fontSize: '0.8rem', color: '#718096', display: 'flex', gap: '1.5rem' }}>
-                        <span><strong>Channel ID:</strong> {projectId}</span>
-                        {projectEndDate && <span><strong>Administrative Deadline:</strong> {new Date(projectEndDate).toLocaleDateString()}</span>}
+
+                      {/* Associated Stakeholder References */}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '1.25rem', fontSize: '0.85rem', color: '#4a5568', borderTop: '1px solid #f7fafc', paddingTop: '0.75rem' }}>
+                        {providerCompanyName && (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <Building size={14} style={{ color: '#718096' }} />
+                            <strong>Provider:</strong>{' '}
+                            <span 
+                              onClick={() => providerId && navigate(`/providers/${providerId}`)}
+                              style={{ color: '#3182ce', cursor: 'pointer', textDecoration: 'underline', fontWeight: '500' }}
+                            >
+                              {providerCompanyName}
+                            </span>
+                          </span>
+                        )}
+                        
+                        {!isSoloMode && professorName ? (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <User size={14} style={{ color: '#718096' }} />
+                            <strong>Professor:</strong>{' '}
+                            <span 
+                              onClick={() => professorId && navigate(`/professors/${professorId}`)}
+                              style={{ color: '#3182ce', cursor: 'pointer', textDecoration: 'underline', fontWeight: '500' }}
+                            >
+                              {professorName}
+                            </span>
+                          </span>
+                        ) : isSoloMode ? (
+                          <span style={{ color: '#718096', fontStyle: 'italic', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <User size={14} /> Solo Project
+                          </span>
+                        ) : null}
                       </div>
+
+                      {/* Double Progress Bar Redesign Section */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', backgroundColor: '#f7fafc', padding: '1rem', borderRadius: '6px' }}>
+                        {/* Milestone Telemetry */}
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#4a5568', marginBottom: '0.25rem' }}>
+                            <span><strong>Current Milestone:</strong> {currentMilestoneTitle}</span>
+                            <span style={{ fontWeight: '600' }}>{currentMilestoneProgress}%</span>
+                          </div>
+                          <div style={{ width: '100%', height: '8px', backgroundColor: '#e2e8f0', borderRadius: '9999px', overflow: 'hidden' }}>
+                            <div style={{ width: `${currentMilestoneProgress}%`, height: '100%', backgroundColor: '#3182ce', transition: 'width 0.4s ease' }} />
+                          </div>
+                        </div>
+
+                        {/* Totality Project Timeline Telemetry */}
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#4a5568', marginBottom: '0.25rem' }}>
+                            <span><strong>Total Project Completion</strong></span>
+                            <span style={{ fontWeight: '600' }}>{totalProjectProgress}%</span>
+                          </div>
+                          <div style={{ width: '100%', height: '8px', backgroundColor: '#e2e8f0', borderRadius: '9999px', overflow: 'hidden' }}>
+                            <div style={{ width: `${totalProjectProgress}%`, height: '100%', backgroundColor: '#48bb78', transition: 'width 0.4s ease' }} />
+                          </div>
+                        </div>
+                      </div>
+
+                      {projectEndDate && (
+                        <div style={{ fontSize: '0.8rem', color: '#718096', marginTop: '0.75rem', textAlign: 'right' }}>
+                          <strong>Administrative Deadline:</strong> {new Date(projectEndDate).toLocaleDateString()}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -158,6 +229,9 @@ function StudentDashboard() {
                   const appTitle = app.title || app.Title;
                   const appStatus = app.status !== undefined ? app.status : app.Status;
                   const appCreatedAt = app.createdAt || app.CreatedAt;
+                  
+                  const providerCompanyName = app.providerCompanyName || app.ProviderCompanyName || 'Unspecified Provider';
+                  const requestedProfessorName = app.requestedProfessorName || app.RequestedProfessorName || 'Pending Assignment';
 
                   return (
                     <div key={appId} style={{ backgroundColor: '#fffaf0', border: '1px solid #feebc8', borderRadius: '6px', padding: '1rem' }}>
@@ -165,7 +239,16 @@ function StudentDashboard() {
                         <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#2d3748' }}>{appTitle}</h3>
                         {getStatusBadge(appStatus)}
                       </div>
-                      <p style={{ color: '#718096', fontSize: '0.85rem' }}>Initialized on {new Date(appCreatedAt).toLocaleDateString()}</p>
+                      
+                      {/* Vetting Metadata Stack */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.85rem', color: '#4a5568', margin: '0.5rem 0 0.75rem 0' }}>
+                        <span><strong>Provider Unit:</strong> {providerCompanyName}</span>
+                        <span><strong>Requested Supervisor:</strong> {requestedProfessorName}</span>
+                      </div>
+
+                      <p style={{ color: '#718096', fontSize: '0.8rem', borderTop: '1px dashed #fbd38d', paddingTop: '0.5rem' }}>
+                        Initialized on {new Date(appCreatedAt).toLocaleDateString()}
+                      </p>
                     </div>
                   );
                 })}
