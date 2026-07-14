@@ -2,21 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { getStudentProfile, getStudentProjects } from '../studentDashboardApi';
-import { transitionToSolo } from '../../project-instances/projectInstancesApi';
-import { 
-  PlusCircle, 
-  Folder, 
-  Clock, 
-  CheckCircle, 
-  AlertTriangle, 
-  BookOpen, 
-  Award, 
-  Shield, 
-  Zap, 
-  User, 
-  ArrowRight,
-  Compass
-} from 'lucide-react';
+import { PlusCircle, Folder, Clock, CheckCircle, AlertTriangle, BookOpen, Award, Shield } from 'lucide-react';
 
 function StudentDashboard() {
   const { user } = useAuth();
@@ -29,45 +15,31 @@ function StudentDashboard() {
   // UX Operation States
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [actionLoadingId, setActionLoadingId] = useState(null);
-
-  // Synchronize dashboard datasets from backend infrastructure
-  const fetchDashboardData = async () => {
-    if (!user || (!user.id && !user.sub)) return;
-    
-    try {
-      setLoading(true);
-      const targetId = user.id || user.sub;
-      const [profileData, projectData] = await Promise.all([
-        getStudentProfile(targetId),
-        getStudentProjects(targetId)
-      ]);
-      setProfile(profileData);
-      setProjects(projectData);
-    } catch (err) {
-      setError('Failed to sync workspace details with the academic registry.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
+    async function fetchDashboardData() {
+      if (!user || (!user.id && !user.sub)) return;
+      
+      try {
+        setLoading(true);
+        const targetId = user.id || user.sub;
+        const [profileData, projectData] = await Promise.all([
+          getStudentProfile(targetId),
+          getStudentProjects(targetId)
+        ]);
+        console.log("RAW PROFILE FROM BACKEND:", profileData);
+        console.log("RAW PROJECTS FROM BACKEND:", projectData);
+        setProfile(profileData);
+        setProjects(projectData);
+      } catch (err) {
+        setError('Failed to sync workspace details with the academic registry.');
+      } finally {
+        setLoading(false);
+      }
+    }
+
     fetchDashboardData();
   }, [user]);
-
-  // Invokes escape hatch command to switch from pending to standalone active status
-  const handleForceGoSolo = async (instanceId) => {
-    try {
-      setActionLoadingId(instanceId);
-      await transitionToSolo(instanceId);
-      // Refresh local states to reflect instant status updates smoothly
-      await fetchDashboardData();
-    } catch (err) {
-      alert(err.response?.data?.detail || 'Failed to execute solo transition override command.');
-    } finally {
-      setActionLoadingId(null);
-    }
-  };
 
   // Helper mapping to visually interpret ProjectInstanceStatus enum flags
   const getStatusBadge = (statusValue) => {
@@ -107,9 +79,9 @@ function StudentDashboard() {
     return <div style={{ color: '#e53e3e', fontWeight: 'bold', padding: '2rem', backgroundColor: '#fff5f5', borderRadius: '8px' }}>{error}</div>;
   }
 
-  // Segregates project array cleanly using backend status definitions defensively
-  const pendingSupervisionProjects = projects.filter(p => p.status === 1 || p.Status === 1);
+  // Segregates projects using both backend status capitalization definitions defensively
   const activeWorkspaces = projects.filter(p => p.status === 2 || p.Status === 2); 
+  const pipelineApplications = projects.filter(p => p.status === 1 || p.Status === 1);
   const historicWorkspaces = projects.filter(p => p.status === 3 || p.status === 4 || p.Status === 3 || p.Status === 4);
 
   // Normalize core profile properties to resolve backend casing variance seamlessly
@@ -133,69 +105,17 @@ function StudentDashboard() {
       {/* Two Column Layout Mesh Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem', alignItems: 'start' }}>
         
-        {/* LEFT COLUMN: ADAPTIVE WORKSPACES & LIFECYCLE SECTIONS */}
+        {/* LEFT COLUMN: ACTIVE WORKSPACES & PIPELINES */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           
-          {/* ================= SECTION 1: PENDING SUPERVISION TRACKS ================= */}
-          {/* Completely hidden from view if no pending projects exist */}
-          {pendingSupervisionProjects.length > 0 && (
-            <section style={{ backgroundColor: '#fff', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #fef3c7' }}>
-              <h2 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#dd6b20', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Clock style={{ color: '#dd6b20' }} size={20} /> Awaiting Supervision Approval ({pendingSupervisionProjects.length})
-              </h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {pendingSupervisionProjects.map(project => {
-                  const projectId = project.id || project.Id;
-                  const projectTitle = project.title || project.Title;
-                  const projectDescription = project.description || project.Description;
-                  const professorName = project.requestedProfessorName || project.RequestedProfessorName;
-
-                  return (
-                    <div key={projectId} style={{ backgroundColor: '#fffdfa', border: '1px solid #feebc8', borderRadius: '6px', padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-                      <div style={{ flex: '1 1 300px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
-                          <h3 style={{ fontSize: '1rem', fontWeight: '700', color: '#2d3748' }}>{projectTitle}</h3>
-                          {getStatusBadge(1)}
-                        </div>
-                        <p style={{ color: '#4a5568', fontSize: '0.85rem', marginBottom: '0.75rem', lineHeight: '1.4' }}>{projectDescription}</p>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', color: '#b45309', backgroundColor: '#fef3c7', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: '600' }}>
-                          <User size={12} /> Pending Response from: {professorName || 'Assigned Faculty Reviewer'}
-                        </div>
-                      </div>
-
-                      {/* Go Solo Escape Hatch Action */}
-                      <button
-                        onClick={() => handleForceGoSolo(projectId)}
-                        disabled={actionLoadingId === projectId}
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', backgroundColor: '#fff', border: '1px solid #d97706', color: '#d97706', borderRadius: '6px', fontSize: '0.85rem', fontWeight: '700', cursor: 'pointer', transition: 'all 0.15s' }}
-                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#d97706'; e.currentTarget.style.color = '#fff'; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#fff'; e.currentTarget.style.color = '#d97706'; }}
-                      >
-                        <Zap size={14} />
-                        {actionLoadingId === projectId ? 'Bypassing...' : 'Bypass & Go Solo'}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-          )}
-
-          {/* ================= SECTION 2: LIVE RUNNING TRACKS ================= */}
+          {/* Section A: Live Running Capstone Tracks */}
           <section style={{ backgroundColor: '#fff', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
             <h2 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#2d3748', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Folder style={{ color: '#3182ce' }} size={20} /> Active Research Projects ({activeWorkspaces.length})
             </h2>
             
             {activeWorkspaces.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '2.5rem 1rem', border: '2px dashed #e2e8f0', borderRadius: '8px', color: '#718096' }}>
-                <Compass size={32} style={{ margin: '0 auto 0.75rem', color: '#a0aec0' }} />
-                <p style={{ fontWeight: '600', marginBottom: '0.25rem' }}>No active workspaces assigned</p>
-                <p style={{ fontSize: '0.85rem', marginBottom: '1rem' }}>Browse our open template specs to deploy your next project.</p>
-                <button onClick={() => navigate('/dashboard/marketplace')} style={{ padding: '0.4rem 1rem', backgroundColor: '#3182ce', color: '#fff', border: 'none', borderRadius: '4px', fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer' }}>
-                  Browse Marketplace
-                </button>
-              </div>
+              <p style={{ color: '#a0aec0', fontSize: '0.9rem', padding: '1rem 0' }}>No active experimental project channels are assigned to your identity profile at this moment.</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {activeWorkspaces.map(project => {
@@ -206,26 +126,15 @@ function StudentDashboard() {
                   const projectEndDate = project.endDate || project.EndDate;
 
                   return (
-                    <div key={projectId} style={{ border: '1px solid #e2e8f0', borderRadius: '6px', padding: '1.25rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '1rem' }}>
-                      <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', marginBottom: '0.5rem' }}>
-                          <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1a202c' }}>{projectTitle}</h3>
-                          {getStatusBadge(projectStatus)}
-                        </div>
-                        <p style={{ color: '#4a5568', fontSize: '0.875rem', lineHeight: '1.4' }}>{projectDescription}</p>
+                    <div key={projectId} style={{ border: '1px solid #e2e8f0', borderRadius: '6px', padding: '1rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                        <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1a202c' }}>{projectTitle}</h3>
+                        {getStatusBadge(projectStatus)}
                       </div>
-
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', borderTop: '1px solid #f7fafc', paddingTop: '0.75rem' }}>
-                        <div style={{ fontSize: '0.8rem', color: '#718096', display: 'flex', flexWrap: 'wrap', gap: '1.5rem' }}>
-                          <span><strong>Channel ID:</strong> <code style={{ backgroundColor: '#f7fafc', padding: '0.1rem 0.3rem', borderRadius: '4px' }}>{projectId}</code></span>
-                          {projectEndDate && <span><strong>Deadline:</strong> {new Date(projectEndDate).toLocaleDateString()}</span>}
-                        </div>
-                        <button 
-                          onClick={() => navigate(`/dashboard/workspaces/${projectId}`)}
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.4rem 0.8rem', backgroundColor: '#edf2f7', border: 'none', borderRadius: '4px', fontSize: '0.8rem', fontWeight: '600', color: '#2d3748', cursor: 'pointer' }}
-                        >
-                          Enter Workspace <ArrowRight size={12} />
-                        </button>
+                      <p style={{ color: '#4a5568', fontSize: '0.875rem', marginBottom: '1rem', lineHeight: '1.4' }}>{projectDescription}</p>
+                      <div style={{ fontSize: '0.8rem', color: '#718096', display: 'flex', gap: '1.5rem' }}>
+                        <span><strong>Channel ID:</strong> {projectId}</span>
+                        {projectEndDate && <span><strong>Administrative Deadline:</strong> {new Date(projectEndDate).toLocaleDateString()}</span>}
                       </div>
                     </div>
                   );
@@ -234,13 +143,40 @@ function StudentDashboard() {
             )}
           </section>
 
-          {/* ================= SECTION 3: COMPLETED ARCHIVES ================= */}
-          {/* Shifted to the absolute bottom and hidden unless history records exist */}
+          {/* Section B: Vetting Pipeline Channels */}
+          <section style={{ backgroundColor: '#fff', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#2d3748', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Clock style={{ color: '#dd6b20' }} size={20} /> Application Pipeline ({pipelineApplications.length})
+            </h2>
+
+            {pipelineApplications.length === 0 ? (
+              <p style={{ color: '#a0aec0', fontSize: '0.9rem', padding: '1rem 0' }}>Your pipeline registry is empty. Ready to launch a brand new initiative?</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {pipelineApplications.map(app => {
+                  const appId = app.id || app.Id;
+                  const appTitle = app.title || app.Title;
+                  const appStatus = app.status !== undefined ? app.status : app.Status;
+                  const appCreatedAt = app.createdAt || app.CreatedAt;
+
+                  return (
+                    <div key={appId} style={{ backgroundColor: '#fffaf0', border: '1px solid #feebc8', borderRadius: '6px', padding: '1rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                        <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#2d3748' }}>{appTitle}</h3>
+                        {getStatusBadge(appStatus)}
+                      </div>
+                      <p style={{ color: '#718096', fontSize: '0.85rem' }}>Initialized on {new Date(appCreatedAt).toLocaleDateString()}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          {/* Section C: Historical / Archive Logs */}
           {historicWorkspaces.length > 0 && (
-            <section style={{ backgroundColor: '#fff', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', opacity: 0.9, borderTop: '1px solid #edf2f7' }}>
-              <h2 style={{ fontSize: '1rem', fontWeight: '700', color: '#718096', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Award size={18} style={{ color: '#0369a1' }} /> Completed Scholarly Archives ({historicWorkspaces.length})
-              </h2>
+            <section style={{ backgroundColor: '#fff', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', opacity: 0.85 }}>
+              <h2 style={{ fontSize: '1rem', fontWeight: '700', color: '#718096', marginBottom: '1rem' }}>Archived Context Entries</h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {historicWorkspaces.map(hist => {
                   const histId = hist.id || hist.Id;
@@ -249,14 +185,10 @@ function StudentDashboard() {
                   const histOverallGrade = hist.overallGrade !== undefined ? hist.overallGrade : hist.OverallGrade;
 
                   return (
-                    <div key={histId} style={{ border: '1px solid #edf2f7', borderRadius: '6px', padding: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8fafc' }}>
+                    <div key={histId} style={{ border: '1px solid #edf2f7', borderRadius: '6px', padding: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div>
-                        <span style={{ fontSize: '0.9rem', fontWeight: '600', color: '#4a5568' }}>{histTitle}</span>
-                        {histOverallGrade !== null && histOverallGrade !== undefined && (
-                          <span style={{ marginLeft: '1rem', fontSize: '0.85rem', color: '#2f855a', backgroundColor: '#e6fffa', padding: '0.15rem 0.4rem', borderRadius: '4px', fontWeight: '600' }}>
-                            <strong>Grade:</strong> {histOverallGrade}%
-                          </span>
-                        )}
+                        <span style={{ fontSize: '0.9rem', fontWeight: '500', color: '#4a5568' }}>{histTitle}</span>
+                        {histOverallGrade !== null && histOverallGrade !== undefined && <span style={{ marginLeft: '1rem', fontSize: '0.85rem', color: '#2f855a' }}><strong>Grade:</strong> {histOverallGrade}%</span>}
                       </div>
                       {getStatusBadge(histStatus)}
                     </div>
@@ -267,7 +199,7 @@ function StudentDashboard() {
           )}
         </div>
 
-        {/* RIGHT COLUMN: TECHNICAL IDENTITY SNAPSHOT */}
+        {/* RIGHT COLUMN: TECHNICAL IDENTITY SNAPSHOT & GLOBAL OPERATIONS */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           
           {/* Identity Snapshot Card Widget */}
@@ -281,7 +213,7 @@ function StudentDashboard() {
               Graduation Target: {graduationYear}
             </p>
 
-            {/* Global Marketplace Operation Trigger */}
+            {/* Strategic High Accent Global Operation Trigger Button */}
             <button
               onClick={() => navigate('/dashboard/marketplace')}
               style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.75rem 1rem', backgroundColor: '#3182ce', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '700', fontSize: '0.95rem', cursor: 'pointer', boxShadow: '0 2px 4px rgba(49,130,206,0.2)', transition: 'background-color 0.2s' }}
