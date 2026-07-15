@@ -3,7 +3,7 @@ import {
   getMilestoneComments, 
   postMilestoneComment, 
   submitTaskDeliverable 
-} from '../projectInstancesApi'; //[cite: 1]
+} from '../projectInstancesApi';
 import { 
   Send, 
   ExternalLink, 
@@ -18,7 +18,7 @@ import {
   Check
 } from 'lucide-react';
 
-export default function MilestoneActionCenter({ projectInstanceId, milestone, onRefresh }) {
+export default function MilestoneActionCenter({ projectInstanceId, milestone, project, onRefresh }) {
   const [activeTab, setActiveTab] = useState('tasks'); // 'tasks' or 'feed'
   const [comments, setComments] = useState([]);
   const [loadingComments, setLoadingComments] = useState(false);
@@ -26,7 +26,7 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, on
   const [postingComment, setPostingComment] = useState(false);
   
   // Maps taskId -> input string for student repository submission
-  const [submissionPayloads, setSubmissionPayloads] = useState({}); //[cite: 1]
+  const [submissionPayloads, setSubmissionPayloads] = useState({});
   const [submittingTasks, setSubmittingTasks] = useState({}); // taskId -> boolean (loading state)
   
   // Custom toast notification system
@@ -46,7 +46,7 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, on
   useEffect(() => {
     if (milestone && activeTab === 'feed') {
       setLoadingComments(true);
-      getMilestoneComments(projectInstanceId, milestone.id) //[cite: 1]
+      getMilestoneComments(projectInstanceId, milestone.id)
         .then((data) => {
           setComments(data || []);
         })
@@ -76,11 +76,72 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, on
         </div>
         <h3 className="text-base font-bold text-neutral-800">No Milestone Selected</h3>
         <p className="text-sm text-neutral-500 max-w-xs mt-2">
-          Select an active node from the roadmap to review task lists, submit deliverables, and communicate with your supervisor.[cite: 1]
+          Select an active node from the roadmap to review task lists, submit deliverables, and communicate with your supervisor.
         </p>
       </div>
     );
   }
+
+  // Helper to dynamically map the comment's authorId to their actual name
+  const getAuthorName = (comment) => {
+    if (!project) return comment.authorIdentitySnapshot || comment.AuthorIdentitySnapshot || "Participant";
+
+    // Support both camelCase and PascalCase backend responses defensively
+    const authorId = comment.authorId || comment.AuthorId;
+    const studentId = project.studentId || project.StudentId;
+    const supervisorId = project.supervisorId || project.SupervisorId;
+
+    if (authorId === studentId) {
+      return project.studentName || project.StudentName || "Student Developer";
+    }
+    if (authorId === supervisorId) {
+      return project.supervisorName || project.SupervisorName || "Faculty Advisor";
+    }
+
+    // Fall back to identity snapshot if it's an external user (e.g. Provider)
+    return comment.authorIdentitySnapshot || comment.AuthorIdentitySnapshot || "External User";
+  };
+
+  // Clean, fallback-safe mapper to output high-quality role tags instead of broken DB entries
+  const getAuthorIdentity = (comment) => {
+    const authorId = comment.authorId || comment.AuthorId;
+    const studentId = project?.studentId || project?.StudentId;
+    const supervisorId = project?.supervisorId || project?.SupervisorId;
+
+    if (authorId && authorId === studentId) {
+      return "Student Developer";
+    }
+    if (authorId && authorId === supervisorId) {
+      return "Faculty Advisor";
+    }
+
+    // Fall back to the snapshot only if it's not "Unknown Participant"
+    const snapshot = comment.authorIdentitySnapshot || comment.AuthorIdentitySnapshot;
+    if (snapshot && snapshot !== "Unknown Participant") {
+      return snapshot;
+    }
+
+    return "External Partner";
+  };
+
+  // Human-readable case-defensive date parser to make chat timestamps look clean
+  const formatCommentTime = (comment) => {
+    // Support both camelCase and PascalCase defensively
+    const rawDate = comment.createdAt || comment.CreatedAt;
+    
+    if (!rawDate) return "Just now";
+
+    const dateObj = new Date(rawDate);
+    // Prevent displaying invalid/stale fallback times
+    if (isNaN(dateObj.getTime())) {
+      return "Just now";
+    }
+
+    return dateObj.toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+  };
 
   // Handle students submitting URLs/repository links for tasks
   const handleTaskSubmit = async (taskId) => {
@@ -99,7 +160,7 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, on
         url: textValue
       };
 
-      await submitTaskDeliverable(projectInstanceId, taskId, payload); //[cite: 1]
+      await submitTaskDeliverable(projectInstanceId, taskId, payload);
       
       setToast({ type: 'success', text: 'Task submitted successfully! Roadmaps updated.' });
       
@@ -112,7 +173,7 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, on
 
       // Call refresh on parent shell to pull down updated workspace metadata
       if (onRefresh) {
-        await onRefresh(); //[cite: 1]
+        await onRefresh();
       }
     } catch (err) {
       console.error("Error submitting task:", err);
@@ -122,53 +183,51 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, on
     }
   };
 
-  // Handle post comment submission
-  const handleSendComment = async (e) => {
-    e.preventDefault();
-    const commentText = commentInput.trim();
-    if (!commentText || postingComment) return;
-
-    setPostingComment(true);
-
-    try {
-      const newComment = await postMilestoneComment(projectInstanceId, milestone.id, commentText); //[cite: 1]
-      
-      // Append comment instantly to local state list for immediate real-time rendering
-      if (newComment) {
-        setComments((prev) => [...prev, newComment]); //[cite: 1]
-      } else {
-        // Safe fallback in case the backend only sends a blank 204 or non-JSON success indicator
-        const optimisticComment = {
-          id: Date.now().toString(),
-          content: commentText,
-          authorIdentitySnapshot: 'Student Developer',
-          createdAt: new Date().toISOString()
-        };
-        setComments((prev) => [...prev, optimisticComment]);
-      }
-      
-      setCommentInput(''); //[cite: 1]
-    } catch (err) {
-      console.error("Error posting comment:", err);
-      setToast({ type: 'error', text: 'Could not send comment. Please try again.' });
-    } finally {
-      setPostingComment(false);
+  // Keyboard action controller: maps Enter to submit and Shift+Enter to newline
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault(); // Stop native newline from being appended inside textarea
+      handleSendMessage(e); // Trigger submission
     }
   };
 
-  // Helper date formatter to make chat timestamps look clean and premium
-  const formatTimestamp = (dateString) => {
-    if (!dateString) return '';
+  // Handle post comment submission with optimistic sync and state recovery
+  const handleSendMessage = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!commentInput.trim() || postingComment) return;
+
+    const originalInput = commentInput;
+    setPostingComment(true);
+
     try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch (e) {
-      return dateString;
+      // 1. Clear input immediately for smooth, lag-free UX
+      setCommentInput('');
+
+      // 2. Fire the POST request to the backend
+      const newCommentResponse = await postMilestoneComment(
+        projectInstanceId, 
+        milestone.id, 
+        originalInput
+      );
+      
+      // 3. Immediately append comment with populated client-side safeguards
+      const completedComment = {
+        id: (newCommentResponse && (newCommentResponse.id || newCommentResponse.Id)) || Date.now().toString(),
+        content: (newCommentResponse && (newCommentResponse.content || newCommentResponse.Content)) || originalInput,
+        authorId: (newCommentResponse && (newCommentResponse.authorId || newCommentResponse.AuthorId)) || project?.studentId || project?.StudentId,
+        authorIdentitySnapshot: (newCommentResponse && (newCommentResponse.authorIdentitySnapshot || newCommentResponse.AuthorIdentitySnapshot)) || "Student Developer",
+        createdAt: (newCommentResponse && (newCommentResponse.createdAt || newCommentResponse.CreatedAt)) || new Date().toISOString()
+      };
+
+      setComments((prevComments) => [...prevComments, completedComment]);
+    } catch (err) {
+      console.error("Failed to post comment:", err);
+      // Rollback input box so the student doesn't lose their typed message on failure
+      setCommentInput(originalInput);
+      setToast({ type: 'error', text: 'Message failed to send. Please check your connection.' });
+      alert("Message failed to send. Please check your network connection and try again.");
+    } finally {
+      setPostingComment(false);
     }
   };
 
@@ -392,7 +451,12 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, on
                 </div>
               ) : (
                 comments.map((comment) => {
-                  const isStudent = (comment.authorIdentitySnapshot || '').toLowerCase().includes('student');
+                  const authorId = comment.authorId || comment.AuthorId;
+                  const studentId = project?.studentId || project?.StudentId;
+                  
+                  // Evaluate if message belongs to logged-in student purely based on IDs
+                  const isStudent = (authorId && studentId && authorId === studentId) || 
+                    (comment.authorIdentitySnapshot || comment.AuthorIdentitySnapshot || '').toLowerCase().includes('student');
                   
                   return (
                     <div 
@@ -404,11 +468,11 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, on
                       {/* Meta information tags */}
                       <div className="flex items-center gap-1.5 mb-1 px-1 text-[10px] text-neutral-400">
                         <span className="font-bold text-neutral-500">
-                          {comment.authorName || (isStudent ? 'You' : 'Supervisor')}
+                          {getAuthorName(comment)}
                         </span>
                         <span>•</span>
                         <span className="italic text-neutral-400 bg-neutral-100 px-1 rounded-sm">
-                          {comment.authorIdentitySnapshot || 'User'}
+                          {getAuthorIdentity(comment)}
                         </span>
                       </div>
 
@@ -423,7 +487,7 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, on
 
                       {/* Display Timestamp */}
                       <span className="text-[9px] text-neutral-400 mt-1 px-1">
-                        {formatTimestamp(comment.createdAt)}
+                        {formatCommentTime(comment)}
                       </span>
                     </div>
                   );
@@ -433,20 +497,21 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, on
               <div ref={chatEndRef} />
             </div>
 
-            {/* Comment Post Footer form box */}
-            <form onSubmit={handleSendComment} className="border-t border-neutral-100 pt-3.5 bg-white flex gap-2 shrink-0">
-              <input
-                type="text"
+            {/* Comment Post Footer form box with dynamic Textarea key events */}
+            <form onSubmit={handleSendMessage} className="border-t border-neutral-100 pt-3.5 bg-white flex gap-2 shrink-0 items-end">
+              <textarea
+                rows={1}
                 placeholder="Type a message to supervisors..."
                 value={commentInput}
                 onChange={(e) => setCommentInput(e.target.value)}
+                onKeyDown={handleKeyDown}
                 disabled={postingComment}
-                className="flex-1 text-xs border border-neutral-200 rounded-xl px-3 py-2.5 outline-hidden focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:bg-neutral-50 disabled:text-neutral-400"
+                className="flex-1 text-xs border border-neutral-200 rounded-xl px-3 py-2.5 outline-hidden focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:bg-neutral-50 disabled:text-neutral-400 resize-none max-h-[80px]"
               />
               <button
                 type="submit"
                 disabled={!commentInput.trim() || postingComment}
-                className="p-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-neutral-200 disabled:hover:bg-neutral-200 text-white disabled:text-neutral-400 rounded-xl transition-colors cursor-pointer disabled:cursor-not-allowed shrink-0"
+                className="p-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-neutral-200 disabled:hover:bg-neutral-200 text-white disabled:text-neutral-400 rounded-xl transition-colors cursor-pointer disabled:cursor-not-allowed shrink-0 mb-0.5"
               >
                 {postingComment ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

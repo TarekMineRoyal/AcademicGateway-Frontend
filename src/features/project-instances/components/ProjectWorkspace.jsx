@@ -334,6 +334,7 @@ export default function ProjectWorkspace() {
           <MilestoneActionCenter 
             projectInstanceId={projectInstanceId}
             milestone={selectedMilestone}
+            project={project} // <--- Passed down the loaded project object as a prop here
             onRefresh={() => fetchMilestones(false)}
           />
         </div>
