@@ -86,7 +86,6 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
   const getAuthorName = (comment) => {
     if (!project) return comment.authorIdentitySnapshot || comment.AuthorIdentitySnapshot || "Participant";
 
-    // Support both camelCase and PascalCase backend responses defensively
     const authorId = comment.authorId || comment.AuthorId;
     const studentId = project.studentId || project.StudentId;
     const supervisorId = project.supervisorId || project.SupervisorId;
@@ -98,7 +97,6 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
       return project.supervisorName || project.SupervisorName || "Faculty Advisor";
     }
 
-    // Fall back to identity snapshot if it's an external user (e.g. Provider)
     return comment.authorIdentitySnapshot || comment.AuthorIdentitySnapshot || "External User";
   };
 
@@ -115,7 +113,6 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
       return "Faculty Advisor";
     }
 
-    // Fall back to the snapshot only if it's not "Unknown Participant"
     const snapshot = comment.authorIdentitySnapshot || comment.AuthorIdentitySnapshot;
     if (snapshot && snapshot !== "Unknown Participant") {
       return snapshot;
@@ -126,13 +123,11 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
 
   // Human-readable case-defensive date parser to make chat timestamps look clean
   const formatCommentTime = (comment) => {
-    // Support both camelCase and PascalCase defensively
     const rawDate = comment.createdAt || comment.CreatedAt;
     
     if (!rawDate) return "Just now";
 
     const dateObj = new Date(rawDate);
-    // Prevent displaying invalid/stale fallback times
     if (isNaN(dateObj.getTime())) {
       return "Just now";
     }
@@ -154,13 +149,8 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
     setSubmittingTasks((prev) => ({ ...prev, [taskId]: true }));
 
     try {
-      // Robust payload containing alternate property formats to ensure maximum backend schema compatibility
-      const payload = { 
-        submissionUrl: textValue,
-        url: textValue
-      };
-
-      await submitTaskDeliverable(projectInstanceId, taskId, payload);
+      // Direct string payload. Our API layer will automatically wrap it perfectly!
+      await submitTaskDeliverable(projectInstanceId, taskId, textValue);
       
       setToast({ type: 'success', text: 'Task submitted successfully! Roadmaps updated.' });
       
@@ -200,17 +190,14 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
     setPostingComment(true);
 
     try {
-      // 1. Clear input immediately for smooth, lag-free UX
       setCommentInput('');
 
-      // 2. Fire the POST request to the backend
       const newCommentResponse = await postMilestoneComment(
         projectInstanceId, 
         milestone.id, 
         originalInput
       );
       
-      // 3. Immediately append comment with populated client-side safeguards
       const completedComment = {
         id: (newCommentResponse && (newCommentResponse.id || newCommentResponse.Id)) || Date.now().toString(),
         content: (newCommentResponse && (newCommentResponse.content || newCommentResponse.Content)) || originalInput,
@@ -222,7 +209,6 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
       setComments((prevComments) => [...prevComments, completedComment]);
     } catch (err) {
       console.error("Failed to post comment:", err);
-      // Rollback input box so the student doesn't lose their typed message on failure
       setCommentInput(originalInput);
       setToast({ type: 'error', text: 'Message failed to send. Please check your connection.' });
       alert("Message failed to send. Please check your network connection and try again.");
@@ -297,6 +283,9 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
               </div>
             ) : (
               milestone.tasks.map((task) => {
+                // DEFENSIVE SAFEGUARD: Handle casing mismatches for Task IDs
+                const taskId = task.id || task.Id || task.taskId || task.TaskId;
+
                 // Safeguards against varying backend data field names
                 const title = task.title || task.titleSnapshot || task.name || "Untitled Task";
                 const description = task.description || task.descriptionSnapshot || "No task description details provided.";
@@ -305,7 +294,7 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
                 const submittedUrl = task.submittedUrl || task.submissionUrl || task.payload;
 
                 return (
-                  <div key={task.id} className="border border-neutral-200 rounded-xl bg-white p-4 shadow-2xs hover:shadow-xs transition-shadow">
+                  <div key={taskId} className="border border-neutral-200 rounded-xl bg-white p-4 shadow-2xs hover:shadow-xs transition-shadow">
                     
                     {/* Header: Title, weight & Status badge */}
                     <div className="flex items-start justify-between gap-3 mb-2.5">
@@ -348,20 +337,20 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
                         <input
                           type="url"
                           placeholder="Paste Git Repo or Deliverable URL..."
-                          value={submissionPayloads[task.id] || ''}
+                          value={submissionPayloads[taskId] || ''}
                           onChange={(e) => setSubmissionPayloads(prev => ({ 
                             ...prev, 
-                            [task.id]: e.target.value 
+                            [taskId]: e.target.value 
                           }))}
-                          disabled={submittingTasks[task.id]}
+                          disabled={submittingTasks[taskId]}
                           className="flex-1 text-xs border border-neutral-200 rounded-lg px-2.5 py-2 outline-hidden focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:bg-neutral-50 disabled:text-neutral-400"
                         />
                         <button
-                          onClick={() => handleTaskSubmit(task.id)}
-                          disabled={submittingTasks[task.id]}
+                          onClick={() => handleTaskSubmit(taskId)}
+                          disabled={submittingTasks[taskId]}
                           className="flex items-center gap-1 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg transition-colors cursor-pointer disabled:bg-indigo-400 disabled:cursor-not-allowed shrink-0"
                         >
-                          {submittingTasks[task.id] ? (
+                          {submittingTasks[taskId] ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
                           ) : (
                             'Submit'
@@ -454,7 +443,6 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
                   const authorId = comment.authorId || comment.AuthorId;
                   const studentId = project?.studentId || project?.StudentId;
                   
-                  // Evaluate if message belongs to logged-in student purely based on IDs
                   const isStudent = (authorId && studentId && authorId === studentId) || 
                     (comment.authorIdentitySnapshot || comment.AuthorIdentitySnapshot || '').toLowerCase().includes('student');
                   
