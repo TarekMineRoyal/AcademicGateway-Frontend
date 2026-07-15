@@ -138,6 +138,24 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
     });
   };
 
+  // Safe mapper for incoming Task statuses (handles integers or strings)
+  const getTaskStatusString = (statusValue) => {
+    if (statusValue === 0 || statusValue === '0' || statusValue === 'NotStarted') {
+      return 'PENDING';
+    }
+    if (statusValue === 1 || statusValue === '1' || statusValue === 'Submitted') {
+      return 'SUBMITTED';
+    }
+    if (statusValue === 2 || statusValue === '2' || statusValue === 'Graded') {
+      return 'GRADED';
+    }
+    
+    // Fallback/Defense mechanism
+    const parsed = String(statusValue || 'Pending').toUpperCase();
+    if (parsed === 'NOTSTARTED' || parsed === 'PENDING') return 'PENDING';
+    return parsed;
+  };
+
   // Handle students submitting URLs/repository links for tasks
   const handleTaskSubmit = async (taskId) => {
     const textValue = (submissionPayloads[taskId] || '').trim();
@@ -149,8 +167,8 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
     setSubmittingTasks((prev) => ({ ...prev, [taskId]: true }));
 
     try {
-      // Direct string payload. Our API layer will automatically wrap it perfectly!
-      await submitTaskDeliverable(projectInstanceId, taskId, textValue);
+      // Pass the milestone.id as the second argument, before the taskId
+      await submitTaskDeliverable(projectInstanceId, milestone.id, taskId, textValue);
       
       setToast({ type: 'success', text: 'Task submitted successfully! Roadmaps updated.' });
       
@@ -290,7 +308,9 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
                 const title = task.title || task.titleSnapshot || task.name || "Untitled Task";
                 const description = task.description || task.descriptionSnapshot || "No task description details provided.";
                 const weight = task.weight !== undefined ? task.weight : 0;
-                const status = (task.status || "Pending").toUpperCase();
+                
+                // CRITICAL FIX: Safe conversion of status
+                const status = getTaskStatusString(task.status);
                 const submittedUrl = task.submittedUrl || task.submissionUrl || task.payload;
 
                 return (

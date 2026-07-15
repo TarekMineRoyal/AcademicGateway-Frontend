@@ -21,36 +21,53 @@ export default function MilestoneTimeline({ milestones, selectedMilestoneId, onS
     }
   };
 
-  // Determine colors and animation states based on milestone status
+  // Determine colors and animation states based on milestone status (handles strings/numbers)
   const getStatusConfig = (status) => {
-    switch (status) {
+    let statusStr = status;
+    
+    // Normalizing numerical enums or string representations
+    if (status === 0 || status === '0' || status === 'NotStarted') {
+      statusStr = 'NotStarted';
+    } else if (status === 1 || status === '1' || status === 'InProgress') {
+      statusStr = 'InProgress';
+    } else if (status === 2 || status === '2' || status === 'Submitted') {
+      statusStr = 'Submitted';
+    } else if (status === 3 || status === '3' || status === 'Graded' || status === 'Completed') {
+      statusStr = 'Completed';
+    }
+
+    switch (statusStr) {
       case 'Completed': 
         return { 
           bg: 'bg-green-500', 
           border: 'border-green-200', 
           text: 'text-green-800 bg-green-50 border-green-200',
-          ring: 'ring-green-100'
+          ring: 'ring-green-100',
+          displayName: 'Completed'
         };
       case 'Submitted': 
         return { 
           bg: 'bg-amber-500', 
           border: 'border-amber-200', 
           text: 'text-amber-800 bg-amber-50 border-amber-200',
-          ring: 'ring-amber-100'
+          ring: 'ring-amber-100',
+          displayName: 'Submitted'
         };
       case 'InProgress': 
         return { 
           bg: 'bg-blue-600 animate-pulse', 
           border: 'border-blue-200', 
           text: 'text-blue-800 bg-blue-50 border-blue-200',
-          ring: 'ring-blue-100'
+          ring: 'ring-blue-100',
+          displayName: 'In Progress'
         };
       default: 
         return { 
           bg: 'bg-gray-300', 
           border: 'border-gray-100', 
           text: 'text-gray-600 bg-gray-50 border-gray-100',
-          ring: 'ring-gray-100'
+          ring: 'ring-gray-100',
+          displayName: 'Not Started'
         };
     }
   };
@@ -75,19 +92,33 @@ export default function MilestoneTimeline({ milestones, selectedMilestoneId, onS
           // Robust checking if predecessor identifier is an object or pure ID
           const targetId = typeof predId === 'object' && predId !== null ? predId.id || predId.predecessorId : predId;
           const matchedMilestone = milestones.find(m => m.id === targetId);
+          
+          // A milestone dependency is resolved if status is Completed/Graded (value 3)
+          const isCompleted = matchedMilestone 
+            ? (matchedMilestone.status === 'Completed' || matchedMilestone.status === 'Graded' || matchedMilestone.status === 3 || matchedMilestone.status === '3')
+            : false;
+
           return {
             title: matchedMilestone ? matchedMilestone.titleSnapshot : 'Prerequisite',
-            isCompleted: matchedMilestone ? matchedMilestone.status === 'Completed' : false
+            isCompleted: isCompleted
           };
         });
 
         // Determine if milestone is locked by looking for any non-completed dependency
         const isBlocked = predecessorsData.some(p => !p.isCompleted);
 
-        // Progress metrics calculation
+        // Progress metrics calculation (handles numeric or string task status matching)
         const tasks = milestone.tasks || [];
-        const completedTasksCount = tasks.filter(t => t.status === 'Graded' || t.status === 'Completed').length;
+        const completedTasksCount = tasks.filter(t => 
+          t.status === 'Graded' || 
+          t.status === 'Completed' || 
+          t.status === 2 || 
+          t.status === '2'
+        ).length;
         const totalTasksCount = tasks.length;
+
+        // Visual presentation setup
+        const isMilestoneCompleted = milestone.status === 'Completed' || milestone.status === 'Graded' || milestone.status === 3 || milestone.status === '3';
 
         return (
           <div 
@@ -99,9 +130,9 @@ export default function MilestoneTimeline({ milestones, selectedMilestoneId, onS
                 : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
             }`}
           >
-            {/* Timeline status dot placement - Centered perfectly on the border line via -left-[41px] (pl-8 offset) */}
+            {/* Timeline status dot placement */}
             <div className={`absolute -left-[41px] top-6 w-4 h-4 rounded-full ring-4 ring-white flex items-center justify-center shadow-sm ${statusConfig.bg}`}>
-              {milestone.status === 'Completed' && (
+              {isMilestoneCompleted && (
                 <svg className="w-2 h-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
@@ -139,7 +170,7 @@ export default function MilestoneTimeline({ milestones, selectedMilestoneId, onS
                 </p>
               </div>
               <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold border shrink-0 ${statusConfig.text}`}>
-                {milestone.status}
+                {statusConfig.displayName}
               </span>
             </div>
             

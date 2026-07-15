@@ -94,19 +94,20 @@ export const postMilestoneComment = async (projectInstanceId, milestoneId, conte
 
 /**
  * Submits a student's repository link or work against a specific task node.
- * Maps to backend: POST /api/project-instances/{projectInstanceId}/tasks/{taskId}/submit
+ * Maps to backend: POST /api/project-instances/{projectInstanceId}/milestones/{milestoneId}/tasks/{taskId}/submissions
  * @param {string} projectInstanceId - The live tracking database ID of the runtime instance.
+ * @param {string} milestoneId - GUID of the parent milestone.
  * @param {string} taskId - GUID of the target task.
  * @param {Object|string} submissionPayload - Repository URL string or flat payload object.
  * @returns {Promise<Object>} The updated submission state context.
  */
-export const submitTaskDeliverable = async (projectInstanceId, taskId, submissionPayload) => {
+export const submitTaskDeliverable = async (projectInstanceId, milestoneId, taskId, submissionPayload) => {
   // Defensive check: If it's already an object containing 'submissionPayload', use it.
   // Otherwise, wrap the raw string into the expected { submissionPayload: "string" } shape.
   const payload = (submissionPayload && typeof submissionPayload === 'object' && 'submissionPayload' in submissionPayload)
     ? submissionPayload
     : { submissionPayload };
 
-  const response = await apiClient.post(`/project-instances/${projectInstanceId}/tasks/${taskId}/submit`, payload);
+  const response = await apiClient.post(`/project-instances/${projectInstanceId}/milestones/${milestoneId}/tasks/${taskId}/submissions`, payload);
   return response.data;
 };
