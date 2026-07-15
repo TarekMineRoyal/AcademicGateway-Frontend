@@ -167,7 +167,34 @@ function StudentDashboard() {
                   const providerCompanyName = project.providerCompanyName || project.ProviderCompanyName;
 
                   return (
-                    <div key={projectId} style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1.25rem', backgroundColor: '#ffffff', transition: 'all 0.2s' }}>
+                    <div 
+                      key={projectId} 
+                      onClick={() => navigate(`/workspace/projects/${projectId}`)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          navigate(`/workspace/projects/${projectId}`);
+                        }
+                      }}
+                      tabIndex={0}
+                      style={{ 
+                        border: '1px solid #e2e8f0', 
+                        borderRadius: '8px', 
+                        padding: '1.25rem', 
+                        backgroundColor: '#ffffff', 
+                        transition: 'all 0.2s ease-in-out',
+                        cursor: 'pointer',
+                        outline: 'none' // Removes default browser outline when selected via Tab
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = '#3182ce';
+                        e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = '#e2e8f0';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }}
+                    >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', marginBottom: '0.5rem' }}>
                         <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1a202c', lineHeight: '1.3' }}>{projectTitle}</h3>
                         {getStatusBadge(projectStatus)}
@@ -182,7 +209,10 @@ function StudentDashboard() {
                             <Building size={14} style={{ color: '#718096' }} />
                             <strong style={{ color: '#718096' }}>Sponsor:</strong>{' '}
                             <span 
-                              onClick={() => providerId && navigate(`/providers/${providerId}`)}
+                              onClick={(e) => {
+                                e.stopPropagation(); // Prevents launching parent workspace
+                                if (providerId) navigate(`/providers/${providerId}`);
+                              }}
                               style={{ color: '#3182ce', cursor: 'pointer', fontWeight: '600', transition: 'color 0.15s' }}
                               onMouseEnter={(e) => e.currentTarget.style.color = '#2b6cb0'}
                               onMouseLeave={(e) => e.currentTarget.style.color = '#3182ce'}
@@ -197,7 +227,10 @@ function StudentDashboard() {
                             <User size={14} style={{ color: '#718096' }} />
                             <strong style={{ color: '#718096' }}>Advisor:</strong>{' '}
                             <span 
-                              onClick={() => professorId && navigate(`/professors/${professorId}`)}
+                              onClick={(e) => {
+                                e.stopPropagation(); // Prevents launching parent workspace
+                                if (professorId) navigate(`/professors/${professorId}`);
+                              }}
                               style={{ color: '#3182ce', cursor: 'pointer', fontWeight: '600', transition: 'color 0.15s' }}
                               onMouseEnter={(e) => e.currentTarget.style.color = '#2b6cb0'}
                               onMouseLeave={(e) => e.currentTarget.style.color = '#3182ce'}
