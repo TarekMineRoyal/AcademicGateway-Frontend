@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getProjectDetails, getProjectMilestones } from '../projectInstancesApi';
-import MilestoneTimeline from './MilestoneTimeline';
+import { getProjectDetails, getProjectMilestones } from '../projectInstancesApi'; //
+import MilestoneTimeline from './MilestoneTimeline'; //
+import MilestoneActionCenter from './MilestoneActionCenter';
 import { 
   ArrowLeft, 
   Clock, 
@@ -14,33 +15,33 @@ import {
   Sparkles,
   CheckCircle,
   MessageSquare
-} from 'lucide-react';
+} from 'lucide-react'; //
 
 export default function ProjectWorkspace() {
-  const { projectInstanceId } = useParams();
-  const navigate = useNavigate();
+  const { projectInstanceId } = useParams(); //
+  const navigate = useNavigate(); //
   
   // Core Local State Matrices
-  const [project, setProject] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [project, setProject] = useState(null); //
+  const [loading, setLoading] = useState(true); //
+  const [error, setError] = useState(null); //
 
   // Lifted Milestone Timeline & Selection States
-  const [milestones, setMilestones] = useState([]);
-  const [selectedMilestoneId, setSelectedMilestoneId] = useState(null);
-  const [milestonesLoading, setMilestonesLoading] = useState(true);
-  const [milestonesError, setMilestonesError] = useState(null);
+  const [milestones, setMilestones] = useState([]); //
+  const [selectedMilestoneId, setSelectedMilestoneId] = useState(null); //
+  const [milestonesLoading, setMilestonesLoading] = useState(true); //
+  const [milestonesError, setMilestonesError] = useState(null); //
 
   // Dynamic state to support clean responsive inline grid rendering without requiring Tailwind CSS compiler
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth); //
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, []); //
 
-  const isLargeScreen = windowWidth >= 1024;
+  const isLargeScreen = windowWidth >= 1024; //
 
   // Retrieve Core Data Lifecycle
   useEffect(() => {
@@ -49,7 +50,7 @@ export default function ProjectWorkspace() {
     setLoading(true);
     setError(null);
 
-    getProjectDetails(projectInstanceId)
+    getProjectDetails(projectInstanceId) //
       .then((data) => {
         setProject(data);
       })
@@ -60,21 +61,23 @@ export default function ProjectWorkspace() {
       .finally(() => {
         setLoading(false);
       });
-  }, [projectInstanceId]);
+  }, [projectInstanceId]); //
 
-  // Retrieve Milestones & Auto-select first active sequence on load
-  useEffect(() => {
-    if (!projectInstanceId) return;
+  // Re-fetch milestones and auto-select active sequences dynamically
+  const fetchMilestones = (autoSelect = false) => {
+    if (!projectInstanceId) return Promise.resolve();
 
-    setMilestonesLoading(true);
+    if (autoSelect) {
+      setMilestonesLoading(true);
+    }
     setMilestonesError(null);
 
-    getProjectMilestones(projectInstanceId)
+    return getProjectMilestones(projectInstanceId) //
       .then((data) => {
         const loadedMilestones = data || [];
         setMilestones(loadedMilestones);
 
-        if (loadedMilestones.length > 0) {
+        if (autoSelect && loadedMilestones.length > 0) {
           // Find the first "InProgress" milestone, or fallback to the first "non-Completed" milestone, or finally index 0
           const firstActive = loadedMilestones.find(m => m.status === 'InProgress') 
             || loadedMilestones.find(m => m.status !== 'Completed') 
@@ -90,8 +93,15 @@ export default function ProjectWorkspace() {
         setMilestonesError(err.message || "Failed to load project milestones roadmap.");
       })
       .finally(() => {
-        setMilestonesLoading(false);
+        if (autoSelect) {
+          setMilestonesLoading(false);
+        }
       });
+  };
+
+  // Retrieve Milestones & Auto-select first active sequence on load
+  useEffect(() => {
+    fetchMilestones(true);
   }, [projectInstanceId]);
 
   // Status-badge configuration mapper using beautiful Tailwind utility classes
@@ -102,25 +112,25 @@ export default function ProjectWorkspace() {
           text: 'Awaiting Supervision', 
           className: 'bg-amber-50 text-amber-700 border-amber-200', 
           icon: <Clock size={14} /> 
-        };
+        }; //
       case 2: // ProjectInstanceStatus.Active
         return { 
           text: 'Active Workspace', 
           className: 'bg-green-50 text-green-800 border-green-200', 
           icon: <CheckCircle size={14} /> 
-        };
+        }; //
       case 3: // ProjectInstanceStatus.Concluded
         return { 
           text: 'Concluded', 
           className: 'bg-blue-50 text-blue-700 border-blue-200', 
           icon: <Award size={14} /> 
-        };
+        }; //
       default: // ProjectInstanceStatus.Canceled / Default
         return { 
           text: 'Canceled', 
           className: 'bg-gray-50 text-gray-600 border-gray-200', 
           icon: <ShieldAlert size={14} /> 
-        };
+        }; //
     }
   };
 
@@ -136,7 +146,7 @@ export default function ProjectWorkspace() {
     } catch (e) {
       return dateStr;
     }
-  };
+  }; //
 
   // Main Loading Screen in Tailwind
   if (loading) {
@@ -146,7 +156,7 @@ export default function ProjectWorkspace() {
         <div className="text-sm tracking-wide">Decrypting academic sandbox environment parameters...</div>
       </div>
     );
-  }
+  } //
 
   // Error Boundary Screen in Tailwind
   if (error) {
@@ -163,7 +173,7 @@ export default function ProjectWorkspace() {
         </button>
       </div>
     );
-  }
+  } //
 
   // Empty Registry Screen in Tailwind
   if (!project) {
@@ -180,22 +190,25 @@ export default function ProjectWorkspace() {
         </button>
       </div>
     );
-  }
+  } //
 
   // Defensive casing-resilient data-binding mapping
-  const projectTitle = project.titleSnapshot || project.TitleSnapshot || project.title || project.Title || 'Dynamic Project Stream';
-  const projectDesc = project.descriptionSnapshot || project.DescriptionSnapshot || project.description || project.Description || 'Academic development workspace initialized.';
-  const rawStatus = project.status !== undefined ? project.status : (project.Status !== undefined ? project.Status : 1);
-  const statusBadge = getStatusConfig(rawStatus);
+  const projectTitle = project.titleSnapshot || project.TitleSnapshot || project.title || project.Title || 'Dynamic Project Stream'; //
+  const projectDesc = project.descriptionSnapshot || project.DescriptionSnapshot || project.description || project.Description || 'Academic development workspace initialized.'; //
+  const rawStatus = project.status !== undefined ? project.status : (project.Status !== undefined ? project.Status : 1); //
+  const statusBadge = getStatusConfig(rawStatus); //
 
-  const supervisor = project.supervisorName || project.SupervisorName || project.professorName || project.ProfessorName || null;
-  const providerName = project.providerCompanyName || project.ProviderCompanyName || project.providerName || project.ProviderName || null;
-  const providerId = project.providerId || project.ProviderId || null;
-  const skillsArray = project.snapshotSkills || project.SnapshotSkills || project.requiredSkills || project.RequiredSkills || [];
+  const supervisor = project.supervisorName || project.SupervisorName || project.professorName || project.ProfessorName || null; //
+  const providerName = project.providerCompanyName || project.ProviderCompanyName || project.providerName || project.ProviderName || null; //
+  const providerId = project.providerId || project.ProviderId || null; //
+  const skillsArray = project.snapshotSkills || project.SnapshotSkills || project.requiredSkills || project.RequiredSkills || []; //
   
-  const createdDate = project.createdAt || project.CreatedAt || null;
-  const targetEndDate = project.endDate || project.EndDate || null;
-  const isSoloMode = project.isSoloMode !== undefined ? project.isSoloMode : (!supervisor);
+  const createdDate = project.createdAt || project.CreatedAt || null; //
+  const targetEndDate = project.endDate || project.EndDate || null; //
+  const isSoloMode = project.isSoloMode !== undefined ? project.isSoloMode : (!supervisor); //
+
+  // Find the currently active milestone object to pass into the Action Center
+  const selectedMilestone = milestones.find(m => m.id === selectedMilestoneId);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8 font-sans">
@@ -316,43 +329,13 @@ export default function ProjectWorkspace() {
           )}
         </div>
 
-        {/* Right Column: Dynamic Comments / Detail Drawer Placeholder */}
+        {/* Right Column: Dynamic Comments / Detail Action Center Drawer */}
         <div className="lg:col-span-1 flex flex-col gap-6">
-          {/* Phase 5 Milestone Details / Chat Feed Goes Here */}
-          <div className="bg-white border border-dashed border-gray-300 rounded-2xl py-14 px-6 text-center flex flex-col items-center justify-center min-h-[420px] shadow-sm">
-            <div className="w-14 h-14 rounded-full bg-green-50 text-green-700 flex items-center justify-center mb-5">
-              <MessageSquare size={22} />
-            </div>
-            
-            <h3 className="text-lg font-bold text-gray-800 mb-2">
-              Milestone Action Center
-            </h3>
-            <p className="text-gray-500 text-sm max-w-[300px] leading-relaxed mx-auto mb-6">
-              Real-time collaboration streams and milestone grading summaries will lock in here.
-            </p>
-
-            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-gray-50 px-3 py-1 rounded-md border border-gray-200">
-              Phase 5 Commentary Node Hook Active
-            </span>
-
-            {/* Visual Skeleton chat box representation to align depth representation */}
-            <div className="w-full max-w-[300px] mt-10 flex flex-col gap-3 opacity-40">
-              <div className="border border-dashed border-gray-200 rounded-xl p-3 flex flex-col gap-1.5 text-left">
-                <div className="flex justify-between">
-                  <div className="h-2 w-1/3 bg-gray-300 rounded" />
-                  <div className="h-1.5 w-1/6 bg-gray-200 rounded" />
-                </div>
-                <div className="h-1.5 w-11/12 bg-gray-100 rounded" />
-              </div>
-              <div className="border border-dashed border-gray-200 rounded-xl p-3 flex flex-col gap-1.5 text-right self-end w-[85%]">
-                <div className="flex justify-between flex-row-reverse">
-                  <div className="h-2 w-1/4 bg-gray-300 rounded" />
-                  <div className="h-1.5 w-1/5 bg-gray-200 rounded" />
-                </div>
-                <div className="h-1.5 w-11/12 bg-gray-100 rounded self-end" />
-              </div>
-            </div>
-          </div>
+          <MilestoneActionCenter 
+            projectInstanceId={projectInstanceId}
+            milestone={selectedMilestone}
+            onRefresh={() => fetchMilestones(false)}
+          />
         </div>
 
       </div>
