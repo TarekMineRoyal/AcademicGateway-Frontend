@@ -1,14 +1,28 @@
 @import "tailwindcss";
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+@theme {
+  /* Brand Theme Colors */
+  --color-brand-dark: #0f172a;   /* Slate 900 (Text & Deep Accents) */
+  --color-brand-light: #f8fafc;  /* Slate 50 (Clean Canvas Background) */
+  
+  --color-primary: #4f46e5;      /* Academic Gateway Indigo */
+  --color-primary-hover: #4338ca;
+  --color-primary-light: #e0e7ff;
+  
+  --color-accent: #059669;       /* Innovation Emerald */
+  --color-accent-hover: #047857;
+  --color-accent-light: #d1fae5;
+
+  /* Custom Layout Tokens */
+  --radius-card: 0.75rem;
+  --radius-btn: 0.5rem;
 }
 
+/* Global Canvas Styling */
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: #f8f9fa;
-  color: #212529;
+  /* Tailwind automatically assigns the font stack behind the scenes, 
+     but we use our brand variables here to establish our base theme. */
+  background-color: var(--color-brand-light);
+  color: var(--color-brand-dark);
   line-height: 1.5;
 }
