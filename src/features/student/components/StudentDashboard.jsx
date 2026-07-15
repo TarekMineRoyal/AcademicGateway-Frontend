@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { getStudentProfile, getStudentProjects } from '../studentDashboardApi';
-import { PlusCircle, Folder, Clock, CheckCircle, AlertTriangle, BookOpen, Award, Shield, User, Building } from 'lucide-react';
+// Imported the pre-built backend transition handler endpoint
+import { transitionToSolo } from '../../project-instances/projectInstancesApi'; 
+import { PlusCircle, Folder, Clock, CheckCircle, AlertTriangle, BookOpen, Award, Shield, User, Building, Zap } from 'lucide-react';
 
 function StudentDashboard() {
   const { user } = useAuth();
@@ -16,30 +18,55 @@ function StudentDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    async function fetchDashboardData() {
-      if (!user || (!user.id && !user.sub)) return;
-      
-      try {
-        setLoading(true);
-        const targetId = user.id || user.sub;
-        const [profileData, projectData] = await Promise.all([
-          getStudentProfile(targetId),
-          getStudentProjects(targetId)
-        ]);
-        console.log("RAW PROFILE FROM BACKEND:", profileData);
-        console.log("RAW PROJECTS FROM BACKEND:", projectData);
-        setProfile(profileData);
-        setProjects(projectData);
-      } catch (err) {
-        setError('Failed to sync workspace details with the academic registry.');
-      } finally {
-        setLoading(false);
-      }
-    }
+  // Action Lifecycle States for Transition Workflow
+  const [soloModalProject, setSoloModalProject] = useState(null);
+  const [soloSubmitting, setSoloSubmitting] = useState(false);
 
+  // Extracted dashboard refresh logic into an independent sync handler
+  async function fetchDashboardData() {
+    if (!user || (!user.id && !user.sub)) return;
+    
+    try {
+      setLoading(true);
+      const targetId = user.id || user.sub;
+      const [profileData, projectData] = await Promise.all([
+        getStudentProfile(targetId),
+        getStudentProjects(targetId)
+      ]);
+      console.log("RAW PROFILE FROM BACKEND:", profileData);
+      console.log("RAW PROJECTS FROM BACKEND:", projectData);
+      setProfile(profileData);
+      setProjects(projectData);
+    } catch (err) {
+      setError('Failed to sync workspace details with the academic registry.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
     fetchDashboardData();
   }, [user]);
+
+  // Action Handler to commit project transition to backend registry state flags
+  const handleStartSolo = async () => {
+    if (!soloModalProject) return;
+    try {
+      setSoloSubmitting(true);
+      const projectId = soloModalProject.id || soloModalProject.Id;
+      
+      // Hit backend to instantly change status to 2
+      await transitionToSolo(projectId);
+      
+      // Close modal and cleanly re-sync workspace dashboard components
+      setSoloModalProject(null);
+      await fetchDashboardData();
+    } catch (err) {
+      alert('Failed to transition project channel to solo tracking mode. Please try again.');
+    } finally {
+      setSoloSubmitting(false);
+    }
+  };
 
   // Helper mapping to visually interpret ProjectInstanceStatus enum flags
   const getStatusBadge = (statusValue) => {
@@ -72,7 +99,7 @@ function StudentDashboard() {
   };
 
   if (loading) {
-    return <div style={{ color: '#4a5568', textAlign: 'center', padding: '6rem font-weight: 500' }}>Re-indexing student workspaces...</div>;
+    return <div style={{ color: '#4a5568', textAlign: 'center', padding: '6rem', fontWeight: '500' }}>Re-indexing student workspaces...</div>;
   }
 
   if (error) {
@@ -258,11 +285,25 @@ function StudentDashboard() {
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px dashed #fde68a', paddingTop: '0.75rem', marginTop: '0.5rem' }}>
-                        <span style={{ color: '#718096', fontSize: '0.8rem', fontWeight: '500' }}>
-                          Opened {new Date(appCreatedAt).toLocaleDateString()}
-                        </span>
-                        {getStatusBadge(appStatus)}
+                      {/* Augmented card footer layout to include a visible clear action element row */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', borderTop: '1px dashed #fde68a', paddingTop: '0.75rem', marginTop: '0.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <span style={{ color: '#718096', fontSize: '0.8rem', fontWeight: '500' }}>
+                            Opened {new Date(appCreatedAt).toLocaleDateString()}
+                          </span>
+                          {getStatusBadge(appStatus)}
+                        </div>
+                        
+                        {/* Interactive Action Button to Bypass Waiting Trajectory */}
+                        <button
+                          onClick={() => setSoloModalProject(app)}
+                          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', padding: '0.5rem 0.75rem', backgroundColor: '#ffffff', color: '#b45309', border: '1px solid #fde68a', borderRadius: '6px', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', transition: 'all 0.15s' }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fffbeb'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
+                        >
+                          <Zap size={13} />
+                          Start Solo Instead
+                        </button>
                       </div>
                     </div>
                   );
@@ -353,6 +394,44 @@ function StudentDashboard() {
 
         </div>
       </div>
+
+      {/* Confirmation Overlay Explaining the Multi-Agent Routing Process */}
+      {soloModalProject && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(26, 32, 44, 0.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
+          <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', padding: '1.75rem', maxWidth: '500px', width: '100%', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)', border: '1px solid #e2e8f0' }}>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#1a202c', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Zap size={18} style={{ color: '#d97706' }} /> Start Project Solo
+            </h3>
+            
+            <p style={{ color: '#4a5568', fontSize: '0.9rem', lineHeight: '1.55', marginBottom: '1.5rem' }}>
+              You are launching <strong>{soloModalProject.title || soloModalProject.Title}</strong> independently. This initializes your workspace channel <strong>immediately</strong> (Status: Active).
+              <br /><br />
+              <span style={{ display: 'block', backgroundColor: '#fffbeb', border: '1px solid #fde68a', padding: '0.75rem', borderRadius: '6px', color: '#b45309', fontSize: '0.85rem', fontWeight: '500' }}>
+                <strong>Important Process Node:</strong> The advisor invitation issued to <strong>{soloModalProject.requestedProfessorName || soloModalProject.RequestedProfessorName}</strong> remains active in the registry. They can claim it and join your running workspace seamlessly at any later milestone point.
+              </span>
+            </p>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <button 
+                disabled={soloSubmitting}
+                onClick={() => setSoloModalProject(null)}
+                style={{ padding: '0.5rem 1rem', border: '1px solid #e2e8f0', borderRadius: '6px', backgroundColor: '#ffffff', color: '#4a5568', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.15s' }}
+              >
+                Cancel
+              </button>
+              <button 
+                disabled={soloSubmitting}
+                onClick={handleStartSolo}
+                style={{ padding: '0.5rem 1rem', border: 'none', borderRadius: '6px', backgroundColor: '#3182ce', color: '#ffffff', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem', boxShadow: '0 4px 6px -1px rgba(49, 130, 206, 0.15)', transition: 'all 0.15s' }}
+                onMouseEnter={(e) => !soloSubmitting && (e.currentTarget.style.backgroundColor = '#2b6cb0')}
+                onMouseLeave={(e) => !soloSubmitting && (e.currentTarget.style.backgroundColor = '#3182ce')}
+              >
+                {soloSubmitting ? 'Activating Workspace...' : 'Confirm & Start Solo'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
