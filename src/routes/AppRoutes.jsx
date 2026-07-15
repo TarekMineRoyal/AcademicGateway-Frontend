@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import LandingPage from '../pages/LandingPage';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
@@ -17,6 +17,12 @@ const PlaceholderView = ({ title }) => (
     <p style={{ color: '#718096', fontSize: '0.9rem' }}>This workspace channel is currently being prepared for platform synchronization.</p>
   </div>
 );
+
+// Task 1.2: Added Temporary Workspace Placeholder Component
+const ProjectWorkspacePlaceholder = () => {
+  const { projectInstanceId } = useParams();
+  return <div className="p-6">Project Workspace Placeholder for ID: {projectInstanceId}</div>;
+};
 
 function AppRoutes() {
   return (
@@ -58,6 +64,17 @@ function AppRoutes() {
           <Route path="approve-templates" element={<PlaceholderView title="Global Project Verification Board" />} />
           <Route path="verify-providers" element={<PlaceholderView title="External Institutional Sponsor Vetting Board" />} />
           <Route path="users" element={<PlaceholderView title="Global User Core Account Directory" />} />
+        </Route>
+
+        {/* Task 1.2: Project Workspace Route - Secured under standard authentication and persistent Sidebar/Header Layout */}
+        <Route 
+          element={
+            <ProtectedRoute>
+              <WorkspaceLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="/workspace/projects/:projectInstanceId" element={<ProjectWorkspacePlaceholder />} />
         </Route>
 
         {/* Global Catch-all Redirection Safeguard */}
