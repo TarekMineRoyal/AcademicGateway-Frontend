@@ -1,108 +1,77 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import apiClient from '../../../api/apiClient';
+import React from 'react';
 
-function ProfessorRegisterForm() {
-  const navigate = useNavigate();
-
-  // Core fields matching RegisterProfessorCommand.cs properties
-  const [email, setEmail] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [academicDepartment, setAcademicDepartment] = useState('');
-  const [rank, setRank] = useState('');
-  const [maxSupervisionCapacity, setMaxSupervisionCapacity] = useState(3); // Default baseline fallback
-
-  // Operational UI States
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setIsSubmitting(true);
-
-    // Formulates the structured payload matching the backend command exactly
-    const commandPayload = {
-      email,
-      username,
-      password,
-      fullName,
-      academicDepartment,
-      rank,
-      maxSupervisionCapacity: parseInt(maxSupervisionCapacity, 10),
-    };
-
-    try {
-      // Dispatches directly to your CQRS Professor Post handler route
-      await apiClient.post('/professors/register', commandPayload);
-      
-      // On successful identity mapping, bounce back to unified login
-      navigate('/login?registered=true');
-    } catch (err) {
-      setError(err.response?.data?.message || 'An error occurred during faculty registration.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
+function ProfessorRegisterForm({ formValues, onFieldChange }) {
   return (
-    <div style={{ maxWidth: '500px', margin: '2rem auto', padding: '2rem', border: '1px solid #ddd', borderRadius: '8px', background: '#fff' }}>
-      <h2>Faculty Mentor Registration</h2>
-      <p style={{ color: '#666', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-        Provision your institutional identity credentials to oversee student capstone projects.
-      </p>
+    <div className="space-y-4 animate-fadeIn">
+      {/* Structural Subsection Header */}
+      <div className="border-b border-slate-100 pb-2">
+        <h2 className="text-lg font-bold text-slate-800">Faculty Mentor Profile</h2>
+        <p className="text-xs text-slate-400">
+          Provision your institutional identity credentials to oversee student capstone projects.
+        </p>
+      </div>
 
-      {error && <div style={{ color: 'red', marginBottom: '1rem', fontWeight: 'bold' }}>{error}</div>}
+      {/* Full Name Input Block */}
+      <div>
+        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">
+          Full Name & Academic Title *
+        </label>
+        <input
+          type="text"
+          value={formValues.fullName}
+          onChange={(e) => onFieldChange('fullName', e.target.value)}
+          placeholder="e.g., Dr. Sarah Jenkins"
+          className="w-full px-3 py-2 border border-slate-200 rounded-btn focus:outline-none focus:border-primary text-sm bg-slate-50/50"
+          required
+        />
+      </div>
 
-      <form onSubmit={handleSubmit}>
-        {/* Profile Details */}
-        <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.25rem' }}>Full Legal Name</label>
-          <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} required style={{ width: '100%', padding: '0.5rem' }} />
+      {/* Institutional Department Input Block */}
+      <div>
+        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">
+          Faculty / Institutional Branch Name *
+        </label>
+        <input
+          type="text"
+          value={formValues.academicDepartment}
+          onChange={(e) => onFieldChange('academicDepartment', e.target.value)}
+          placeholder="e.g., Department of Computer Science"
+          className="w-full px-3 py-2 border border-slate-200 rounded-btn focus:outline-none focus:border-primary text-sm bg-slate-50/50"
+          required
+        />
+      </div>
+
+      {/* Grid Configuration for Rank and Allocation Limits */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="col-span-2">
+          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">
+            Academic Rank Title *
+          </label>
+          <input
+            type="text"
+            value={formValues.rank}
+            onChange={(e) => onFieldChange('rank', e.target.value)}
+            placeholder="e.g., Associate Professor"
+            className="w-full px-3 py-2 border border-slate-200 rounded-btn focus:outline-none focus:border-primary text-sm bg-slate-50/50"
+            required
+          />
         </div>
-
-        <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.25rem' }}>Corporate / Academic Email</label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ width: '100%', padding: '0.5rem' }} />
+        
+        <div>
+          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">
+            Max Capacity *
+          </label>
+          <input
+            type="number"
+            min="1"
+            max="20"
+            value={formValues.maxSupervisionCapacity}
+            onChange={(e) => onFieldChange('maxSupervisionCapacity', e.target.value)}
+            className="w-full px-3 py-2 border border-slate-200 rounded-btn focus:outline-none focus:border-primary text-sm bg-slate-50/50 font-semibold text-slate-800"
+            required
+          />
         </div>
-
-        {/* Security Credentials */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.25rem' }}>Username</label>
-            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} required style={{ width: '100%', padding: '0.5rem' }} />
-          </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.25rem' }}>Password</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ width: '100%', padding: '0.5rem' }} />
-          </div>
-        </div>
-
-        <hr style={{ margin: '1.5rem 0', borderColor: '#eee' }} />
-
-        {/* Institutional Assignments */}
-        <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.25rem' }}>Academic Department</label>
-          <input type="text" value={academicDepartment} onChange={(e) => setAcademicDepartment(e.target.value)} placeholder="e.g., Computer Science" required style={{ width: '100%', padding: '0.5rem' }} />
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem', marginBottom: '2rem' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.25rem' }}>Academic Rank Title</label>
-            <input type="text" value={rank} onChange={(e) => setRank(e.target.value)} placeholder="e.g., Associate Professor" required style={{ width: '100%', padding: '0.5rem' }} />
-          </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.25rem' }}>Max Capacity</label>
-            <input type="number" min="1" max="20" value={maxSupervisionCapacity} onChange={(e) => setMaxSupervisionCapacity(e.target.value)} required style={{ width: '100%', padding: '0.5rem' }} />
-          </div>
-        </div>
-
-        <button type="submit" disabled={isSubmitting} style={{ width: '100%', padding: '0.75rem', background: '#0056b3', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>
-          {isSubmitting ? 'Provisions Faculty Identity...' : 'Register Faculty Profile'}
-        </button>
-      </form>
+      </div>
     </div>
   );
 }

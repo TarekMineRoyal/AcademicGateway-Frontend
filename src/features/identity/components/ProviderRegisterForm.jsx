@@ -1,100 +1,59 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import apiClient from '../../../api/apiClient';
+import React from 'react';
 
-function ProviderRegisterForm() {
-  const navigate = useNavigate();
-
-  // Core fields matching RegisterProviderCommand.cs properties
-  const [email, setEmail] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [companyName, setCompanyName] = useState('');
-  const [companyDescription, setCompanyDescription] = useState('');
-  const [websiteUrl, setWebsiteUrl] = useState('');
-
-  // Operational UI States
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setIsSubmitting(true);
-
-    // Formulates the structured payload matching the backend command exactly
-    const commandPayload = {
-      email,
-      username,
-      password,
-      companyName,
-      companyDescription,
-      // Pass null if the string is empty to respect the nullable string? configuration
-      websiteUrl: websiteUrl.trim() || null, 
-    };
-
-    try {
-      // Dispatches directly to your CQRS Provider Post handler route
-      await apiClient.post('/providers/register', commandPayload);
-      
-      // On successful aggregate baseline initialization, drop back to login
-      navigate('/login?registered=true');
-    } catch (err) {
-      setError(err.response?.data?.message || 'An error occurred during researcher profile registration.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
+function ProviderRegisterForm({ formValues, onFieldChange }) {
   return (
-    <div style={{ maxWidth: '500px', margin: '2rem auto', padding: '2rem', border: '1px solid #ddd', borderRadius: '8px', background: '#fff' }}>
-      <h2>Researcher & Sponsor Registration</h2>
-      <p style={{ color: '#666', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-        Register your organization or lab unit to propose and sponsor real-world academic projects.
-      </p>
+    <div className="space-y-4 animate-fadeIn">
+      {/* Subsection Layout Header */}
+      <div className="border-b border-slate-100 pb-2">
+        <h2 className="text-lg font-bold text-slate-800">Researcher & Sponsor Profile</h2>
+        <p className="text-xs text-slate-400">
+          Register your organization or lab unit to propose and sponsor real-world academic projects.
+        </p>
+      </div>
 
-      {error && <div style={{ color: 'red', marginBottom: '1rem', fontWeight: 'bold' }}>{error}</div>}
+      {/* Institution / Company Name Input Block */}
+      <div>
+        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">
+          Institution / Company Name *
+        </label>
+        <input
+          type="text"
+          value={formValues.companyName}
+          onChange={(e) => onFieldChange('companyName', e.target.value)}
+          placeholder="e.g., Quantum Computing Lab A"
+          className="w-full px-3 py-2 border border-slate-200 rounded-btn focus:outline-none focus:border-primary text-sm bg-slate-50/50"
+          required
+        />
+      </div>
 
-      <form onSubmit={handleSubmit}>
-        {/* Lab/Company Details */}
-        <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.25rem' }}>Institution / Company Name</label>
-          <input type="text" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="e.g., Quantum Computing Lab A" required style={{ width: '100%', padding: '0.5rem' }} />
-        </div>
+      {/* Operational Focus & Strategic Lab Description Textarea */}
+      <div>
+        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">
+          Operational Focus & Lab Description *
+        </label>
+        <textarea
+          value={formValues.companyDescription}
+          onChange={(e) => onFieldChange('companyDescription', e.target.value)}
+          placeholder="Describe your operational background, capability statements, and core industry focus areas..."
+          rows={4}
+          className="w-full px-3 py-2 border border-slate-200 rounded-btn focus:outline-none focus:border-primary text-sm bg-slate-50/50 resize-vertical font-sans"
+          required
+        />
+      </div>
 
-        <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.25rem' }}>Operational Focus & Lab Description</label>
-          <textarea value={companyDescription} onChange={(e) => setCompanyDescription(e.target.value)} placeholder="Describe your operational background, capability statements, and core industry focus areas..." required rows={4} style={{ width: '100%', padding: '0.5rem', resize: 'vertical', fontFamily: 'inherit' }} />
-        </div>
-
-        <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.25rem' }}>Portal Website URL (Optional)</label>
-          <input type="url" value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} placeholder="https://example.com/lab" style={{ width: '100%', padding: '0.5rem' }} />
-        </div>
-
-        <hr style={{ margin: '1.5rem 0', borderColor: '#eee' }} />
-
-        {/* Security Access Credentials */}
-        <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.25rem' }}>Primary Institutional Email</label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ width: '100%', padding: '0.5rem' }} />
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '2rem' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.25rem' }}>Username</label>
-            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} required style={{ width: '100%', padding: '0.5rem' }} />
-          </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.25rem' }}>Password</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ width: '100%', padding: '0.5rem' }} />
-          </div>
-        </div>
-
-        <button type="submit" disabled={isSubmitting} style={{ width: '100%', padding: '0.75rem', background: '#e67e22', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>
-          {isSubmitting ? 'Submitting Corporate Profile...' : 'Register Corporate Provider'}
-        </button>
-      </form>
+      {/* Optional Website Portal URL Block */}
+      <div>
+        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">
+          Portal Website URL (Optional)
+        </label>
+        <input
+          type="url"
+          value={formValues.websiteUrl}
+          onChange={(e) => onFieldChange('websiteUrl', e.target.value)}
+          placeholder="https://example.com/lab"
+          className="w-full px-3 py-2 border border-slate-200 rounded-btn focus:outline-none focus:border-primary text-sm bg-slate-50/50"
+        />
+      </div>
     </div>
   );
 }
