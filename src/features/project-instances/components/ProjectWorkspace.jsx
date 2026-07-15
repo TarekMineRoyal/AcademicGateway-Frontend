@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getProjectDetails } from '../projectInstancesApi';
+import { getProjectDetails, getProjectMilestones } from '../projectInstancesApi';
+import MilestoneTimeline from './MilestoneTimeline';
 import { 
   ArrowLeft, 
   Clock, 
@@ -23,6 +24,12 @@ export default function ProjectWorkspace() {
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Lifted Milestone Timeline & Selection States
+  const [milestones, setMilestones] = useState([]);
+  const [selectedMilestoneId, setSelectedMilestoneId] = useState(null);
+  const [milestonesLoading, setMilestonesLoading] = useState(true);
+  const [milestonesError, setMilestonesError] = useState(null);
 
   // Dynamic state to support clean responsive inline grid rendering without requiring Tailwind CSS compiler
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -55,39 +62,63 @@ export default function ProjectWorkspace() {
       });
   }, [projectInstanceId]);
 
-  // Clean status-badge configuration mapper (aligned with StudentDashboard enum interpreting)
+  // Retrieve Milestones & Auto-select first active sequence on load
+  useEffect(() => {
+    if (!projectInstanceId) return;
+
+    setMilestonesLoading(true);
+    setMilestonesError(null);
+
+    getProjectMilestones(projectInstanceId)
+      .then((data) => {
+        const loadedMilestones = data || [];
+        setMilestones(loadedMilestones);
+
+        if (loadedMilestones.length > 0) {
+          // Find the first "InProgress" milestone, or fallback to the first "non-Completed" milestone, or finally index 0
+          const firstActive = loadedMilestones.find(m => m.status === 'InProgress') 
+            || loadedMilestones.find(m => m.status !== 'Completed') 
+            || loadedMilestones[0];
+          
+          if (firstActive) {
+            setSelectedMilestoneId(firstActive.id);
+          }
+        }
+      })
+      .catch((err) => {
+        console.error("Milestone tree synchronization failed:", err);
+        setMilestonesError(err.message || "Failed to load project milestones roadmap.");
+      })
+      .finally(() => {
+        setMilestonesLoading(false);
+      });
+  }, [projectInstanceId]);
+
+  // Status-badge configuration mapper using beautiful Tailwind utility classes
   const getStatusConfig = (statusValue) => {
     switch (statusValue) {
       case 1: // ProjectInstanceStatus.AwaitingSupervision
         return { 
           text: 'Awaiting Supervision', 
-          bg: '#fffbeb', 
-          color: '#b45309', 
-          border: '1px solid #fde68a', 
+          className: 'bg-amber-50 text-amber-700 border-amber-200', 
           icon: <Clock size={14} /> 
         };
       case 2: // ProjectInstanceStatus.Active
         return { 
           text: 'Active Workspace', 
-          bg: '#f0fdf4', 
-          color: '#166534', 
-          border: '1px solid #bbf7d0', 
+          className: 'bg-green-50 text-green-800 border-green-200', 
           icon: <CheckCircle size={14} /> 
         };
       case 3: // ProjectInstanceStatus.Concluded
         return { 
           text: 'Concluded', 
-          bg: '#f0f9ff', 
-          color: '#0369a1', 
-          border: '1px solid #bae6fd', 
+          className: 'bg-blue-50 text-blue-700 border-blue-200', 
           icon: <Award size={14} /> 
         };
       default: // ProjectInstanceStatus.Canceled / Default
         return { 
           text: 'Canceled', 
-          bg: '#f9fafb', 
-          color: '#4b5563', 
-          border: '1px solid #e5e7eb', 
+          className: 'bg-gray-50 text-gray-600 border-gray-200', 
           icon: <ShieldAlert size={14} /> 
         };
     }
@@ -107,26 +138,26 @@ export default function ProjectWorkspace() {
     }
   };
 
-  // Loading indicator template matched with registry loader guidelines
+  // Main Loading Screen in Tailwind
   if (loading) {
     return (
-      <div style={{ color: '#4a5568', textAlign: 'center', padding: '8rem 2rem', fontWeight: '500', fontFamily: 'system-ui, sans-serif' }}>
-        <div style={{ display: 'inline-block', width: '2rem', height: '2rem', border: '3px solid #e2e8f0', borderTopColor: '#3182ce', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '1rem' }} />
-        <div>Decrypting academic sandbox environment parameters...</div>
+      <div className="flex flex-col items-center justify-center min-h-screen text-gray-600 text-center py-32 px-8 font-medium font-sans">
+        <div className="inline-block w-8 h-8 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mb-4" />
+        <div className="text-sm tracking-wide">Decrypting academic sandbox environment parameters...</div>
       </div>
     );
   }
 
-  // Error boundary template
+  // Error Boundary Screen in Tailwind
   if (error) {
     return (
-      <div style={{ maxWidth: '600px', margin: '4rem auto', padding: '2rem', backgroundColor: '#fff5f5', border: '1px solid #fed7d7', borderRadius: '12px', textAlign: 'center', fontFamily: 'system-ui, sans-serif' }}>
-        <ShieldAlert size={48} style={{ color: '#e53e3e', margin: '0 auto 1rem auto' }} />
-        <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#c53030', marginBottom: '0.5rem' }}>Workspace Handshake Interrupted</h3>
-        <p style={{ color: '#718096', fontSize: '0.95rem', marginBottom: '1.5rem' }}>{error}</p>
+      <div className="max-w-xl mx-auto my-16 p-8 bg-red-50 border border-red-200 rounded-2xl text-center font-sans shadow-sm">
+        <ShieldAlert size={48} className="text-red-500 mx-auto mb-4" />
+        <h3 className="text-xl font-bold text-red-700 mb-2">Workspace Handshake Interrupted</h3>
+        <p className="text-gray-600 text-sm mb-6">{error}</p>
         <button 
           onClick={() => navigate('/dashboard')} 
-          style={{ padding: '0.6rem 1.25rem', backgroundColor: '#3182ce', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white border-none rounded-lg font-semibold cursor-pointer shadow-sm transition duration-150 text-sm"
         >
           <ArrowLeft size={16} /> Return to Dashboard
         </button>
@@ -134,15 +165,16 @@ export default function ProjectWorkspace() {
     );
   }
 
+  // Empty Registry Screen in Tailwind
   if (!project) {
     return (
-      <div style={{ maxWidth: '600px', margin: '4rem auto', padding: '2rem', backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', textAlign: 'center', fontFamily: 'system-ui, sans-serif' }}>
-        <ShieldAlert size={48} style={{ color: '#718096', margin: '0 auto 1rem auto' }} />
-        <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#2d3748', marginBottom: '0.5rem' }}>Workspace Registry Empty</h3>
-        <p style={{ color: '#718096', fontSize: '0.95rem', marginBottom: '1.5rem' }}>The requested live workspace instance could not be located in academic registers.</p>
+      <div className="max-w-xl mx-auto my-16 p-8 bg-white border border-gray-200 rounded-2xl text-center font-sans shadow-sm">
+        <ShieldAlert size={48} className="text-gray-400 mx-auto mb-4" />
+        <h3 className="text-xl font-bold text-gray-800 mb-2">Workspace Registry Empty</h3>
+        <p className="text-gray-500 text-sm mb-6">The requested live workspace instance could not be located in academic registers.</p>
         <button 
           onClick={() => navigate('/dashboard')} 
-          style={{ padding: '0.6rem 1.25rem', backgroundColor: '#3182ce', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer' }}
+          className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white border-none rounded-lg font-semibold cursor-pointer shadow-sm transition duration-150 text-sm"
         >
           Return to Dashboard
         </button>
@@ -166,61 +198,59 @@ export default function ProjectWorkspace() {
   const isSoloMode = project.isSoloMode !== undefined ? project.isSoloMode : (!supervisor);
 
   return (
-    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '2rem 1.5rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div className="max-w-7xl mx-auto px-6 py-8 font-sans">
       
       {/* 1. Header Navigation Breadcrumb */}
       <button 
         onClick={() => navigate('/dashboard')} 
-        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0', color: '#4a5568', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '600', marginBottom: '1.5rem', transition: 'color 0.15s' }}
-        onMouseEnter={(e) => e.currentTarget.style.color = '#3182ce'}
-        onMouseLeave={(e) => e.currentTarget.style.color = '#4a5568'}
+        className="inline-flex items-center gap-2 py-2 text-gray-600 hover:text-blue-600 bg-transparent border-none cursor-pointer text-sm font-semibold mb-6 transition-colors duration-150"
       >
         <ArrowLeft size={16} /> Back to Dashboard
       </button>
 
       {/* 2. Workspace Meta Summary Card */}
-      <div style={{ backgroundColor: '#fff', padding: '2rem', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.02)', marginBottom: '2rem' }}>
+      <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm mb-8">
         
         {/* Row 1: Title & Status Badge */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
-          <div style={{ flex: '1 1 500px' }}>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: '800', color: '#1a202c', lineHeight: '1.2', letterSpacing: '-0.02em', marginBottom: '0.5rem' }}>
+        <div className="flex justify-between items-start flex-wrap gap-4 mb-6">
+          <div className="flex-1 min-w-[300px]">
+            <h1 className="text-3xl font-extrabold text-gray-900 leading-tight tracking-tight mb-2">
               {projectTitle}
             </h1>
-            <p style={{ color: '#4a5568', fontSize: '0.95rem', lineHeight: '1.6', margin: 0 }}>
+            <p className="text-gray-600 text-sm md:text-base leading-relaxed m-0">
               {projectDesc}
             </p>
           </div>
           
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.4rem 0.85rem', borderRadius: '8px', backgroundColor: statusBadge.bg, color: statusBadge.color, border: statusBadge.border, fontSize: '0.8rem', fontWeight: '700' }}>
+          <span className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border text-xs font-bold ${statusBadge.className}`}>
             {statusBadge.icon} {statusBadge.text}
           </span>
         </div>
 
         {/* Row 2: Stakeholder & Info Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', borderTop: '1px solid #edf2f7', paddingTop: '1.5rem', marginTop: '1.5rem' }}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 border-t border-gray-100 pt-6 mt-6">
           
           {/* Faculty Supervisor Node */}
           <div>
-            <span style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.4rem' }}>
+            <span className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
               Academic Advisor
             </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.9rem', color: '#2d3748', fontWeight: '600' }}>
-              <User size={15} style={{ color: '#718096' }} />
+            <span className="flex items-center gap-2 text-sm text-gray-800 font-semibold">
+              <User size={15} className="text-gray-500" />
               {!isSoloMode && supervisor ? supervisor : 'Solo Project Mode'}
             </span>
           </div>
 
           {/* Industry Sponsor Node */}
           <div>
-            <span style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.4rem' }}>
+            <span className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
               Sponsor Unit
             </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.9rem', color: '#2d3748', fontWeight: '600' }}>
-              <Building size={15} style={{ color: '#718096' }} />
+            <span className="flex items-center gap-2 text-sm text-gray-800 font-semibold">
+              <Building size={15} className="text-gray-500" />
               {providerName ? `${providerName}` : 'Independent Core Blueprint'}
               {providerId && (
-                <code style={{ fontSize: '0.75rem', backgroundColor: '#f7fafc', padding: '0.1rem 0.3rem', borderRadius: '4px', color: '#a0aec0', fontWeight: '400', marginLeft: '0.25rem' }}>
+                <code className="text-[11px] bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100 text-gray-400 font-mono ml-1">
                   {providerId.slice(0, 8)}
                 </code>
               )}
@@ -229,11 +259,11 @@ export default function ProjectWorkspace() {
 
           {/* Timeline Range Node */}
           <div>
-            <span style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.4rem' }}>
+            <span className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
               Timeline Windows
             </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.9rem', color: '#2d3748', fontWeight: '600' }}>
-              <Calendar size={15} style={{ color: '#718096' }} />
+            <span className="flex items-center gap-2 text-sm text-gray-800 font-semibold">
+              <Calendar size={15} className="text-gray-500" />
               {formatDateString(createdDate)} &mdash; {formatDateString(targetEndDate)}
             </span>
           </div>
@@ -242,15 +272,15 @@ export default function ProjectWorkspace() {
 
         {/* Row 3: Visual Capstone Capability Pills */}
         {skillsArray.length > 0 && (
-          <div style={{ borderTop: '1px solid #edf2f7', paddingTop: '1.25rem', marginTop: '1.25rem' }}>
-            <span style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.6rem' }}>
+          <div className="border-t border-gray-100 pt-5 mt-5">
+            <span className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2.5">
               Workspace Snapshot Capability Focus
             </span>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+            <div className="flex flex-wrap gap-2">
               {skillsArray.map((sk, idx) => (
                 <span 
                   key={sk.id || sk.Id || sk.skillId || idx} 
-                  style={{ fontSize: '0.75rem', backgroundColor: '#edf2f7', color: '#4a5568', padding: '0.25rem 0.65rem', borderRadius: '6px', fontWeight: '600', border: '1px solid #e2e8f0' }}
+                  className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-md font-semibold border border-gray-200"
                 >
                   {sk.name || sk.Name || 'System Skill'}
                 </span>
@@ -262,81 +292,64 @@ export default function ProjectWorkspace() {
       </div>
 
       {/* 3. Operational Division Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: isLargeScreen ? '65% 35%' : '1fr', gap: '2rem' }}>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Left Column: Milestone Timeline Placeholder */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {/* Phase 4 Milestone Timeline Component Goes Here */}
-          <div style={{ backgroundColor: '#ffffff', border: '1px dashed #cbd5e0', borderRadius: '12px', padding: '3.5rem 2rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '420px' }}>
-            <div style={{ width: '3.5rem', height: '3.5rem', borderRadius: '50%', backgroundColor: '#ebf8ff', color: '#3182ce', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem' }}>
-              <Layers size={24} />
+        {/* Left Column: Milestone Timeline */}
+        <div className="lg:col-span-2 flex flex-col gap-6">
+          {milestonesLoading ? (
+            <div className="bg-white border border-gray-200 rounded-2xl py-24 px-8 text-center flex flex-col items-center justify-center min-h-[420px]">
+              <div className="inline-block w-8 h-8 border-4 border-gray-100 border-t-blue-500 rounded-full animate-spin mb-4" />
+              <p className="text-gray-600 text-sm font-medium">Synchronizing roadmap milestones...</p>
             </div>
-            
-            <h3 style={{ fontSize: '1.2rem', fontWeight: '700', color: '#2d3748', marginBottom: '0.5rem' }}>
-              Milestone Timeline Grid
-            </h3>
-            <p style={{ color: '#718096', fontSize: '0.875rem', maxWidth: '440px', lineHeight: '1.5', margin: '0 auto 1.5rem auto' }}>
-              This operational container is currently staged and synchronized with the API registry. Ready to anchor Phase 4 roadmap visualizations.
-            </p>
-            
-            <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', backgroundColor: '#edf2f7', color: '#718096', padding: '0.3rem 0.75rem', borderRadius: '4px', fontWeight: '700', letterSpacing: '0.05em' }}>
-              Phase 4 Operational Hook Active
-            </span>
-
-            {/* Visual Skeleton preview items to guarantee high-fidelity layout depth */}
-            <div style={{ width: '100%', maxWidth: '480px', marginTop: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', opacity: 0.5 }}>
-              <div style={{ border: '1px dashed #e2e8f0', borderRadius: '8px', padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', textAlign: 'left' }}>
-                <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: '#cbd5e0' }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ height: '10px', width: '40%', backgroundColor: '#e2e8f0', borderRadius: '4px', marginBottom: '0.5rem' }} />
-                  <div style={{ height: '8px', width: '85%', backgroundColor: '#edf2f7', borderRadius: '4px' }} />
-                </div>
-              </div>
-              <div style={{ border: '1px dashed #e2e8f0', borderRadius: '8px', padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', textAlign: 'left' }}>
-                <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: '#cbd5e0' }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ height: '10px', width: '55%', backgroundColor: '#e2e8f0', borderRadius: '4px', marginBottom: '0.5rem' }} />
-                  <div style={{ height: '8px', width: '70%', backgroundColor: '#edf2f7', borderRadius: '4px' }} />
-                </div>
-              </div>
+          ) : milestonesError ? (
+            <div className="bg-red-50 border border-red-200 rounded-2xl py-16 px-8 text-center shadow-sm">
+              <ShieldAlert size={36} className="text-red-500 mx-auto mb-4" />
+              <p className="text-red-700 text-sm font-semibold">Roadmap Loading Interrupted</p>
+              <p className="text-gray-500 text-xs mt-1">{milestonesError}</p>
             </div>
-          </div>
+          ) : (
+            <MilestoneTimeline 
+              milestones={milestones}
+              selectedMilestoneId={selectedMilestoneId}
+              onSelectMilestone={setSelectedMilestoneId}
+            />
+          )}
         </div>
 
         {/* Right Column: Dynamic Comments / Detail Drawer Placeholder */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div className="lg:col-span-1 flex flex-col gap-6">
           {/* Phase 5 Milestone Details / Chat Feed Goes Here */}
-          <div style={{ backgroundColor: '#ffffff', border: '1px dashed #cbd5e0', borderRadius: '12px', padding: '3.5rem 1.5rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '420px' }}>
-            <div style={{ width: '3.5rem', height: '3.5rem', borderRadius: '50%', backgroundColor: '#f0fdf4', color: '#166534', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem' }}>
+          <div className="bg-white border border-dashed border-gray-300 rounded-2xl py-14 px-6 text-center flex flex-col items-center justify-center min-h-[420px] shadow-sm">
+            <div className="w-14 h-14 rounded-full bg-green-50 text-green-700 flex items-center justify-center mb-5">
               <MessageSquare size={22} />
             </div>
             
-            <h3 style={{ fontSize: '1.2rem', fontWeight: '700', color: '#2d3748', marginBottom: '0.5rem' }}>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">
               Milestone Action Center
             </h3>
-            <p style={{ color: '#718096', fontSize: '0.875rem', maxWidth: '300px', lineHeight: '1.5', margin: '0 auto 1.5rem auto' }}>
+            <p className="text-gray-500 text-sm max-w-[300px] leading-relaxed mx-auto mb-6">
               Real-time collaboration streams and milestone grading summaries will lock in here.
             </p>
 
-            <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', backgroundColor: '#edf2f7', color: '#718096', padding: '0.3rem 0.75rem', borderRadius: '4px', fontWeight: '700', letterSpacing: '0.05em' }}>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-gray-50 px-3 py-1 rounded-md border border-gray-200">
               Phase 5 Commentary Node Hook Active
             </span>
 
             {/* Visual Skeleton chat box representation to align depth representation */}
-            <div style={{ width: '100%', maxWidth: '300px', marginTop: '2.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', opacity: 0.5 }}>
-              <div style={{ border: '1px dashed #e2e8f0', borderRadius: '8px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.35rem', textAlign: 'left' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <div style={{ height: '8px', width: '30%', backgroundColor: '#cbd5e0', borderRadius: '4px' }} />
-                  <div style={{ height: '6px', width: '15%', backgroundColor: '#e2e8f0', borderRadius: '4px' }} />
+            <div className="w-full max-w-[300px] mt-10 flex flex-col gap-3 opacity-40">
+              <div className="border border-dashed border-gray-200 rounded-xl p-3 flex flex-col gap-1.5 text-left">
+                <div className="flex justify-between">
+                  <div className="h-2 w-1/3 bg-gray-300 rounded" />
+                  <div className="h-1.5 w-1/6 bg-gray-200 rounded" />
                 </div>
-                <div style={{ height: '6px', width: '90%', backgroundColor: '#edf2f7', borderRadius: '4px' }} />
+                <div className="h-1.5 w-11/12 bg-gray-100 rounded" />
               </div>
-              <div style={{ border: '1px dashed #e2e8f0', borderRadius: '8px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.35rem', textAlign: 'right', alignSelf: 'flex-end', width: '85%' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', flexDirection: 'row-reverse' }}>
-                  <div style={{ height: '8px', width: '25%', backgroundColor: '#cbd5e0', borderRadius: '4px' }} />
-                  <div style={{ height: '6px', width: '20%', backgroundColor: '#e2e8f0', borderRadius: '4px' }} />
+              <div className="border border-dashed border-gray-200 rounded-xl p-3 flex flex-col gap-1.5 text-right self-end w-[85%]">
+                <div className="flex justify-between flex-row-reverse">
+                  <div className="h-2 w-1/4 bg-gray-300 rounded" />
+                  <div className="h-1.5 w-1/5 bg-gray-200 rounded" />
                 </div>
-                <div style={{ height: '6px', width: '95%', backgroundColor: '#edf2f7', borderRadius: '4px', alignSelf: 'flex-end' }} />
+                <div className="h-1.5 w-11/12 bg-gray-100 rounded self-end" />
               </div>
             </div>
           </div>
