@@ -7,8 +7,8 @@ import {
   Search,
   Mail,
   Bell,
-  Settings,
   Sun,
+  Moon,
   LogOut, 
   User 
 } from 'lucide-react';
@@ -18,15 +18,15 @@ function WorkspaceLayout() {
   const navigate = useNavigate();
   const userRole = user?.role?.toLowerCase();
   
-  // Interactive state modifier for the Settings popover/menu block
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  // Local state to manage UI infrastructure for the theme toggle interface
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const handleLogoutClick = () => {
     logout();
     navigate('/login');
   };
 
-  // Upgraded Chess.com-inspired Unified Navigation Matrix
+  // Chess.com-inspired Unified Navigation Matrix
   const getNavLinks = () => {
     switch (userRole) {
       case 'student':
@@ -91,42 +91,19 @@ function WorkspaceLayout() {
           )}
         </div>
 
-        {/* Bottom Segment: Settings Popover Controller & User Profile Identity Dock */}
-        <div className="flex flex-col gap-2 pt-4 border-t border-slate-100 relative">
+        {/* Bottom Segment: Integrated Theme Toggles, Identity, & Direct Sign Out */}
+        <div className="flex flex-col gap-2 pt-4 border-t border-slate-100">
           
-          {/* Interactive Floating Settings Popover/Menu */}
-          {isSettingsOpen && (
-            <div className="absolute bottom-[110px] left-2 right-2 bg-white border border-slate-200 shadow-xl rounded-card p-1.5 flex flex-col gap-0.5 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
-              <button 
-                type="button"
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 rounded-btn transition-colors text-left cursor-pointer"
-              >
-                <Sun size={14} className="text-slate-400" />
-                <span>Light/Dark UI</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleLogoutClick}
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-btn transition-colors text-left cursor-pointer"
-              >
-                <LogOut size={14} className="text-red-400" />
-                <span>Sign Out</span>
-              </button>
-            </div>
-          )}
-
-          {/* Interactive Settings Trigger Button */}
+          {/* Direct Interactive Theme Toggle Button */}
           <button
             type="button"
-            onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-btn font-medium text-sm transition-colors duration-200 ease-in-out cursor-pointer text-left ${
-              isSettingsOpen 
-                ? 'bg-slate-100 text-brand-dark' 
-                : 'text-slate-600 hover:bg-slate-100 hover:text-brand-dark'
-            }`}
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-btn font-medium text-sm text-slate-600 hover:bg-slate-100 hover:text-brand-dark transition-colors duration-200 ease-in-out cursor-pointer text-left"
           >
-            <Settings size={20} className="text-slate-400" />
-            <span className="flex-1">Settings</span>
+            <span className="shrink-0 text-slate-400">
+              {isDarkMode ? <Moon size={20} /> : <Sun size={20} />}
+            </span>
+            <span className="flex-1">{isDarkMode ? 'Dark UI' : 'Light UI'}</span>
           </button>
           
           {/* Profile Identity Context Anchor block */}
@@ -143,11 +120,20 @@ function WorkspaceLayout() {
             <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0 text-slate-600">
               <User size={16} />
             </div>
-            {/* Cleaned up code to securely fall back to .NET unique name claim or 'Account' */}
             <span className="text-sm font-medium text-slate-700 truncate max-w-[160px]">
               {user?.unique_name || 'Account'}
             </span>
           </NavLink>
+
+          {/* Sleek, Permanently Visible Semantic Session Clearance Button */}
+          <button
+            type="button"
+            onClick={handleLogoutClick}
+            className="w-full text-red-600 border border-red-200 hover:bg-red-50 hover:border-red-600 rounded-btn transition-all duration-200 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold cursor-pointer mt-1"
+          >
+            <LogOut size={16} />
+            <span>Sign Out</span>
+          </button>
         </div>
       </aside>
 
