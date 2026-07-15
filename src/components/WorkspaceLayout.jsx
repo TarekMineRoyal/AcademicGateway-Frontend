@@ -28,7 +28,6 @@ function WorkspaceLayout() {
 
   // Upgraded Chess.com-inspired Unified Navigation Matrix
   const getNavLinks = () => {
-    // Current focus is optimization of the student view and future feature roadmap
     switch (userRole) {
       case 'student':
       default:
@@ -144,8 +143,9 @@ function WorkspaceLayout() {
             <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0 text-slate-600">
               <User size={16} />
             </div>
+            {/* Cleaned up code to securely fall back to .NET unique name claim or 'Account' */}
             <span className="text-sm font-medium text-slate-700 truncate max-w-[160px]">
-              {user?.unique_name || user?.email || 'Account'}
+              {user?.unique_name || 'Account'}
             </span>
           </NavLink>
         </div>
