@@ -3,7 +3,7 @@ import LoginForm from '../features/identity/components/LoginForm';
 
 function LoginPage() {
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f1f3f5' }}>
+    <div className="min-h-screen w-screen flex items-center justify-center bg-brand-light p-4">
       <LoginForm />
     </div>
   );

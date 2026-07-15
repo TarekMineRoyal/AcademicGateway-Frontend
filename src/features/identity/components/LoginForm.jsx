@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { loginUser } from '../identityApi';
 import { useAuth } from '../../../context/AuthContext';
 
@@ -35,41 +35,73 @@ function LoginForm() {
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '2rem auto', padding: '2rem', border: '1px solid #ccc', borderRadius: '8px', background: '#fff' }}>
-      <h2>Sign In</h2>
-      {error && <div style={{ color: 'red', marginBottom: '1rem' }}>{error}</div>}
+    <div className="w-full max-w-md p-8 bg-white rounded-card shadow-xl border border-slate-100">
+      {/* Header Branding */}
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-bold tracking-tight text-brand-dark">
+          Academic<span className="text-primary">Gateway</span>
+        </h2>
+        <p className="text-slate-500 text-sm mt-1">Sign in to access your R&D workspace</p>
+      </div>
+
+      {error && (
+        <div className="bg-red-50 text-red-600 border border-red-100 p-3 rounded-btn text-sm mb-4 text-center font-medium">
+          {error}
+        </div>
+      )}
       
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem' }}>Email Address</label>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-semibold text-brand-dark mb-1.5">
+            Email Address
+          </label>
           <input 
             type="email" 
             value={email} 
             onChange={(e) => setEmail(e.target.value)} 
+            placeholder="name@university.edu"
             required 
-            style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-btn text-brand-dark placeholder-slate-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
           />
         </div>
         
-        <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem' }}>Password</label>
+        <div>
+          <label className="block text-sm font-semibold text-brand-dark mb-1.5">
+            Password
+          </label>
           <input 
             type="password" 
             value={password} 
             onChange={(e) => setPassword(e.target.value)} 
+            placeholder="••••••••"
             required 
-            style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-btn text-brand-dark placeholder-slate-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
           />
         </div>
 
         <button 
           type="submit" 
           disabled={isSubmitting}
-          style={{ width: '100%', padding: '0.75rem', background: '#007bff', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+          className="w-full bg-primary hover:bg-primary-hover text-white rounded-btn transition-colors duration-200 py-2.5 px-4 font-semibold text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
-          {isSubmitting ? 'Authenticating...' : 'Login'}
+          {isSubmitting ? 'Authenticating...' : 'Sign In'}
         </button>
       </form>
+
+      {/* Navigation Links */}
+      <div className="mt-6 text-center space-y-2">
+        <div>
+          <a href="#" className="text-sm text-primary hover:text-primary-hover font-medium transition-colors">
+            Forgot Password?
+          </a>
+        </div>
+        <div className="text-sm text-slate-500">
+          Don't have an account?{' '}
+          <Link to="/" className="text-sm text-primary hover:text-primary-hover font-medium transition-colors">
+            Sign up
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }
