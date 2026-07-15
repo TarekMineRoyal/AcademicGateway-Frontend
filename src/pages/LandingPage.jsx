@@ -1,91 +1,104 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GraduationCap, Briefcase, Award, LogIn } from 'lucide-react';
+import { GraduationCap, Briefcase, Award, LogIn, ArrowRight } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 function LandingPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleNavigation = (path) => {
     navigate(path);
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#f8f9fa', fontFamily: 'system-ui, sans-serif' }}>
+    <div className="min-h-screen flex flex-col bg-brand-light">
       
       {/* Top Navigation Bar */}
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 2rem', backgroundColor: '#fff', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-        <div style={{ fontWeight: 'bold', fontSize: '1.5rem', color: '#1a202c', letterSpacing: '-0.05em' }}>
-          Academic<span style={{ color: '#3182ce' }}>Gateway</span>
+      <header className="w-full h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between shadow-sm">
+        <div className="font-bold text-xl tracking-tight text-brand-dark">
+          Academic<span className="text-primary">Gateway</span>
         </div>
-        <button 
-          onClick={() => handleNavigation('/login')}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', border: '1px solid #cbd5e0', borderRadius: '6px', backgroundColor: '#fff', color: '#4a5568', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }}
-        >
-          <LogIn size={18} />
-          Sign In
-        </button>
+        
+        {user ? (
+          <button 
+            onClick={() => handleNavigation('/dashboard')}
+            className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-btn bg-white hover:bg-slate-50 text-slate-700 font-semibold transition-all cursor-pointer shadow-sm"
+          >
+            Go to Dashboard
+            <ArrowRight size={18} />
+          </button>
+        ) : (
+          <button 
+            onClick={() => handleNavigation('/login')}
+            className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-btn bg-white hover:bg-slate-50 text-slate-700 font-semibold transition-all cursor-pointer shadow-sm"
+          >
+            <LogIn size={18} />
+            Sign In
+          </button>
+        )}
       </header>
 
       {/* Hero Core Segment */}
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '4rem 2rem', textAlign: 'center' }}>
-        <div style={{ maxWidth: '800px', marginBottom: '4rem' }}>
-          <h1 style={{ fontSize: '3rem', fontWeight: '800', color: '#1a202c', lineHeight: '1.1', marginBottom: '1.5rem' }}>
+      <main className="flex-1 flex flex-col items-center justify-center px-4 py-16 text-center">
+        <div className="max-w-3xl mb-12">
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-brand-dark mb-4">
             The R&D Capstone Marketplace
           </h1>
-          <p style={{ fontSize: '1.25rem', color: '#718096', maxWidth: '600px', margin: '0 auto', lineHeight: '1.6' }}>
+          <p className="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed">
             Connecting lab researchers with ambitious students and expert faculty mentors to build real-world graduation projects.
           </p>
         </div>
 
         {/* Intent-Driven Onboarding Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', width: '100%', maxWidth: '1000px' }}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl px-4">
           
           {/* Path A: Students */}
-          <div style={{ backgroundColor: '#fff', padding: '2.5rem 2rem', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-            <div style={{ width: '4rem', height: '4rem', borderRadius: '50%', backgroundColor: '#ebf8ff', color: '#2b6cb0', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
+          <div className="bg-white p-8 rounded-card shadow-sm border border-slate-100 transition-all duration-300 hover:shadow-md hover:-translate-y-1 flex flex-col items-center text-center">
+            <div className="w-16 h-16 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-6">
               <GraduationCap size={32} />
             </div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#2d3748', marginBottom: '0.75rem' }}>Students</h2>
-            <p style={{ color: '#718096', fontSize: '0.95rem', lineHeight: '1.5', flex: 1, marginBottom: '1.5rem' }}>
+            <h2 className="text-xl font-bold text-brand-dark mb-3">Students</h2>
+            <p className="text-slate-500 text-sm leading-relaxed flex-1 mb-6">
               Launch your career. Discover, apply for, and claim high-impact graduation projects sourced directly from real research initiatives.
             </p>
             <button 
               onClick={() => handleNavigation('/register/student')}
-              style={{ width: '100%', padding: '0.75rem', backgroundColor: '#3182ce', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer' }}
+              className="w-full py-3 bg-primary hover:bg-primary-hover text-white font-semibold rounded-btn transition-colors duration-200 cursor-pointer"
             >
               Find a Capstone
             </button>
           </div>
 
           {/* Path B: Faculty Mentors */}
-          <div style={{ backgroundColor: '#fff', padding: '2.5rem 2rem', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-            <div style={{ width: '4rem', height: '4rem', borderRadius: '50%', backgroundColor: '#f0fff4', color: '#2f855a', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
+          <div className="bg-white p-8 rounded-card shadow-sm border border-slate-100 transition-all duration-300 hover:shadow-md hover:-translate-y-1 flex flex-col items-center text-center">
+            <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-6">
               <Award size={32} />
             </div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#2d3748', marginBottom: '0.75rem' }}>Professors</h2>
-            <p style={{ color: '#718096', fontSize: '0.95rem', lineHeight: '1.5', flex: 1, marginBottom: '1.5rem' }}>
+            <h2 className="text-xl font-bold text-brand-dark mb-3">Professors</h2>
+            <p className="text-slate-500 text-sm leading-relaxed flex-1 mb-6">
               Provide academic oversight. Manage mentorship assignments, evaluate research milestones, and guide student success.
             </p>
             <button 
               onClick={() => handleNavigation('/register/professor')}
-              style={{ width: '100%', padding: '0.75rem', backgroundColor: '#38a169', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer' }}
+              className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-btn transition-colors duration-200 cursor-pointer"
             >
               Manage Mentorships
             </button>
           </div>
 
           {/* Path C: Researchers / Providers */}
-          <div style={{ backgroundColor: '#fff', padding: '2.5rem 2rem', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-            <div style={{ width: '4rem', height: '4rem', borderRadius: '50%', backgroundColor: '#fffaf0', color: '#dd6b20', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
+          <div className="bg-white p-8 rounded-card shadow-sm border border-slate-100 transition-all duration-300 hover:shadow-md hover:-translate-y-1 flex flex-col items-center text-center">
+            <div className="w-16 h-16 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mb-6">
               <Briefcase size={32} />
             </div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#2d3748', marginBottom: '0.75rem' }}>Researchers</h2>
-            <p style={{ color: '#718096', fontSize: '0.95rem', lineHeight: '1.5', flex: 1, marginBottom: '1.5rem' }}>
+            <h2 className="text-xl font-bold text-brand-dark mb-3">Researchers</h2>
+            <p className="text-slate-500 text-sm leading-relaxed flex-1 mb-6">
               Sponsor innovation. Propose project templates mapped to your lab's active requirements and collaborate with academic teams.
             </p>
             <button 
               onClick={() => handleNavigation('/register/provider')}
-              style={{ width: '100%', padding: '0.75rem', backgroundColor: '#dd6b20', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer' }}
+              className="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-btn transition-colors duration-200 cursor-pointer"
             >
               Sponsor Projects
             </button>
@@ -95,7 +108,7 @@ function LandingPage() {
       </main>
 
       {/* Footer Utility */}
-      <footer style={{ padding: '1.5rem', textAlign: 'center', borderTop: '1px solid #e2e8f0', color: '#a0aec0', fontSize: '0.85rem' }}>
+      <footer className="w-full py-6 text-center border-t border-slate-200 text-slate-400 text-xs mt-auto">
         &copy; {new Date().getFullYear()} Academic Gateway. Clean Architecture Integrated Workspace.
       </footer>
     </div>
