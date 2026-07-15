@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
   LayoutDashboard, 
@@ -24,33 +24,36 @@ function WorkspaceLayout() {
     navigate('/login');
   };
 
-  // Dynamic Top Navigation Configuration (Optimized to prevent splitting student attention)
+  // Structured Left-Hand Navigation Configuration matching Design Matrix requirements
   const getNavLinks = () => {
     switch (userRole) {
       case 'student':
-        // Student routing relies on clear in-view action triggers, leaving top bar completely clean
-        return [];
+        return [
+          { label: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={18} /> },
+          { label: 'Project Marketplace', path: '/dashboard/marketplace', icon: <BookOpen size={18} /> },
+          { label: 'My Profile', path: '/dashboard/profile', icon: <User size={18} /> },
+        ];
       case 'professor':
         return [
-          { label: 'Console Home', path: '/dashboard', icon: <LayoutDashboard size={16} /> },
-          { label: 'Supervision Requests', path: '/dashboard/supervision-requests', icon: <Users size={16} /> },
-          { label: 'Active Projects', path: '/dashboard/active-projects', icon: <BookOpen size={16} /> },
-          { label: 'Capacity Management', path: '/dashboard/capacity', icon: <Sliders size={16} /> },
+          { label: 'Console Home', path: '/dashboard', icon: <LayoutDashboard size={18} /> },
+          { label: 'Supervision Requests', path: '/dashboard/supervision-requests', icon: <Users size={18} /> },
+          { label: 'Active Projects', path: '/dashboard/active-projects', icon: <BookOpen size={18} /> },
+          { label: 'Capacity Management', path: '/dashboard/capacity', icon: <Sliders size={18} /> },
         ];
       case 'provider':
       case 'researcher':
         return [
-          { label: 'Lab Overview', path: '/dashboard', icon: <LayoutDashboard size={16} /> },
-          { label: 'Propose Template', path: '/dashboard/propose-template', icon: <PlusCircle size={16} /> },
-          { label: 'Sponsored Layouts', path: '/dashboard/my-templates', icon: <ClipboardList size={16} /> },
-          { label: 'Active Lab Groups', path: '/dashboard/lab-groups', icon: <Users size={16} /> },
+          { label: 'Lab Overview', path: '/dashboard', icon: <LayoutDashboard size={18} /> },
+          { label: 'Propose Template', path: '/dashboard/propose-template', icon: <PlusCircle size={18} /> },
+          { label: 'Sponsored Layouts', path: '/dashboard/my-templates', icon: <ClipboardList size={18} /> },
+          { label: 'Active Lab Groups', path: '/dashboard/lab-groups', icon: <Users size={18} /> },
         ];
       case 'admin':
         return [
-          { label: 'Admin Panel', path: '/dashboard', icon: <LayoutDashboard size={16} /> },
-          { label: 'Template Approvals', path: '/dashboard/approve-templates', icon: <CheckSquare size={16} /> },
-          { label: 'Provider Verification', path: '/dashboard/verify-providers', icon: <ShieldAlert size={16} /> },
-          { label: 'User Management', path: '/dashboard/users', icon: <Users size={16} /> },
+          { label: 'Admin Panel', path: '/dashboard', icon: <LayoutDashboard size={18} /> },
+          { label: 'Template Approvals', path: '/dashboard/approve-templates', icon: <CheckSquare size={18} /> },
+          { label: 'Provider Verification', path: '/dashboard/verify-providers', icon: <ShieldAlert size={18} /> },
+          { label: 'User Management', path: '/dashboard/users', icon: <Users size={18} /> },
         ];
       default:
         return [];
@@ -60,77 +63,90 @@ function WorkspaceLayout() {
   const links = getNavLinks();
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#f7fafc', fontFamily: 'system-ui, sans-serif' }}>
+    <div className="min-h-screen flex bg-brand-light font-sans">
       
-      {/* Unified Top Navigation & Identity Navbar */}
-      <header style={{ height: '64px', backgroundColor: '#fff', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2rem', position: 'sticky', top: 0, zIndex: 1000 }}>
+      {/* Fixed-Width Left Navigation Sidebar */}
+      <aside className="w-64 min-h-screen bg-white border-r border-slate-200 p-4 sticky top-0 flex flex-col justify-between shrink-0">
         
-        {/* Left Segment: Core Platform Branding & Context Role Identifier */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+        {/* Top Segment: Core Branding & Context Routing Links */}
+        <div className="flex flex-col gap-6">
+          
+          {/* Rebranded Context Headroom */}
           <Link 
             to="/dashboard" 
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', color: '#1a202c', fontWeight: 'bold', fontSize: '1.2rem', letterSpacing: '-0.05em' }}
+            className="flex items-center justify-between gap-2 no-underline text-brand-dark font-bold text-lg tracking-tight px-2 py-1"
           >
-            Gateway 
-            <span style={{ color: '#3182ce', fontSize: '0.75rem', textTransform: 'uppercase', backgroundColor: '#ebf8ff', padding: '0.25rem 0.5rem', borderRadius: '4px', fontWeight: '700', letterSpacing: '0.05em' }}>
-              {userRole}
+            <span className="truncate">Academic Gateway</span>
+            <span className="bg-primary-light text-primary rounded-btn px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider shrink-0">
+              {userRole || 'Guest'}
             </span>
           </Link>
 
-          {/* Horizontal Middleware Navigation Layout for Admin/Faculty Roles */}
+          {/* Dynamic Link Execution Section */}
           {links.length > 0 && (
-            <nav style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <nav className="flex flex-col gap-1">
               {links.map((link, idx) => (
-                <Link
+                <NavLink
                   key={idx}
                   to={link.path}
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', color: '#4a5568', textDecoration: 'none', borderRadius: '6px', fontWeight: '500', fontSize: '0.9rem', transition: 'all 0.15s' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#edf2f7'; e.currentTarget.style.color = '#1a202c'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#4a5568'; }}
+                  // Prevents the base path /dashboard from remaining active when on sub-routes
+                  end={link.path === '/dashboard'}
+                  className={({ isActive }) => 
+                    `flex items-center gap-3 px-3 py-2.5 rounded-btn font-medium text-sm transition-colors duration-200 ease-in-out ${
+                      isActive 
+                        ? 'bg-primary text-white shadow-sm' 
+                        : 'text-slate-600 hover:bg-slate-100 hover:text-brand-dark'
+                    }`
+                  }
                 >
-                  {link.icon}
-                  {link.label}
-                </Link>
+                  <span className="shrink-0">{link.icon}</span>
+                  <span className="truncate">{link.label}</span>
+                </NavLink>
               ))}
             </nav>
           )}
         </div>
 
-        {/* Right Segment: Session Actions & User Profile Context Matrix */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+        {/* Bottom Segment: Anchor Session & Identity Control Center */}
+        <div className="flex flex-col gap-3 border-t border-slate-100 pt-4">
           
-          {/* Identity Context Anchor */}
-          <Link 
+          {/* Identity Context Anchor block */}
+          <NavLink 
             to="/dashboard/profile"
-            style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#4a5568', fontWeight: '500', fontSize: '0.9rem', textDecoration: 'none', transition: 'color 0.2s' }}
-            onMouseEnter={(e) => e.currentTarget.style.color = '#3182ce'}
-            onMouseLeave={(e) => e.currentTarget.style.color = '#4a5568'}
+            className={({ isActive }) => 
+              `flex items-center gap-3 p-2 rounded-btn transition-colors duration-200 ease-in-out ${
+                isActive 
+                  ? 'bg-primary text-white shadow-sm' 
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-brand-dark'
+              }`
+            }
           >
-            <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#edf2f7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'inherit' }}>
+            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0 text-slate-600">
               <User size={16} />
             </div>
-            <span>{user?.unique_name || user?.email || 'Authenticated Account'}</span>
-          </Link>
+            <span className="text-sm font-medium truncate max-w-full">
+              {user?.unique_name || user?.email || 'Authenticated Account'}
+            </span>
+          </NavLink>
 
-          {/* Minimalist, Integrated Session Clearance Trigger */}
+          {/* Sleek Semantic Session Clearance Button */}
           <button
             onClick={handleLogoutClick}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.5rem 0.75rem', backgroundColor: 'transparent', color: '#e53e3e', border: '1px solid #fed7d7', borderRadius: '6px', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.2s' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#fff5f5'; e.currentTarget.style.borderColor = '#e53e3e'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.borderColor = '#fed7d7'; }}
+            className="w-full text-red-600 border border-red-200 hover:bg-red-50 hover:border-red-600 rounded-btn transition-all duration-200 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold cursor-pointer"
           >
-            <LogOut size={14} />
-            Sign Out
+            <LogOut size={16} />
+            <span>Sign Out</span>
           </button>
         </div>
-      </header>
+      </aside>
 
-      {/* Main Structural Window Container Node with Responsive Grid Thresholds */}
-      <main style={{ flex: 1, padding: '2rem 1.5rem', overflowY: 'auto' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', width: '100%' }}>
+      {/* Right Column: Application Main Viewport Wrapper */}
+      <main className="flex-1 flex flex-col overflow-y-auto p-6 lg:p-8">
+        <div className="max-w-[1280px] mx-auto w-full">
           <Outlet />
         </div>
       </main>
+
     </div>
   );
 }
