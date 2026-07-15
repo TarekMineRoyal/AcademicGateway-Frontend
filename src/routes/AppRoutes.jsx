@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from '../pages/LandingPage';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
@@ -10,6 +10,9 @@ import ProjectMarketplace from '../features/student/components/ProjectMarketplac
 import StudentProfile from '../features/student/components/StudentProfile';
 import ProjectTemplateDetails from '../features/project-templates/components/ProjectTemplateDetails';
 
+// Import the high-fidelity Phase 3 Project Workspace component
+import ProjectWorkspace from '../features/project-instances/components/ProjectWorkspace';
+
 // Temporary lightweight placeholder views to keep the compilation path clean
 const PlaceholderView = ({ title }) => (
   <div style={{ backgroundColor: '#fff', padding: '2rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
@@ -17,12 +20,6 @@ const PlaceholderView = ({ title }) => (
     <p style={{ color: '#718096', fontSize: '0.9rem' }}>This workspace channel is currently being prepared for platform synchronization.</p>
   </div>
 );
-
-// Task 1.2: Added Temporary Workspace Placeholder Component
-const ProjectWorkspacePlaceholder = () => {
-  const { projectInstanceId } = useParams();
-  return <div className="p-6">Project Workspace Placeholder for ID: {projectInstanceId}</div>;
-};
 
 function AppRoutes() {
   return (
@@ -66,7 +63,7 @@ function AppRoutes() {
           <Route path="users" element={<PlaceholderView title="Global User Core Account Directory" />} />
         </Route>
 
-        {/* Task 1.2: Project Workspace Route - Secured under standard authentication and persistent Sidebar/Header Layout */}
+        {/* Secured under standard authentication and persistent Sidebar/Header Layout */}
         <Route 
           element={
             <ProtectedRoute>
@@ -74,7 +71,8 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         >
-          <Route path="/workspace/projects/:projectInstanceId" element={<ProjectWorkspacePlaceholder />} />
+          {/* Phase 3 Target Integration Route */}
+          <Route path="/workspace/projects/:projectInstanceId" element={<ProjectWorkspace />} />
         </Route>
 
         {/* Global Catch-all Redirection Safeguard */}
