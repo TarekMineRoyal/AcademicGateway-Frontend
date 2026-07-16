@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getProjectDetails, getProjectMilestones } from '../projectInstancesApi'; 
+import { useProjectWorkspace } from '../hooks/useProjectWorkspace';
 import MilestoneActionCenter from './MilestoneActionCenter';
-import { adaptMilestones } from '../../../utils/milestoneAdapter';
 import MilestoneVisualizer from '../../../components/milestone/MilestoneVisualizer';
 import { 
   ArrowLeft, 
@@ -18,81 +17,23 @@ import {
 export default function ProjectWorkspace() {
   const { projectInstanceId } = useParams(); 
   const navigate = useNavigate(); 
-  
-  // Core Local State Matrices
-  const [project, setProject] = useState(null); 
-  const [loading, setLoading] = useState(true); 
-  const [error, setError] = useState(null); 
-
-  // Lifted Milestone Timeline & Selection States
-  const [milestones, setMilestones] = useState([]); 
   const [selectedMilestoneId, setSelectedMilestoneId] = useState(null); 
-  const [milestonesLoading, setMilestonesLoading] = useState(true); 
-  const [milestonesError, setMilestonesError] = useState(null); 
 
-  // Retrieve Core Data Lifecycle
+  // Consume our decoupled server-state layer
+  const { project, milestones, isLoading, error } = useProjectWorkspace(projectInstanceId);
+
+  // Clean local UI focus synchronization entirely separate from data fetching
   useEffect(() => {
-    if (!projectInstanceId) return;
-    
-    setLoading(true);
-    setError(null);
-
-    getProjectDetails(projectInstanceId) 
-      .then((data) => {
-        setProject(data);
-      })
-      .catch((err) => {
-        console.error("Workspace synchronization failed:", err);
-        setError(err.message || "Failed to load project details.");
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [projectInstanceId]); 
-
-  // Re-fetch milestones and auto-select active sequences dynamically
-  const fetchMilestones = (autoSelect = false) => {
-    if (!projectInstanceId) return Promise.resolve();
-
-    if (autoSelect) {
-      setMilestonesLoading(true);
+    if (milestones.length > 0 && !selectedMilestoneId) {
+      const activeItem = milestones.find(m => m.status === 'InProgress') 
+        || milestones.find(m => m.status !== 'Completed') 
+        || milestones[0];
+        
+      if (activeItem) {
+        setSelectedMilestoneId(activeItem.id);
+      }
     }
-    setMilestonesError(null);
-
-    return getProjectMilestones(projectInstanceId)
-      .then((data) => {
-        const rawLoaded = data || [];
-
-        // Pass raw milestones and an optional dependencies edge matrix if present
-        const adaptedData = adaptMilestones(rawLoaded, project?.dependencies || []);
-
-        setMilestones(adaptedData);
-
-        if (autoSelect && adaptedData.length > 0) {
-          const firstActive = adaptedData.find(m => m.status === 'InProgress') 
-            || adaptedData.find(m => m.status !== 'Completed') 
-            || adaptedData[0];
-
-          if (firstActive) {
-            setSelectedMilestoneId(firstActive.id);
-          }
-        }
-      })
-      .catch((err) => {
-        console.error("Milestone tree synchronization failed:", err);
-        setMilestonesError(err.message || "Failed to load project milestones roadmap.");
-      })
-      .finally(() => {
-        if (autoSelect) {
-          setMilestonesLoading(false);
-        }
-      });
-  };
-
-  // Retrieve Milestones & Auto-select first active sequence on load
-  useEffect(() => {
-    fetchMilestones(true);
-  }, [projectInstanceId]);
+  }, [milestones, selectedMilestoneId]);
 
   // Status-badge configuration mapper using beautiful Tailwind utility classes
   const getStatusConfig = (statusValue) => {
@@ -138,23 +79,23 @@ export default function ProjectWorkspace() {
     }
   }; 
 
-  // Main Loading Screen in Tailwind
-  if (loading) {
+  // Loading Screen
+  if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen text-gray-600 text-center py-32 px-8 font-medium font-sans">
         <div className="inline-block w-8 h-8 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mb-4" />
-        <div className="text-sm tracking-wide">Decrypting academic sandbox environment parameters...</div>
+        <div className="text-sm tracking-wide">Synchronizing workspace metadata...</div>
       </div>
     );
   } 
 
-  // Error Boundary Screen in Tailwind
+  // Error Boundary Screen
   if (error) {
     return (
       <div className="max-w-xl mx-auto my-16 p-8 bg-red-50 border border-red-200 rounded-2xl text-center font-sans shadow-sm">
         <ShieldAlert size={48} className="text-red-500 mx-auto mb-4" />
         <h3 className="text-xl font-bold text-red-700 mb-2">Workspace Handshake Interrupted</h3>
-        <p className="text-gray-600 text-sm mb-6">{error}</p>
+        <p className="text-gray-600 text-sm mb-6">{error.message || 'An error occurred.'}</p>
         <button 
           onClick={() => navigate('/dashboard')} 
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white border-none rounded-lg font-semibold cursor-pointer shadow-sm transition duration-150 text-sm"
@@ -165,7 +106,7 @@ export default function ProjectWorkspace() {
     );
   } 
 
-  // Empty Registry Screen in Tailwind
+  // Empty Registry Screen
   if (!project) {
     return (
       <div className="max-w-xl mx-auto my-16 p-8 bg-white border border-gray-200 rounded-2xl text-center font-sans shadow-sm">
@@ -182,21 +123,20 @@ export default function ProjectWorkspace() {
     );
   } 
 
-  // Defensive casing-resilient data-binding mapping
-  const projectTitle = project.titleSnapshot || project.TitleSnapshot || project.title || project.Title || 'Dynamic Project Stream'; 
-  const projectDesc = project.descriptionSnapshot || project.DescriptionSnapshot || project.description || project.Description || 'Academic development workspace initialized.'; 
-  const rawStatus = project.status !== undefined ? project.status : (project.Status !== undefined ? project.Status : 1); 
-  const statusBadge = getStatusConfig(rawStatus); 
+  // Zero-Defensive Contract Mapping (Strict camelCase Destructuring)
+  const { 
+    titleSnapshot, 
+    descriptionSnapshot, 
+    status, 
+    supervisorName, 
+    providerCompanyName, 
+    snapshotSkills = [], 
+    createdAt, 
+    endDate, 
+    isSoloMode 
+  } = project;
 
-  const supervisor = project.supervisorName || project.SupervisorName || project.professorName || project.ProfessorName || null; 
-  const providerName = project.providerCompanyName || project.ProviderCompanyName || project.providerName || project.ProviderName || null; 
-  const skillsArray = project.snapshotSkills || project.SnapshotSkills || project.requiredSkills || project.RequiredSkills || []; 
-  
-  const createdDate = project.createdAt || project.CreatedAt || null; 
-  const targetEndDate = project.endDate || project.EndDate || null; 
-  const isSoloMode = project.isSoloMode !== undefined ? project.isSoloMode : (!supervisor); 
-
-  // Find the currently active milestone object to pass into the Action Center
+  const statusBadge = getStatusConfig(status); 
   const selectedMilestone = milestones.find(m => m.id === selectedMilestoneId);
 
   return (
@@ -217,10 +157,10 @@ export default function ProjectWorkspace() {
         <div className="flex justify-between items-start flex-wrap gap-4 mb-6">
           <div className="flex-1 min-w-[300px]">
             <h1 className="text-3xl font-extrabold text-gray-900 leading-tight tracking-tight mb-2">
-              {projectTitle}
+              {titleSnapshot}
             </h1>
             <p className="text-gray-600 text-sm md:text-base leading-relaxed m-0">
-              {projectDesc}
+              {descriptionSnapshot}
             </p>
           </div>
           
@@ -239,7 +179,7 @@ export default function ProjectWorkspace() {
             </span>
             <span className="flex items-center gap-2 text-sm text-gray-800 font-semibold">
               <User size={15} className="text-gray-500" />
-              {!isSoloMode && supervisor ? supervisor : 'Solo Project Mode'}
+              {!isSoloMode && supervisorName ? supervisorName : 'Solo Project Mode'}
             </span>
           </div>
 
@@ -251,7 +191,7 @@ export default function ProjectWorkspace() {
             <span className="flex items-center gap-2 text-sm text-gray-800 font-semibold">
               <Building size={15} className="text-gray-500" />
               <span className="text-slate-800 font-bold hover:text-primary hover:underline cursor-pointer transition-colors duration-150">
-                {providerName ? `${providerName}` : 'Independent Core Blueprint'}
+                {providerCompanyName ? `${providerCompanyName}` : 'Independent Core Blueprint'}
               </span>
             </span>
           </div>
@@ -263,25 +203,25 @@ export default function ProjectWorkspace() {
             </span>
             <span className="flex items-center gap-2 text-sm text-gray-800 font-semibold">
               <Calendar size={15} className="text-gray-500" />
-              {formatDateString(createdDate)} &mdash; {formatDateString(targetEndDate)}
+              {formatDateString(createdAt)} &mdash; {formatDateString(endDate)}
             </span>
           </div>
 
         </div>
 
         {/* Row 3: Visual Capstone Capability Pills */}
-        {skillsArray.length > 0 && (
+        {snapshotSkills.length > 0 && (
           <div className="border-t border-gray-100 pt-5 mt-5">
             <span className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2.5">
               Workspace Snapshot Capability Focus
             </span>
             <div className="flex flex-wrap gap-2">
-              {skillsArray.map((sk, idx) => (
+              {snapshotSkills.map((sk, idx) => (
                 <span 
-                  key={sk.id || sk.Id || sk.skillId || idx} 
+                  key={sk.id || idx} 
                   className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-md font-semibold border border-gray-200"
                 >
-                  {sk.name || sk.Name || 'System Skill'}
+                  {sk.name || 'System Skill'}
                 </span>
               ))}
             </div>
@@ -295,25 +235,12 @@ export default function ProjectWorkspace() {
         
         {/* Left Column: Milestone Visualizer Interface Shell */}
         <div className="lg:col-span-2 flex flex-col gap-6">
-          {milestonesLoading ? (
-            <div className="bg-white border border-slate-200/60 rounded-xl py-24 px-8 text-center flex flex-col items-center justify-center min-h-[420px]">
-              <div className="inline-block w-8 h-8 border-4 border-slate-100 border-t-primary rounded-full animate-spin mb-4" />
-              <p className="text-slate-600 text-sm font-medium">Synchronizing operational roadmap matrices...</p>
-            </div>
-          ) : milestonesError ? (
-            <div className="bg-rose-50 border border-rose-200 rounded-xl py-16 px-8 text-center shadow-2xs">
-              <ShieldAlert size={36} className="text-rose-500 mx-auto mb-4" />
-              <p className="text-rose-700 text-sm font-semibold">Workspace Sync Interrupted</p>
-              <p className="text-slate-500 text-xs mt-1">{milestonesError}</p>
-            </div>
-          ) : (
-            <MilestoneVisualizer 
-              milestones={milestones} 
-              isWorkspace={true} 
-              selectedMilestoneId={selectedMilestoneId}
-              onSelectMilestone={setSelectedMilestoneId}
-            />
-          )}
+          <MilestoneVisualizer 
+            milestones={milestones} 
+            isWorkspace={true} 
+            selectedMilestoneId={selectedMilestoneId}
+            onSelectMilestone={setSelectedMilestoneId}
+          />
         </div>
 
         {/* Right Column: Dynamic Comments / Detail Action Center Drawer */}
@@ -322,7 +249,9 @@ export default function ProjectWorkspace() {
             projectInstanceId={projectInstanceId}
             milestone={selectedMilestone}
             project={project} 
-            onRefresh={() => fetchMilestones(false)}
+            // React Query handles background cache updates automatically, 
+            // so passing a no-op function maintains backwards compatibility with the prop 
+            onRefresh={() => {}} 
           />
         </div>
 
