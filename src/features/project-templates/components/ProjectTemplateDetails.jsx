@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
-import { useUserSkills } from '../../skills/hooks/useUserSkills';
 import { getProjectTemplateById } from '../projectTemplatesApi';
 import { initializeProjectInstance } from '../../project-instances/projectInstancesApi';
 import { searchProfessors } from '../../professor/professorApi';
-import { adaptMilestones } from '../../../utils/milestoneAdapter';
-import MilestoneVisualizer from '../../../components/milestone/MilestoneVisualizer';
+import { adaptMilestones } from '../../../utils/milestoneAdapter'; 
+import MilestoneVisualizer from '../../../components/milestone/MilestoneVisualizer'; 
 import { 
   ArrowLeft, 
   Building2, 
@@ -21,15 +20,12 @@ import {
   Zap
 } from 'lucide-react';
 
-function ProjectTemplateDetails() {
+// Pure Presentation Component: Now fully decoupled from session hooks and 100% testable
+function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoading = false }) {
   const { templateId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const userRole = user?.role?.toLowerCase();
-
-  // Phase 3: Consume normalized capabilities state directly from the hook.
-  // We completely bypass the raw cryptographic token claims data-omissions.
-  const { userSkills, isStudent, loading: skillsLoading } = useUserSkills();
 
   const [template, setTemplate] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -37,7 +33,7 @@ function ProjectTemplateDetails() {
   
   // Workflow Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [initiationMode, setInitiationMode] = useState(null); // 'solo' | 'supervised' | null
+  const [initiationMode, setInitiationMode] = useState(null); 
   const [professorSearchQuery, setProfessorSearchQuery] = useState('');
   const [professorResults, setProfessorResults] = useState([]);
   const [selectedProfessor, setSelectedProfessor] = useState(null);
@@ -78,7 +74,7 @@ function ProjectTemplateDetails() {
       } finally {
         setSearchingProfessors(false);
       }
-    }, 300); // 300ms built-in debounce slider to ease network hammering
+    }, 300); 
 
     return () => clearTimeout(delayDebounceFn);
   }, [professorSearchQuery, initiationMode]);
@@ -107,14 +103,12 @@ function ProjectTemplateDetails() {
       setSubmitLoading(true);
       setModalError('');
       
-      // Dispatch the runtime initialization command to the new domain workspace engine
       await initializeProjectInstance(
         templateId, 
         initiationMode === 'supervised' ? selectedProfessor.id : null
       );
 
       setIsModalOpen(false);
-      // Clean cross-domain redirection bringing them home to manifest the new entry instantly
       navigate('/dashboard');
     } catch (err) {
       setModalError(err.response?.data?.message || 'Failed to dispatch allocation request commands to server.');
@@ -123,7 +117,6 @@ function ProjectTemplateDetails() {
     }
   };
 
-  // Backend ProjectTemplateStatus Enum Interpreters modernized to support clean Tailwind utility mapping
   const getStatusBadgeConfig = (statusInt) => {
     switch (statusInt) {
       case 1: return { text: 'Draft', classes: 'bg-slate-100 text-slate-700 border-slate-700/20' };
@@ -170,16 +163,13 @@ function ProjectTemplateDetails() {
   const dependencies = template.dependencies || template.Dependencies || [];
   const primaryDiscipline = template.discipline || template.Discipline || template.category || template.Category || '';
 
-  // Invoke the milestone transformer payload adapter and trigger state verification log
   const adaptedMilestones = adaptMilestones(milestones, dependencies);
   console.log(adaptedMilestones);
 
-  // Math Data Aggregations & Target Estimations
   const totalEstimatedScope = adaptedMilestones.reduce((sum, m) => sum + (Number(m.expectedHours) || 0), 0);
   const totalCheckpoints = adaptedMilestones.length;
 
-  // --- REFACTORED HIGH-PERFORMANCE COMPUTATION LAYER ---
-  // Because the backend team aligned contracts to lowercase 'id', we can wipe out the complex regex loops.
+  // Real-time clean ID matching execution layer
   const totalRequirementCount = requiredSkills.length;
   const matchIntersectionCount = requiredSkills.filter(sk => {
     const skId = String(sk.id || sk.skillId || sk.Id || '').trim();
@@ -190,7 +180,6 @@ function ProjectTemplateDetails() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-6 relative">
-      {/* Upper Navigation Anchor */}
       <button 
         onClick={() => navigate('/dashboard/marketplace')}
         className="inline-flex items-center gap-2 py-1 text-slate-600 hover:text-slate-900 bg-transparent border-none cursor-pointer text-sm font-semibold mb-2 transition-colors"
@@ -198,13 +187,11 @@ function ProjectTemplateDetails() {
         <ArrowLeft size={16} /> Back to Project Marketplace
       </button>
 
-      {/* Main Core Briefing Sheet (Structural Shell Wrapper) */}
       <div className="bg-white p-8 rounded-lg border border-slate-200 shadow-sm mb-4">
         <div className="flex justify-between items-start flex-wrap gap-4 mb-4">
           <div>
             <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase mb-1">
               <Building2 size={14} />
-              {/* Interactive Hover-Sensitive Link Element for Directory Linkage */}
               <span className="text-slate-900 font-bold hover:text-primary hover:underline cursor-pointer transition-colors">
                 {companyName}
               </span>
@@ -216,7 +203,6 @@ function ProjectTemplateDetails() {
           </span>
         </div>
 
-        {/* Aggregate Scope Banner */}
         <div className="flex items-center gap-6 bg-slate-50 border border-slate-200/60 p-4 rounded-xl text-sm font-semibold text-slate-700 mb-6">
           <div>Total Estimated Scope: <span className="text-slate-900 font-extrabold">{totalEstimatedScope} hrs</span></div>
           <div className="w-px h-4 bg-slate-300/60" />
@@ -227,17 +213,11 @@ function ProjectTemplateDetails() {
           {description}
         </p>
 
-        {/* 
-          Phase 4 Guard: Multi-Tenancy Isolation
-          We strictly gate this block to 'isStudent' and make sure server hydration is complete 
-          before rendering. Professors and Providers bypass this layout node entirely.
-        */}
         {isStudent && !skillsLoading && totalRequirementCount > 0 && (
           <div className="border-t border-slate-200/60 w-full pt-6">
             <div>
               <span className="block text-xs font-bold text-slate-400 uppercase mb-2">Target Capabilities & Prerequisites</span>
               
-              {/* Automated System Notification Profile Matcher Badge */}
               <div className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold bg-primary/10 text-primary border border-primary/20 rounded-full mb-4">
                 You possess {matchIntersectionCount} of {totalRequirementCount} required capabilities
               </div>
@@ -266,7 +246,6 @@ function ProjectTemplateDetails() {
         )}
       </div>
 
-      {/* Visual Milestone Dependencies Graph Map Section */}
       <div className="bg-white p-8 rounded-lg border border-slate-200 shadow-xs">
         <h2 className="text-xl font-bold text-slate-900 mb-1 flex items-center gap-2">
           <GitMerge size={20} className="text-primary" />
@@ -276,11 +255,9 @@ function ProjectTemplateDetails() {
           Analyze the sequential execution constraints mapping checkpoints below. Arrow branches represent strict prerequisite dependencies enforced by the pipeline engine.
         </p>
 
-        {/* Forced view layout integration parameters configured to Graph view exclusively */}
         <MilestoneVisualizer milestones={adaptedMilestones} isWorkspace={false} />
       </div>
 
-      {/* Interface Action Control Panel Row (Strictly Student Flow Routing Only) */}
       <div className="flex flex-wrap items-center justify-end gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200/60 mt-4">
         {userRole === 'student' && statusInt === 5 && (
           <button
@@ -299,12 +276,10 @@ function ProjectTemplateDetails() {
         </button>
       </div>
 
-      {/* ================= WORKFLOW INITIALIZATION GATE OVERLAY MODAL ================= */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
           <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl overflow-hidden flex flex-col">
             
-            {/* Modal Header */}
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
               <h3 className="text-base font-bold text-slate-900">Project Initialization Matrix</h3>
               <button 
@@ -316,7 +291,6 @@ function ProjectTemplateDetails() {
               </button>
             </div>
 
-            {/* Modal Body Canvas */}
             <div className="p-6 overflow-y-auto max-h-[calc(80vh-100px)]">
               {modalError && (
                 <div className="flex gap-2 items-start text-red-700 bg-red-50 border border-red-200 p-3 rounded-lg text-sm font-medium mb-4">
@@ -325,7 +299,6 @@ function ProjectTemplateDetails() {
                 </div>
               )}
 
-              {/* STEP 1: Route Selection Fork */}
               {initiationMode === null && (
                 <div>
                   <p className="text-slate-600 text-sm leading-relaxed mb-6">
@@ -333,7 +306,6 @@ function ProjectTemplateDetails() {
                   </p>
                   
                   <div className="flex flex-col gap-4">
-                    {/* Option A: Go Solo */}
                     <button 
                       onClick={() => setInitiationMode('solo')}
                       className="w-full p-5 border-2 border-slate-200 hover:border-primary rounded-xl bg-white text-left cursor-pointer flex gap-4 items-center hover:bg-slate-50/60 transition-all duration-150 shadow-xs"
@@ -347,7 +319,6 @@ function ProjectTemplateDetails() {
                       </div>
                     </button>
 
-                    {/* Option B: Seek Supervision */}
                     <button 
                       onClick={() => setInitiationMode('supervised')}
                       className="w-full p-5 border-2 border-slate-200 hover:border-primary rounded-xl bg-white text-left cursor-pointer flex gap-4 items-center hover:bg-slate-50/60 transition-all duration-150 shadow-xs"
@@ -364,7 +335,6 @@ function ProjectTemplateDetails() {
                 </div>
               )}
 
-              {/* STEP 2: Supervised Faculty Directory Search Deck */}
               {initiationMode === 'supervised' && (
                 <div>
                   <button 
@@ -388,7 +358,6 @@ function ProjectTemplateDetails() {
                     />
                   </div>
 
-                  {/* Directory Results Matrix */}
                   <div className="border border-slate-200 rounded-lg max-h-[220px] overflow-y-auto bg-slate-50/50">
                     {searchingProfessors ? (
                       <div className="p-4 text-xs text-slate-500 text-center">Querying corporate faculty clusters...</div>
@@ -401,7 +370,6 @@ function ProjectTemplateDetails() {
                         const isChosen = selectedProfessor?.id === prof.id;
                         const isFull = Number(prof.slots) >= 4;
                         
-                        // Check if any professor concentration matches the template's active discipline field
                         const isDomainExpert = primaryDiscipline && prof.specialties?.some(spec => {
                           const specStr = typeof spec === 'object' ? (spec.name || spec.Name || '') : String(spec);
                           return specStr.toLowerCase().includes(primaryDiscipline.toLowerCase()) || primaryDiscipline.toLowerCase().includes(specStr.toLowerCase());
@@ -418,7 +386,6 @@ function ProjectTemplateDetails() {
                               <div className="flex-1 min-w-0">
                                 <div className="text-xs font-bold text-slate-800 flex items-center gap-1.5 flex-wrap">
                                   <span>{prof.fullName}</span>
-                                  {/* Domain Expert Match Badge */}
                                   {isDomainExpert && (
                                     <span className="bg-amber-50 text-amber-700 border border-amber-200 text-[10px] px-1.5 py-0.5 rounded font-semibold shrink-0">
                                       ✨ Domain Expert
@@ -427,12 +394,10 @@ function ProjectTemplateDetails() {
                                 </div>
                                 <div className="text-[11px] text-slate-500 truncate">{prof.email}</div>
                                 
-                                {/* Capacity Meter Allocation Safeguard */}
                                 <div className="text-[11px] font-medium text-slate-500 mt-0.5">
                                   Available Slots: {prof.slots || 0}/4
                                 </div>
 
-                                {/* Core Specialties Row of Micro-tags */}
                                 {prof.specialties && prof.specialties.length > 0 && (
                                   <div className="flex flex-wrap gap-1 mt-1.5">
                                     {prof.specialties.map((spec, sIdx) => (
@@ -462,7 +427,6 @@ function ProjectTemplateDetails() {
                 </div>
               )}
 
-              {/* STEP 3: Solo Trigger Summary Checkout Confirmation */}
               {initiationMode === 'solo' && (
                 <div className="text-center py-2">
                   <p className="text-slate-600 text-sm leading-relaxed mb-4">
@@ -475,7 +439,6 @@ function ProjectTemplateDetails() {
               )}
             </div>
 
-            {/* Modal Actions Footer Bar */}
             <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
               <button 
                 onClick={handleCloseInitiationModal} 

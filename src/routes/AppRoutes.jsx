@@ -9,6 +9,7 @@ import StudentDashboard from '../features/student/components/StudentDashboard';
 import ProjectMarketplace from '../features/student/components/ProjectMarketplace';
 import StudentProfile from '../features/student/components/StudentProfile';
 import ProjectTemplateDetails from '../features/project-templates/components/ProjectTemplateDetails';
+import { useUserSkills } from '../features/skills/hooks/useUserSkills'; // Imported the infrastructure hook
 
 // Import the high-fidelity Phase 3 Project Workspace component
 import ProjectWorkspace from '../features/project-instances/components/ProjectWorkspace';
@@ -20,6 +21,23 @@ const PlaceholderView = ({ title }) => (
     <p style={{ color: '#718096', fontSize: '0.9rem' }}>This workspace channel is currently being prepared for platform synchronization.</p>
   </div>
 );
+
+/**
+ * Intermediary Route Wrapper to enforce true Inversion of Control (IoC).
+ * This layer consumes the contextual user session state and injects it 
+ * downstream as pure, deterministic props into the presentation view.
+ */
+const ProjectTemplateDetailsRouteWrapper = () => {
+  const { userSkills, isStudent, loading } = useUserSkills();
+  
+  return (
+    <ProjectTemplateDetails 
+      userSkills={userSkills}
+      isStudent={isStudent}
+      skillsLoading={loading}
+    />
+  );
+};
 
 function AppRoutes() {
   return (
@@ -45,7 +63,9 @@ function AppRoutes() {
           {/* Shared & Actor Specific Sub-Channel Routes */}
           <Route path="profile" element={<StudentProfile />} />
           <Route path="marketplace" element={<ProjectMarketplace />} />
-          <Route path="marketplace/:templateId" element={<ProjectTemplateDetails />} />
+          
+          {/* Updated to use the IoC Route Wrapper Component */}
+          <Route path="marketplace/:templateId" element={<ProjectTemplateDetailsRouteWrapper />} />
 
           {/* Professor Sub-Channel Routes */}
           <Route path="supervision-requests" element={<PlaceholderView title="Incoming Supervision Vetting Board" />} />
