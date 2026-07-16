@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { loginUser } from '../identityApi';
 import { useAuth } from '../../../context/AuthContext';
 
@@ -9,6 +9,10 @@ function LoginForm() {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
+  // URL parameter tracking to display post-registration success feedback alerts
+  const [searchParams] = useSearchParams();
+  const justRegistered = searchParams.get('registered') === 'true';
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -43,6 +47,13 @@ function LoginForm() {
         </h2>
         <p className="text-slate-500 text-sm mt-1">Sign in to access your R&D workspace</p>
       </div>
+
+      {/* Success Notification Banner */}
+      {justRegistered && !error && (
+        <div className="bg-emerald-50 text-emerald-700 border border-emerald-100 p-3 rounded-btn text-sm mb-4 text-center font-medium animate-fadeIn">
+          Account configured successfully! Please sign in using your credentials.
+        </div>
+      )}
 
       {error && (
         <div className="bg-red-50 text-red-600 border border-red-100 p-3 rounded-btn text-sm mb-4 text-center font-medium">
