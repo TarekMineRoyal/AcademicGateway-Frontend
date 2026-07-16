@@ -1,15 +1,15 @@
 import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 /**
  * Route guard component to secure endpoints based on session validity and JWT claims.
+ * Refactored to act as a native layout component via <Outlet /> per Ticket-06 architecture.
  * 
  * @param {Object} props
- * @param {React.ReactNode} props.children - The protected workspace layout or page to render.
  * @param {string[]} props.allowedRoles - Collection of roles authorized to pass this route guard.
  */
-function ProtectedRoute({ children, allowedRoles }) {
+export default function ProtectedRoute({ allowedRoles }) {
   const { user, loading } = useAuth();
   const location = useLocation();
 
@@ -41,8 +41,6 @@ function ProtectedRoute({ children, allowedRoles }) {
     }
   }
 
-  // If all validation criteria pass successfully, render the target authenticated workspace node
-  return children;
+  // Render the nested child routes cleanly via React Router layout rendering
+  return <Outlet />;
 }
-
-export default ProtectedRoute;

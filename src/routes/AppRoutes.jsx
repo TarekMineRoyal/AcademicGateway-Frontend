@@ -56,86 +56,90 @@ export const router = createBrowserRouter([
 
   /* Authenticated Workspace Matrix Route Tree */
   {
-    path: "/dashboard",
-    element: (
-      <ProtectedRoute>
-        <WorkspaceLayout />
-      </ProtectedRoute>
-    ),
+    // Auth Guard Level 1 Layout Route
+    element: <ProtectedRoute />, 
     children: [
-      /* Default Base Dashboard Workspace Entry Node */
       {
-        index: true,
-        element: <StudentDashboard />
-      },
-      /* Shared & Actor Specific Sub-Channel Routes */
-      {
-        path: "profile",
-        element: <StudentProfile />
-      },
-      {
-        path: "marketplace",
-        element: <ProjectMarketplace />
-      },
-      /* Updated to use the IoC Route Wrapper Component */
-      {
-        path: "marketplace/:templateId",
-        element: <ProjectTemplateDetailsRouteWrapper />
-      },
-      /* Professor Sub-Channel Routes */
-      {
-        path: "supervision-requests",
-        element: <PlaceholderView title="Incoming Supervision Vetting Board" />
-      },
-      {
-        path: "active-projects",
-        element: <PlaceholderView title="Faculty Mentorship Supervision Console" />
-      },
-      {
-        path: "capacity",
-        element: <PlaceholderView title="Threshold Allocation & Capacity Management" />
-      },
-      /* Provider / Industry Sponsor Sub-Channel Routes */
-      {
-        path: "propose-template",
-        element: <PlaceholderView title="R&D Capability Template Proposer Form" />
-      },
-      {
-        path: "my-templates",
-        element: <PlaceholderView title="Sponsor Blueprint Proposal Inventory" />
-      },
-      {
-        path: "lab-groups",
-        element: <PlaceholderView title="Active Co-Managed Experimental Lab Channels" />
-      },
-      /* Platform Administrator Management Sub-Channel Routes */
-      {
-        path: "approve-templates",
-        element: <PlaceholderView title="Global Project Verification Board" />
-      },
-      {
-        path: "verify-providers",
-        element: <PlaceholderView title="External Institutional Sponsor Vetting Board" />
-      },
-      {
-        path: "users",
-        element: <PlaceholderView title="Global User Core Account Directory" />
+        path: "/dashboard",
+        // Shared Workspace Presentation Layout Route
+        element: <WorkspaceLayout />,
+        children: [
+          /* Default Base Dashboard Workspace Entry Node */
+          {
+            index: true,
+            element: <StudentDashboard />
+          },
+          /* Shared & Actor Specific Sub-Channel Routes */
+          {
+            path: "profile",
+            element: <StudentProfile />
+          },
+          {
+            path: "marketplace",
+            element: <ProjectMarketplace />
+          },
+          /* Updated to use the IoC Route Wrapper Component */
+          {
+            path: "marketplace/:templateId",
+            element: <ProjectTemplateDetailsRouteWrapper />
+          },
+          /* Professor Sub-Channel Routes */
+          {
+            path: "supervision-requests",
+            element: <PlaceholderView title="Incoming Supervision Vetting Board" />
+          },
+          {
+            path: "active-projects",
+            element: <PlaceholderView title="Faculty Mentorship Supervision Console" />
+          },
+          {
+            path: "capacity",
+            element: <PlaceholderView title="Threshold Allocation & Capacity Management" />
+          },
+          /* Provider / Industry Sponsor Sub-Channel Routes */
+          {
+            path: "propose-template",
+            element: <PlaceholderView title="R&D Capability Template Proposer Form" />
+          },
+          {
+            path: "my-templates",
+            element: <PlaceholderView title="Sponsor Blueprint Proposal Inventory" />
+          },
+          {
+            path: "lab-groups",
+            element: <PlaceholderView title="Active Co-Managed Experimental Lab Channels" />
+          },
+          /* Platform Administrator Management Sub-Channel Routes */
+          {
+            path: "approve-templates",
+            element: <PlaceholderView title="Global Project Verification Board" />
+          },
+          {
+            path: "verify-providers",
+            element: <PlaceholderView title="External Institutional Sponsor Vetting Board" />
+          },
+          {
+            path: "users",
+            element: <PlaceholderView title="Global User Core Account Directory" />
+          }
+        ]
       }
     ]
   },
 
   /* Secured under standard authentication and persistent Sidebar/Header Layout */
   {
-    element: (
-      <ProtectedRoute>
-        <WorkspaceLayout />
-      </ProtectedRoute>
-    ),
+    element: <ProtectedRoute />,
     children: [
-      /* Phase 3 Target Integration Route */
       {
-        path: "/workspace/projects/:projectInstanceId",
-        element: <ProjectWorkspace />
+        element: <WorkspaceLayout />,
+        children: [
+          /* Phase 3 Target Integration Route */
+          {
+            path: "/workspace/projects/:projectInstanceId",
+            element: <ProjectWorkspace />
+          }
+        ]
       }
     ]
   },
