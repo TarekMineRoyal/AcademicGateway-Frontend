@@ -5,10 +5,9 @@ import { getProjectTemplateById } from '../projectTemplatesApi';
 import { initializeProjectInstance } from '../../project-instances/projectInstancesApi';
 import { searchProfessors } from '../../professor/professorApi';
 import { adaptMilestones } from '../../../utils/milestoneAdapter'; // Updated to use the global shared utils path
+import MilestoneVisualizer from '../../../components/milestone/MilestoneVisualizer'; // Phase 2 Shared Master Shell Component
 import { 
   ArrowLeft, 
-  Clock, 
-  FileText, 
   Building2, 
   GitMerge, 
   Activity, 
@@ -133,26 +132,6 @@ function ProjectTemplateDetails() {
     }
   };
 
-  // Backend DeliverableType Enum Interpreters
-  const getDeliverableTypeText = (typeInt) => {
-    switch (typeInt) {
-      case 0: return 'None (Informational Checkout)';
-      case 1: return 'Web Link URL (GitHub / Deployment)';
-      case 2: return 'File Upload (PDF / Document Matrix)';
-      case 3: return 'Plain Text Summary Entry';
-      default: return 'Standard Review Submission';
-    }
-  };
-
-  // Backend DependencyType Enum Interpreters
-  const getDependencyTypeText = (typeInt) => {
-    switch (typeInt) {
-      case 1: return 'Finish-to-Start (Prerequisite must conclude before this node starts)';
-      case 2: return 'Start-to-Start (Prerequisite must initialize before this node starts)';
-      default: return 'Sequential Connection';
-    }
-  };
-
   if (loading) {
     return <div style={{ color: '#4a5568', textAlign: 'center', padding: '4rem' }}>De-serializing comprehensive blueprint records...</div>;
   }
@@ -244,80 +223,8 @@ function ProjectTemplateDetails() {
           Analyze the sequential execution constraints mapping checkpoints below. Arrow branches represent strict prerequisite dependencies enforced by the pipeline engine.
         </p>
 
-        {milestones.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '2rem', backgroundColor: '#f7fafc', border: '1px dashed #cbd5e0', borderRadius: '6px', color: '#718096' }}>
-            No programmatic evaluation checkpoints are attached to this layout template.
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-            {milestones.map((milestone, idx) => {
-              const mId = milestone.id || milestone.Id;
-              const mTitle = milestone.title || milestone.Title;
-              const mDesc = milestone.description || milestone.Description;
-              const effort = milestone.expectedEffortInHours !== undefined ? milestone.expectedEffortInHours : milestone.ExpectedEffortInHours;
-              const delivType = milestone.requiredDeliverableType !== undefined ? milestone.requiredDeliverableType : milestone.RequiredDeliverableType;
-
-              const structuralPrerequisites = dependencies.filter(dep => (dep.successorId || dep.SuccessorId) === mId);
-
-              return (
-                <div key={mId || idx} style={{ border: '1px solid #e2e8f0', borderRadius: '6px', backgroundColor: '#f8fafc', display: 'flex', gap: '1.25rem', padding: '1.25rem', position: 'relative' }}>
-                  
-                  {/* Sequence Visual Indicator Ring */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#3182ce', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '0.85rem' }}>
-                      {idx + 1}
-                    </div>
-                    {idx < milestones.length - 1 && (
-                      <div style={{ width: '2px', flex: 1, backgroundColor: '#cbd5e0', marginTop: '0.5rem', marginBottom: '-1.75rem', zIndex: 1 }} />
-                    )}
-                  </div>
-
-                  {/* Node Metrics Payload Column */}
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                      <h4 style={{ fontSize: '1rem', fontWeight: '700', color: '#2d3748' }}>{mTitle}</h4>
-                      <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.8rem', color: '#4a5568' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#edf2f7', padding: '0.15rem 0.4rem', borderRadius: '4px' }}>
-                          <Clock size={12} /> {effort} Hours Effort
-                        </span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#e2e8f0', padding: '0.15rem 0.4rem', borderRadius: '4px' }}>
-                          <FileText size={12} /> {getDeliverableTypeText(delivType)}
-                        </span>
-                      </div>
-                    </div>
-
-                    <p style={{ color: '#4a5568', fontSize: '0.875rem', lineHeight: '1.4', marginBottom: '0.5rem' }}>{mDesc}</p>
-
-                    {/* Edge Dependency Connective Badges Display */}
-                    {structuralPrerequisites.length > 0 && (
-                      <div style={{ marginTop: '0.75rem', backgroundColor: '#fff', padding: '0.5rem 0.75rem', borderRadius: '4px', border: '1px solid #edf2f7' }}>
-                        <span style={{ display: 'block', fontSize: '0.7rem', fontWeight: '700', color: '#718096', textTransform: 'uppercase', marginBottom: '0.25rem' }}>
-                          Enforced Network Prerequisites:
-                        </span>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                          {structuralPrerequisites.map((dep, edgeIdx) => {
-                            const predId = dep.predecessorId || dep.PredecessorId;
-                            const depType = dep.type !== undefined ? dep.type : dep.Type;
-                            
-                            const siblingIdx = milestones.findIndex(m => (m.id || m.Id) === predId);
-                            const siblingTitle = siblingIdx !== -1 ? `Milestone ${siblingIdx + 1}: "${milestones[siblingIdx].title || milestones[siblingIdx].Title}"` : 'Predecessor Node ID Node';
-
-                            return (
-                              <div key={edgeIdx} style={{ fontSize: '0.75rem', color: '#2b6cb0', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                <Activity size={12} style={{ color: '#4299e1' }} />
-                                <span><strong>{siblingTitle}</strong> — {getDependencyTypeText(depType)}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        {/* Replaced hardcoded vertical loops with the new Strategy Pattern Component Tree */}
+        <MilestoneVisualizer milestones={adaptedMilestones} />
       </div>
 
       {/* Interface Action Control Panel Row (Strictly Student Flow Routing Only) */}
