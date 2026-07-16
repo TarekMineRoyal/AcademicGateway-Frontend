@@ -43,6 +43,7 @@ export function adaptMilestones(rawMilestones = [], rawDependencies = []) {
       deliverableType,
       prerequisiteIds,
       dependencyTypes,
+      tasks: milestone.tasks || milestone.Tasks || [],
     };
   });
 }
