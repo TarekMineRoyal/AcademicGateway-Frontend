@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
+import { useUserSkills } from '../../skills/hooks/useUserSkills';
 import { getProjectTemplateById } from '../projectTemplatesApi';
 import { initializeProjectInstance } from '../../project-instances/projectInstancesApi';
 import { searchProfessors } from '../../professor/professorApi';
-import { adaptMilestones } from '../../../utils/milestoneAdapter'; // Updated to use the global shared utils path
-import MilestoneVisualizer from '../../../components/milestone/MilestoneVisualizer'; // Phase 2 Shared Master Shell Component
+import { adaptMilestones } from '../../../utils/milestoneAdapter';
+import MilestoneVisualizer from '../../../components/milestone/MilestoneVisualizer';
 import { 
   ArrowLeft, 
   Building2, 
@@ -25,6 +26,10 @@ function ProjectTemplateDetails() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const userRole = user?.role?.toLowerCase();
+
+  // Phase 3: Consume normalized capabilities state directly from the hook.
+  // We completely bypass the raw cryptographic token claims data-omissions.
+  const { userSkills, isStudent, loading: skillsLoading } = useUserSkills();
 
   const [template, setTemplate] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -173,21 +178,13 @@ function ProjectTemplateDetails() {
   const totalEstimatedScope = adaptedMilestones.reduce((sum, m) => sum + (Number(m.expectedHours) || 0), 0);
   const totalCheckpoints = adaptedMilestones.length;
 
-  // Real-time Capabilities Intersection Computations aligned with StudentProfileDto Contract
-  const userSkills = user?.skills || [];
-  const matchIntersectionCount = requiredSkills.filter(sk => {
-    const skId = String(sk.id || sk.skillId || sk.Id || '').toLowerCase().trim();
-    const skName = String(sk.name || sk.Name || '').toLowerCase().trim();
-    
-    return userSkills.some(userSk => {
-      const uId = String(userSk?.id || userSk?.skillId || userSk?.Id || '').toLowerCase().trim();
-      const uName = String(userSk?.name || userSk?.Name || '').toLowerCase().trim();
-      
-      // Bulletproof match evaluation via lowercased GUID strings or normalized names
-      return (skId && uId && skId === uId) || (skName && uName && skName === uName);
-    });
-  }).length;
+  // --- REFACTORED HIGH-PERFORMANCE COMPUTATION LAYER ---
+  // Because the backend team aligned contracts to lowercase 'id', we can wipe out the complex regex loops.
   const totalRequirementCount = requiredSkills.length;
+  const matchIntersectionCount = requiredSkills.filter(sk => {
+    const skId = String(sk.id || sk.skillId || sk.Id || '').trim();
+    return userSkills.some(userSk => userSk.id === skId);
+  }).length;
 
   const statusBadge = getStatusBadgeConfig(statusInt);
 
@@ -230,9 +227,13 @@ function ProjectTemplateDetails() {
           {description}
         </p>
 
-        {/* Modernized layout separation rule using strict parameters */}
-        <div className="border-t border-slate-200/60 w-full pt-6">
-          {requiredSkills.length > 0 && (
+        {/* 
+          Phase 4 Guard: Multi-Tenancy Isolation
+          We strictly gate this block to 'isStudent' and make sure server hydration is complete 
+          before rendering. Professors and Providers bypass this layout node entirely.
+        */}
+        {isStudent && !skillsLoading && totalRequirementCount > 0 && (
+          <div className="border-t border-slate-200/60 w-full pt-6">
             <div>
               <span className="block text-xs font-bold text-slate-400 uppercase mb-2">Target Capabilities & Prerequisites</span>
               
@@ -242,15 +243,27 @@ function ProjectTemplateDetails() {
               </div>
 
               <div className="flex flex-wrap gap-1.5">
-                {requiredSkills.map((sk, idx) => (
-                  <span key={sk.skillId || sk.Id || idx} className="text-xs bg-sky-50 text-sky-700 px-2 py-0.5 rounded font-semibold">
-                    {sk.name || sk.Name}
-                  </span>
-                ))}
+                {requiredSkills.map((sk, idx) => {
+                  const currentSkillId = String(sk.id || sk.skillId || sk.Id || '').trim();
+                  const studentOwnsSkill = userSkills.some(userSk => userSk.id === currentSkillId);
+
+                  return (
+                    <span 
+                      key={currentSkillId || idx} 
+                      className={`text-xs px-2 py-0.5 rounded font-semibold border transition-colors ${
+                        studentOwnsSkill
+                          ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                          : 'bg-slate-100 text-slate-400 border-slate-200'
+                      }`}
+                    >
+                      {sk.name || sk.Name}
+                    </span>
+                  );
+                })}
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Visual Milestone Dependencies Graph Map Section */}
