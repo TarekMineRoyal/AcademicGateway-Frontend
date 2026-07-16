@@ -6,12 +6,15 @@ import { SwimlaneStrategyLayout } from './strategies/SwimlaneStrategyLayout';
  * MilestoneVisualizer
  * Master Strategy Shell Component that controls the layout toggle state 
  * and switches dynamically between different rendering engine strategy stubs.
- * * @param {Object} props
+ *
+ * @param {Object} props
  * @param {Array} props.milestones - Strict array prop holding normalized items
+ * @param {boolean} props.isWorkspace - Flags if visualization runs inside a live execution instance
  */
-export default function MilestoneVisualizer({ milestones = [] }) {
+export default function MilestoneVisualizer({ milestones = [], isWorkspace = true }) {
   // String state controller to swap between strategy engine layouts
-  const [viewStrategy, setViewStrategy] = useState('kanban'); // 'kanban' | 'swimlane'
+  // Lands on execution columns for workspaces, and defaults to holistic roadmaps for previews
+  const [viewStrategy, setViewStrategy] = useState(isWorkspace ? 'kanban' : 'swimlane');
 
   return (
     <section className="space-y-4 w-full">
