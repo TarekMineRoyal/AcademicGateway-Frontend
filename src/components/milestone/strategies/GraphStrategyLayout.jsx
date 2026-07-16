@@ -113,13 +113,13 @@ const getLayoutedElements = (milestones) => {
 };
 
 /**
- * SwimlaneStrategyLayout
+ * GraphStrategyLayout
  * Fully interactive, auto-layout Directed Acyclic Graph (DAG) Pipeline Map using React Flow and Dagre.
  *
  * @param {Object} props
  * @param {Array} props.milestones - Normalized milestones array from parent shell
  */
-export function SwimlaneStrategyLayout({ milestones = [] }) {
+export function GraphStrategyLayout({ milestones = [] }) {
   const { nodes, edges } = getLayoutedElements(milestones);
 
   return (

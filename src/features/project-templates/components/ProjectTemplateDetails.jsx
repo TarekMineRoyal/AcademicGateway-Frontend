@@ -133,16 +133,23 @@ function ProjectTemplateDetails() {
   };
 
   if (loading) {
-    return <div style={{ color: '#4a5568', textAlign: 'center', padding: '4rem' }}>De-serializing comprehensive blueprint records...</div>;
+    return (
+      <div className="text-slate-600 text-center py-16 font-medium">
+        De-serializing comprehensive blueprint records...
+      </div>
+    );
   }
 
   if (error || !template) {
     return (
-      <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto', backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #fed7d7', textAlign: 'center' }}>
-        <AlertCircle size={40} style={{ color: '#e53e3e', marginBottom: '1rem' }} />
-        <h3 style={{ fontSize: '1.2rem', fontWeight: '700', color: '#c53030', marginBottom: '0.5rem' }}>Blueprint Synchronization Error</h3>
-        <p style={{ color: '#718096', marginBottom: '1.5rem' }}>{error || 'The requested template could not be mapped to an active dataset entity.'}</p>
-        <button onClick={() => navigate('/dashboard/marketplace')} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', backgroundColor: '#edf2f7', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
+      <div className="p-8 max-w-3xl mx-auto bg-white rounded-xl border border-red-200 text-center space-y-4">
+        <AlertCircle size={40} className="text-red-600 mx-auto mb-2" />
+        <h3 className="text-lg font-bold text-red-700 mb-1">Blueprint Synchronization Error</h3>
+        <p className="text-slate-500 text-sm mb-6">{error || 'The requested template could not be mapped to an active dataset entity.'}</p>
+        <button 
+          onClick={() => navigate('/dashboard/marketplace')} 
+          className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700 text-sm font-semibold cursor-pointer transition-colors"
+        >
           <ArrowLeft size={16} /> Return to Marketplace
         </button>
       </div>
@@ -152,55 +159,88 @@ function ProjectTemplateDetails() {
   const title = template.title || template.Title;
   const description = template.description || template.Description;
   const statusInt = template.status !== undefined ? template.status : template.Status;
-  const providerId = template.providerId || template.ProviderId;
   const companyName = template.providerCompanyName || template.ProviderCompanyName || 'Enterprise Sponsor Partner';
   const requiredSkills = template.requiredSkills || template.RequiredSkills || template.skills || template.Skills || [];
   const milestones = template.milestones || template.Milestones || [];
   const dependencies = template.dependencies || template.Dependencies || [];
+  const primaryDiscipline = template.discipline || template.Discipline || template.category || template.Category || '';
 
   // Invoke the milestone transformer payload adapter and trigger state verification log
   const adaptedMilestones = adaptMilestones(milestones, dependencies);
   console.log(adaptedMilestones);
 
+  // Math Data Aggregations & Target Estimations
+  const totalEstimatedScope = adaptedMilestones.reduce((sum, m) => sum + (Number(m.expectedHours) || 0), 0);
+  const totalCheckpoints = adaptedMilestones.length;
+
+  // Real-time Capabilities Intersection Computations aligned with StudentProfileDto Contract
+  const userSkills = user?.skills || [];
+  const matchIntersectionCount = requiredSkills.filter(sk => {
+    const skId = String(sk.id || sk.skillId || sk.Id || '').toLowerCase().trim();
+    const skName = String(sk.name || sk.Name || '').toLowerCase().trim();
+    
+    return userSkills.some(userSk => {
+      const uId = String(userSk?.id || userSk?.skillId || userSk?.Id || '').toLowerCase().trim();
+      const uName = String(userSk?.name || userSk?.Name || '').toLowerCase().trim();
+      
+      // Bulletproof match evaluation via lowercased GUID strings or normalized names
+      return (skId && uId && skId === uId) || (skName && uName && skName === uName);
+    });
+  }).length;
+  const totalRequirementCount = requiredSkills.length;
+
   const statusBadge = getStatusBadgeConfig(statusInt);
 
   return (
-    <div className="max-w-[1000px] mx-auto relative">
+    <div className="max-w-5xl mx-auto px-4 py-8 space-y-6 relative">
       {/* Upper Navigation Anchor */}
       <button 
         onClick={() => navigate('/dashboard/marketplace')}
-        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0', color: '#4a5568', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '600', marginBottom: '1.5rem' }}
+        className="inline-flex items-center gap-2 py-1 text-slate-600 hover:text-slate-900 bg-transparent border-none cursor-pointer text-sm font-semibold mb-2 transition-colors"
       >
         <ArrowLeft size={16} /> Back to Project Marketplace
       </button>
 
       {/* Main Core Briefing Sheet (Structural Shell Wrapper) */}
-      <div className="bg-white p-8 rounded-lg border border-slate-200 shadow-sm mb-8">
+      <div className="bg-white p-8 rounded-lg border border-slate-200 shadow-sm mb-4">
         <div className="flex justify-between items-start flex-wrap gap-4 mb-4">
           <div>
             <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase mb-1">
               <Building2 size={14} />
-              {companyName}
+              {/* Interactive Hover-Sensitive Link Element for Directory Linkage */}
+              <span className="text-slate-900 font-bold hover:text-primary hover:underline cursor-pointer transition-colors">
+                {companyName}
+              </span>
             </div>
-            <h1 className="text-3xl font-extrabold text-slate-900 leading-tight">{title}</h1>
+            <h1 className="text-3xl font-extrabold text-slate-900 leading-tight mb-2">{title}</h1>
           </div>
           <span className={`px-3 py-1.5 rounded-full text-xs font-bold border ${statusBadge.classes}`}>
             Status: {statusBadge.text}
           </span>
         </div>
 
+        {/* Aggregate Scope Banner */}
+        <div className="flex items-center gap-6 bg-slate-50 border border-slate-200/60 p-4 rounded-xl text-sm font-semibold text-slate-700 mb-6">
+          <div>Total Estimated Scope: <span className="text-slate-900 font-extrabold">{totalEstimatedScope} hrs</span></div>
+          <div className="w-px h-4 bg-slate-300/60" />
+          <div>Total Checkpoints: <span className="text-slate-900 font-extrabold">{totalCheckpoints}</span></div>
+        </div>
+
         <p className="text-slate-600 text-[0.95rem] leading-relaxed whitespace-pre-line mb-6">
           {description}
         </p>
 
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4 border-t border-slate-100 pt-6">
-          <div>
-            <span className="block text-xs font-bold text-slate-400 uppercase mb-1">Provider Identification Identifier</span>
-            <code className="text-xs bg-slate-50 px-1.5 py-0.5 rounded text-slate-600">{providerId}</code>
-          </div>
+        {/* Modernized layout separation rule using strict parameters */}
+        <div className="border-t border-slate-200/60 w-full pt-6">
           {requiredSkills.length > 0 && (
             <div>
-              <span className="block text-xs font-bold text-slate-400 uppercase mb-1.5">Target Capabilities & Prerequisites</span>
+              <span className="block text-xs font-bold text-slate-400 uppercase mb-2">Target Capabilities & Prerequisites</span>
+              
+              {/* Automated System Notification Profile Matcher Badge */}
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold bg-primary/10 text-primary border border-primary/20 rounded-full mb-4">
+                You possess {matchIntersectionCount} of {totalRequirementCount} required capabilities
+              </div>
+
               <div className="flex flex-wrap gap-1.5">
                 {requiredSkills.map((sk, idx) => (
                   <span key={sk.skillId || sk.Id || idx} className="text-xs bg-sky-50 text-sky-700 px-2 py-0.5 rounded font-semibold">
@@ -214,26 +254,25 @@ function ProjectTemplateDetails() {
       </div>
 
       {/* Visual Milestone Dependencies Graph Map Section */}
-      <div style={{ backgroundColor: '#fff', padding: '2rem', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.02)', marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1a202c', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <GitMerge size={20} style={{ color: '#3182ce' }} />
+      <div className="bg-white p-8 rounded-lg border border-slate-200 shadow-xs">
+        <h2 className="text-xl font-bold text-slate-900 mb-1 flex items-center gap-2">
+          <GitMerge size={20} className="text-primary" />
           Project Architecture & Evaluation Graph Plan
         </h2>
-        <p style={{ color: '#718096', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+        <p className="text-slate-500 text-sm mb-6">
           Analyze the sequential execution constraints mapping checkpoints below. Arrow branches represent strict prerequisite dependencies enforced by the pipeline engine.
         </p>
 
-        {/* Replaced hardcoded vertical loops with the new Strategy Pattern Component Tree */}
-        {/* Pass isWorkspace={false} to force the preview view context to default to the swimlane layout */}
+        {/* Forced view layout integration parameters configured to Graph view exclusively */}
         <MilestoneVisualizer milestones={adaptedMilestones} isWorkspace={false} />
       </div>
 
       {/* Interface Action Control Panel Row (Strictly Student Flow Routing Only) */}
-      <div className="flex flex-wrap items-center justify-end gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200/60 mt-8">
+      <div className="flex flex-wrap items-center justify-end gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200/60 mt-4">
         {userRole === 'student' && statusInt === 5 && (
           <button
             onClick={handleOpenInitiationModal}
-            className="bg-primary hover:bg-primary-hover text-white rounded-btn font-bold text-sm px-6 py-2.5 transition-all duration-200 shadow-sm"
+            className="bg-primary hover:bg-primary-hover text-white rounded-btn font-bold text-sm px-6 py-2.5 transition-all duration-200 shadow-sm cursor-pointer"
           >
             Initialize Selection Pipeline
           </button>
@@ -241,7 +280,7 @@ function ProjectTemplateDetails() {
 
         <button 
           onClick={() => navigate('/dashboard/marketplace')}
-          className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-btn font-semibold text-sm px-5 py-2.5 transition-all duration-200"
+          className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-btn font-semibold text-sm px-5 py-2.5 transition-all duration-200 cursor-pointer"
         >
           Cancel and Return
         </button>
@@ -249,22 +288,26 @@ function ProjectTemplateDetails() {
 
       {/* ================= WORKFLOW INITIALIZATION GATE OVERLAY MODAL ================= */}
       {isModalOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(26, 32, 44, 0.6)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifycontent: 'center', zIndex: 1000, padding: '1rem' }}>
-          <div style={{ backgroundColor: '#fff', width: '100%', maxWidth: '540px', borderRadius: '12px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl overflow-hidden flex flex-col">
             
             {/* Modal Header */}
-            <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #edf2f7', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f7fafc' }}>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1a202c' }}>Project Initialization Matrix</h3>
-              <button onClick={handleCloseInitiationModal} disabled={submitLoading} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#a0aec0', padding: '0.25rem' }} onMouseEnter={(e) => e.currentTarget.style.color = '#4a5568'} onMouseLeave={(e) => e.currentTarget.style.color = '#a0aec0'}>
+            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <h3 className="text-base font-bold text-slate-900">Project Initialization Matrix</h3>
+              <button 
+                onClick={handleCloseInitiationModal} 
+                disabled={submitLoading} 
+                className="bg-transparent border-none cursor-pointer text-slate-400 hover:text-slate-600 p-1 transition-colors disabled:cursor-not-allowed"
+              >
                 <X size={18} />
               </button>
             </div>
 
             {/* Modal Body Canvas */}
-            <div style={{ padding: '1.5rem', overflowY: 'auto', maxHeight: 'calc(80vh - 100px)' }}>
+            <div className="p-6 overflow-y-auto max-h-[calc(80vh-100px)]">
               {modalError && (
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start', color: '#c53030', backgroundColor: '#fff5f5', border: '1px solid #fed7d7', padding: '0.75rem 1rem', borderRadius: '6px', fontSize: '0.875rem', fontWeight: '500', marginBottom: '1.25rem' }}>
-                  <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
+                <div className="flex gap-2 items-start text-red-700 bg-red-50 border border-red-200 p-3 rounded-lg text-sm font-medium mb-4">
+                  <AlertCircle size={16} className="shrink-0 mt-0.5 text-red-600" />
                   <span>{modalError}</span>
                 </div>
               )}
@@ -272,40 +315,36 @@ function ProjectTemplateDetails() {
               {/* STEP 1: Route Selection Fork */}
               {initiationMode === null && (
                 <div>
-                  <p style={{ color: '#4a5568', fontSize: '0.9rem', lineHeight: '1.5', marginBottom: '1.5rem' }}>
+                  <p className="text-slate-600 text-sm leading-relaxed mb-6">
                     Select how you want to deploy this capstone aggregate model workspace track. You can modify mentorship settings post-launch.
                   </p>
                   
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div className="flex flex-col gap-4">
                     {/* Option A: Go Solo */}
                     <button 
                       onClick={() => setInitiationMode('solo')}
-                      style={{ width: '100%', padding: '1.25rem', border: '2px solid #e2e8f0', borderRadius: '8px', backgroundColor: '#fff', textAlign: 'left', cursor: 'pointer', display: 'flex', gap: '1rem', alignItems: 'center', transition: 'border-color 0.15s, background-color 0.15s' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#3182ce'; e.currentTarget.style.backgroundColor = '#f7fafc'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.backgroundColor = '#fff'; }}
+                      className="w-full p-5 border-2 border-slate-200 hover:border-primary rounded-xl bg-white text-left cursor-pointer flex gap-4 items-center hover:bg-slate-50/60 transition-all duration-150 shadow-xs"
                     >
-                      <div style={{ padding: '0.5rem', backgroundColor: '#ebf8ff', color: '#2b6cb0', borderRadius: '6px' }}>
+                      <div className="p-2 bg-sky-50 text-sky-700 rounded-lg">
                         <Zap size={22} />
                       </div>
                       <div>
-                        <h4 style={{ fontWeight: '700', fontSize: '0.95rem', color: '#2d3748', marginBottom: '0.15rem' }}>Deploy in Solo Execution Mode</h4>
-                        <p style={{ color: '#718096', fontSize: '0.8rem', lineHeight: '1.4' }}>Instantiates the runtime workspace track immediately. You hold the ability to invite a faculty advisor later.</p>
+                        <h4 className="font-bold text-sm text-slate-800 mb-0.5">Deploy in Solo Execution Mode</h4>
+                        <p className="text-slate-500 text-xs leading-normal">Instantiates the runtime workspace track immediately. You hold the ability to invite a faculty advisor later.</p>
                       </div>
                     </button>
 
                     {/* Option B: Seek Supervision */}
                     <button 
                       onClick={() => setInitiationMode('supervised')}
-                      style={{ width: '100%', padding: '1.25rem', border: '2px solid #e2e8f0', borderRadius: '8px', backgroundColor: '#fff', textAlign: 'left', cursor: 'pointer', display: 'flex', gap: '1rem', alignItems: 'center', transition: 'border-color 0.15s, background-color 0.15s' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#3182ce'; e.currentTarget.style.backgroundColor = '#f7fafc'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.backgroundColor = '#fff'; }}
+                      className="w-full p-5 border-2 border-slate-200 hover:border-primary rounded-xl bg-white text-left cursor-pointer flex gap-4 items-center hover:bg-slate-50/60 transition-all duration-150 shadow-xs"
                     >
-                      <div style={{ padding: '0.5rem', backgroundColor: '#f0fff4', color: '#38a169', borderRadius: '6px' }}>
+                      <div className="p-2 bg-green-50 text-green-700 rounded-lg">
                         <UserCheck size={22} />
                       </div>
                       <div>
-                        <h4 style={{ fontWeight: '700', fontSize: '0.95rem', color: '#2d3748', marginBottom: '0.15rem' }}>Request Faculty Academic Supervision</h4>
-                        <p style={{ color: '#718096', fontSize: '0.8rem', lineHeight: '1.4' }}>Search our verified faculty registry to route an invitation. Track status will remain pending until approved.</p>
+                        <h4 className="font-bold text-sm text-slate-800 mb-0.5">Request Faculty Academic Supervision</h4>
+                        <p className="text-slate-500 text-xs leading-normal">Search our verified faculty registry to route an invitation. Track status will remain pending until approved.</p>
                       </div>
                     </button>
                   </div>
@@ -315,51 +354,84 @@ function ProjectTemplateDetails() {
               {/* STEP 2: Supervised Faculty Directory Search Deck */}
               {initiationMode === 'supervised' && (
                 <div>
-                  <button onClick={() => { setInitiationMode(null); setSelectedProfessor(null); }} style={{ background: 'transparent', border: 'none', color: '#2b6cb0', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '1rem', padding: 0 }}>
+                  <button 
+                    onClick={() => { setInitiationMode(null); setSelectedProfessor(null); }} 
+                    className="bg-transparent border-none text-primary hover:text-primary-hover text-xs font-bold cursor-pointer flex items-center gap-1 mb-4 p-0 transition-colors"
+                  >
                     ← Back to selection options
                   </button>
                   
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#4a5568', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+                  <label className="block text-xs font-bold text-slate-600 uppercase mb-2">
                     Search Advisor Directory
                   </label>
-                  <div style={{ position: 'relative', marginBottom: '1rem' }}>
-                    <Search size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#a0aec0' }} />
+                  <div className="relative mb-4">
+                    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input 
                       type="text" 
                       placeholder="Type name, campus handle, or academic email..."
                       value={professorSearchQuery}
                       onChange={(e) => setProfessorSearchQuery(e.target.value)}
-                      style={{ width: '100%', padding: '0.55rem 1rem 0.55rem 2.2rem', fontSize: '0.9rem', borderRadius: '6px', border: '1px solid #cbd5e0', outline: 'none' }}
+                      className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-slate-300 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                     />
                   </div>
 
                   {/* Directory Results Matrix */}
-                  <div style={{ border: '1px solid #e2e8f0', borderRadius: '6px', maxHeight: '180px', overflowY: 'auto', backgroundColor: '#fafbfc' }}>
+                  <div className="border border-slate-200 rounded-lg max-h-[220px] overflow-y-auto bg-slate-50/50">
                     {searchingProfessors ? (
-                      <div style={{ padding: '1rem', fontSize: '0.8rem', color: '#718096', textAlign: 'center' }}>Querying corporate faculty clusters...</div>
+                      <div className="p-4 text-xs text-slate-500 text-center">Querying corporate faculty clusters...</div>
                     ) : professorResults.length === 0 ? (
-                      <div style={{ padding: '1rem', fontSize: '0.8rem', color: '#a0aec0', textAlign: 'center' }}>
+                      <div className="p-4 text-xs text-slate-400 text-center">
                         {professorSearchQuery ? 'No matching faculty identities found.' : 'Type to query directory grid...'}
                       </div>
                     ) : (
                       professorResults.map(prof => {
                         const isChosen = selectedProfessor?.id === prof.id;
+                        const isFull = Number(prof.slots) >= 4;
+                        
+                        // Check if any professor concentration matches the template's active discipline field
+                        const isDomainExpert = primaryDiscipline && prof.specialties?.some(spec => {
+                          const specStr = typeof spec === 'object' ? (spec.name || spec.Name || '') : String(spec);
+                          return specStr.toLowerCase().includes(primaryDiscipline.toLowerCase()) || primaryDiscipline.toLowerCase().includes(specStr.toLowerCase());
+                        });
+
                         return (
                           <div 
                             key={prof.id}
-                            onClick={() => setSelectedProfessor(prof)}
-                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.6rem 1rem', borderBottom: '1px solid #edf2f7', cursor: 'pointer', backgroundColor: isChosen ? '#ebf8ff' : 'transparent', transition: 'background-color 0.1s' }}
-                            onMouseEnter={(e) => { if(!isChosen) e.currentTarget.style.backgroundColor = '#f7fafc'; }}
-                            onMouseLeave={(e) => { if(!isChosen) e.currentTarget.style.backgroundColor = 'transparent'; }}
+                            onClick={() => !isFull && setSelectedProfessor(prof)}
+                            className={`flex items-start justify-between p-3 border-b border-slate-100 cursor-pointer transition-colors ${isChosen ? 'bg-sky-50/70' : 'bg-transparent hover:bg-slate-50'} ${isFull ? 'opacity-50 pointer-events-none' : ''}`}
                           >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                              <User size={14} style={{ color: isChosen ? '#2b6cb0' : '#718096' }} />
-                              <div>
-                                <div style={{ fontSize: '0.85rem', fontWeight: '600', color: '#2d3748' }}>{prof.fullName}</div>
-                                <div style={{ fontSize: '0.75rem', color: '#718096' }}>{prof.email}</div>
+                            <div className="flex items-start gap-2.5 w-full">
+                              <User size={15} className={`mt-0.5 ${isChosen ? 'text-primary' : 'text-slate-500'}`} />
+                              <div className="flex-1 min-w-0">
+                                <div className="text-xs font-bold text-slate-800 flex items-center gap-1.5 flex-wrap">
+                                  <span>{prof.fullName}</span>
+                                  {/* Domain Expert Match Badge */}
+                                  {isDomainExpert && (
+                                    <span className="bg-amber-50 text-amber-700 border border-amber-200 text-[10px] px-1.5 py-0.5 rounded font-semibold shrink-0">
+                                      ✨ Domain Expert
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-[11px] text-slate-500 truncate">{prof.email}</div>
+                                
+                                {/* Capacity Meter Allocation Safeguard */}
+                                <div className="text-[11px] font-medium text-slate-500 mt-0.5">
+                                  Available Slots: {prof.slots || 0}/4
+                                </div>
+
+                                {/* Core Specialties Row of Micro-tags */}
+                                {prof.specialties && prof.specialties.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 mt-1.5">
+                                    {prof.specialties.map((spec, sIdx) => (
+                                      <span key={sIdx} className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-medium">
+                                        {typeof spec === 'object' ? (spec.name || spec.Name) : spec}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                             </div>
-                            {isChosen && <Check size={16} style={{ color: '#2b6cb0' }} />}
+                            {isChosen && <Check size={16} className="text-primary shrink-0 ml-2" />}
                           </div>
                         );
                       })
@@ -367,9 +439,9 @@ function ProjectTemplateDetails() {
                   </div>
 
                   {selectedProfessor && (
-                    <div style={{ marginTop: '1.25rem', padding: '0.75rem 1rem', backgroundColor: '#f0fff4', border: '1px solid #c6f6d5', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Activity size={14} style={{ color: '#38a169' }} />
-                      <span style={{ fontSize: '0.8rem', color: '#276749' }}>
+                    <div className="mt-5 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2 animate-fadeIn">
+                      <Activity size={14} className="text-green-600" />
+                      <span className="text-xs text-green-800">
                         Selected: <strong>{selectedProfessor.fullName}</strong> will receive the request.
                       </span>
                     </div>
@@ -379,11 +451,11 @@ function ProjectTemplateDetails() {
 
               {/* STEP 3: Solo Trigger Summary Checkout Confirmation */}
               {initiationMode === 'solo' && (
-                <div style={{ textAlign: 'center', padding: '0.5rem 0' }}>
-                  <p style={{ color: '#4a5568', fontSize: '0.9rem', lineHeight: '1.5', marginBottom: '1.25rem' }}>
+                <div className="text-center py-2">
+                  <p className="text-slate-600 text-sm leading-relaxed mb-4">
                     You are initializing <strong>{title}</strong> in standalone mode. 
                   </p>
-                  <p style={{ color: '#718096', fontSize: '0.8rem' }}>
+                  <p className="text-slate-500 text-xs">
                     Your pipeline record tracks as an active instance immediately upon checkout.
                   </p>
                 </div>
@@ -391,11 +463,11 @@ function ProjectTemplateDetails() {
             </div>
 
             {/* Modal Actions Footer Bar */}
-            <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid #edf2f7', backgroundColor: '#f7fafc', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
               <button 
                 onClick={handleCloseInitiationModal} 
                 disabled={submitLoading}
-                style={{ padding: '0.5rem 1rem', backgroundColor: '#fff', color: '#4a5568', border: '1px solid #cbd5e0', borderRadius: '6px', fontSize: '0.85rem', fontWeight: '600', cursor: submitLoading ? 'not-allowed' : 'pointer' }}
+                className="px-4 py-2 bg-white text-slate-600 border border-slate-300 rounded-lg text-xs font-semibold hover:bg-slate-50 transition-colors disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
@@ -404,7 +476,7 @@ function ProjectTemplateDetails() {
                 <button 
                   onClick={handleFinalizePipelineInstantiation}
                   disabled={submitLoading || (initiationMode === 'supervised' && !selectedProfessor)}
-                  style={{ padding: '0.5rem 1.25rem', backgroundColor: '#3182ce', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '0.85rem', fontWeight: '700', cursor: (submitLoading || (initiationMode === 'supervised' && !selectedProfessor)) ? 'not-allowed' : 'pointer', opacity: (submitLoading || (initiationMode === 'supervised' && !selectedProfessor)) ? 0.6 : 1 }}
+                  className="px-5 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-xs font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {submitLoading ? 'Deploying Track...' : 'Confirm and Initialize'}
                 </button>
