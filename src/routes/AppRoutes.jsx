@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import LandingPage from '../pages/LandingPage';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
@@ -9,7 +9,7 @@ import StudentDashboard from '../features/student/components/StudentDashboard';
 import ProjectMarketplace from '../features/student/components/ProjectMarketplace';
 import StudentProfile from '../features/student/components/StudentProfile';
 import ProjectTemplateDetails from '../features/project-templates/components/ProjectTemplateDetails';
-import { useUserSkills } from '../features/skills/hooks/useUserSkills'; // Imported the infrastructure hook
+import { useUserSkills } from '../features/skills/hooks/useUserSkills';
 
 // Import the high-fidelity Phase 3 Project Workspace component
 import ProjectWorkspace from '../features/project-instances/components/ProjectWorkspace';
@@ -39,67 +39,110 @@ const ProjectTemplateDetailsRouteWrapper = () => {
   );
 };
 
-function AppRoutes() {
-  return (
-    <Router>
-      <Routes>
-        {/* Public Guest Routes */}
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register/:role" element={<RegisterPage />} />
+// Static Router Export allowing network interceptors to control routing outside standard React hooks
+export const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <LandingPage />
+  },
+  {
+    path: "/login",
+    element: <LoginPage />
+  },
+  {
+    path: "/register/:role",
+    element: <RegisterPage />
+  },
 
-        {/* Authenticated Workspace Matrix Route Tree */}
-        <Route 
-          path="/dashboard" 
-          element = {
-            <ProtectedRoute>
-              <WorkspaceLayout />
-            </ProtectedRoute>
-          }
-        >
-          {/* Default Base Dashboard Workspace Entry Node */}
-          <Route index element={<StudentDashboard />} />
+  /* Authenticated Workspace Matrix Route Tree */
+  {
+    path: "/dashboard",
+    element: (
+      <ProtectedRoute>
+        <WorkspaceLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      /* Default Base Dashboard Workspace Entry Node */
+      {
+        index: true,
+        element: <StudentDashboard />
+      },
+      /* Shared & Actor Specific Sub-Channel Routes */
+      {
+        path: "profile",
+        element: <StudentProfile />
+      },
+      {
+        path: "marketplace",
+        element: <ProjectMarketplace />
+      },
+      /* Updated to use the IoC Route Wrapper Component */
+      {
+        path: "marketplace/:templateId",
+        element: <ProjectTemplateDetailsRouteWrapper />
+      },
+      /* Professor Sub-Channel Routes */
+      {
+        path: "supervision-requests",
+        element: <PlaceholderView title="Incoming Supervision Vetting Board" />
+      },
+      {
+        path: "active-projects",
+        element: <PlaceholderView title="Faculty Mentorship Supervision Console" />
+      },
+      {
+        path: "capacity",
+        element: <PlaceholderView title="Threshold Allocation & Capacity Management" />
+      },
+      /* Provider / Industry Sponsor Sub-Channel Routes */
+      {
+        path: "propose-template",
+        element: <PlaceholderView title="R&D Capability Template Proposer Form" />
+      },
+      {
+        path: "my-templates",
+        element: <PlaceholderView title="Sponsor Blueprint Proposal Inventory" />
+      },
+      {
+        path: "lab-groups",
+        element: <PlaceholderView title="Active Co-Managed Experimental Lab Channels" />
+      },
+      /* Platform Administrator Management Sub-Channel Routes */
+      {
+        path: "approve-templates",
+        element: <PlaceholderView title="Global Project Verification Board" />
+      },
+      {
+        path: "verify-providers",
+        element: <PlaceholderView title="External Institutional Sponsor Vetting Board" />
+      },
+      {
+        path: "users",
+        element: <PlaceholderView title="Global User Core Account Directory" />
+      }
+    ]
+  },
 
-          {/* Shared & Actor Specific Sub-Channel Routes */}
-          <Route path="profile" element={<StudentProfile />} />
-          <Route path="marketplace" element={<ProjectMarketplace />} />
-          
-          {/* Updated to use the IoC Route Wrapper Component */}
-          <Route path="marketplace/:templateId" element={<ProjectTemplateDetailsRouteWrapper />} />
+  /* Secured under standard authentication and persistent Sidebar/Header Layout */
+  {
+    element: (
+      <ProtectedRoute>
+        <WorkspaceLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      /* Phase 3 Target Integration Route */
+      {
+        path: "/workspace/projects/:projectInstanceId",
+        element: <ProjectWorkspace />
+      }
+    ]
+  },
 
-          {/* Professor Sub-Channel Routes */}
-          <Route path="supervision-requests" element={<PlaceholderView title="Incoming Supervision Vetting Board" />} />
-          <Route path="active-projects" element={<PlaceholderView title="Faculty Mentorship Supervision Console" />} />
-          <Route path="capacity" element={<PlaceholderView title="Threshold Allocation & Capacity Management" />} />
-
-          {/* Provider / Industry Sponsor Sub-Channel Routes */}
-          <Route path="propose-template" element={<PlaceholderView title="R&D Capability Template Proposer Form" />} />
-          <Route path="my-templates" element={<PlaceholderView title="Sponsor Blueprint Proposal Inventory" />} />
-          <Route path="lab-groups" element={<PlaceholderView title="Active Co-Managed Experimental Lab Channels" />} />
-
-          {/* Platform Administrator Management Sub-Channel Routes */}
-          <Route path="approve-templates" element={<PlaceholderView title="Global Project Verification Board" />} />
-          <Route path="verify-providers" element={<PlaceholderView title="External Institutional Sponsor Vetting Board" />} />
-          <Route path="users" element={<PlaceholderView title="Global User Core Account Directory" />} />
-        </Route>
-
-        {/* Secured under standard authentication and persistent Sidebar/Header Layout */}
-        <Route 
-          element={
-            <ProtectedRoute>
-              <WorkspaceLayout />
-            </ProtectedRoute>
-          }
-        >
-          {/* Phase 3 Target Integration Route */}
-          <Route path="/workspace/projects/:projectInstanceId" element={<ProjectWorkspace />} />
-        </Route>
-
-        {/* Global Catch-all Redirection Safeguard */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Router>
-  );
-}
-
-export default AppRoutes;
+  /* Global Catch-all Redirection Safeguard */
+  {
+    path: "*",
+    element: <Navigate to="/" replace />
+  }
+]);

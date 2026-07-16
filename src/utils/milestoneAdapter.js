@@ -1,39 +1,61 @@
 /**
  * Normalizes backend blueprint payloads into a strict client-side data contract.
- * Aggregates the separate dependencies edge array directly into the milestone nodes.
- * Elevated to global utils to allow shared access across both template previews 
- * and live project workspace instances without causing cross-feature coupling.
+ * Aggregates separate or embedded dependency edge arrays directly into the milestone nodes.
  */
 export function adaptMilestones(rawMilestones = [], rawDependencies = []) {
   return rawMilestones.map((milestone) => {
-    // 1. Defensively resolve backend casing variances
     const id = milestone.id || milestone.Id;
-    const title = milestone.title || milestone.Title || '';
-    const description = milestone.description || milestone.Description || '';
+    const title = milestone.titleSnapshot || milestone.TitleSnapshot || milestone.title || milestone.Title || '';
+    const description = milestone.descriptionSnapshot || milestone.DescriptionSnapshot || milestone.description || milestone.Description || '';
+    
     const expectedHours = milestone.expectedEffortInHours !== undefined 
       ? milestone.expectedEffortInHours 
       : (milestone.ExpectedEffortInHours || 0);
+      
     const deliverableType = milestone.requiredDeliverableType !== undefined 
       ? milestone.requiredDeliverableType 
       : (milestone.RequiredDeliverableType || 0);
 
-    // 2. Filter the incoming dependencies matrix to isolate prerequisites blocking THIS node
-    const relatedEdges = rawDependencies.filter(
-      (dep) => (dep.successorId || dep.SuccessorId) === id
-    );
+    // --- SELF HEALING DEPENDENCY RESOLUTION ---
+    // If global dependencies array is empty (Live Track), extract them from the embedded milestone node
+    const embeddedDeps = milestone.inboundDependencies || milestone.InboundDependencies || [];
+    const relatedEdges = rawDependencies.length > 0
+      ? rawDependencies.filter((dep) => (dep.successorId || dep.SuccessorId) === id)
+      : embeddedDeps;
 
-    // 3. Map out an array of strict predecessor string GUIDs
+    // Map out an array of strict predecessor string GUIDs
     const prerequisiteIds = relatedEdges.map(
       (dep) => dep.predecessorId || dep.PredecessorId
     );
 
-    // 4. Build a dictionary mapping each predecessor ID to its relation type (e.g., 1 = FS, 2 = SS)
+    // Build a dictionary mapping each predecessor ID to its relation type
     const dependencyTypes = relatedEdges.reduce((acc, dep) => {
       const predId = dep.predecessorId || dep.PredecessorId;
       const type = dep.type !== undefined ? dep.type : dep.Type;
       if (predId) acc[predId] = type;
       return acc;
     }, {});
+
+    // --- TASK MAPPING ---
+    const rawTasks = milestone.localTasks || milestone.LocalTasks || 
+                     milestone.globalTasks || milestone.GlobalTasks || 
+                     milestone.tasks || milestone.Tasks || [];
+
+    const adaptedTasks = rawTasks.map((task) => ({
+      id: task.id || task.Id,
+      title: task.titleSnapshot || task.TitleSnapshot || task.title || task.Title || '',
+      description: task.descriptionSnapshot || task.DescriptionSnapshot || task.description || task.Description || '',
+      weight: task.weight !== undefined ? task.weight : (task.Weight || 0),
+      requiredDeliverableType: task.requiredDeliverableType !== undefined 
+        ? task.requiredDeliverableType 
+        : (task.RequiredDeliverableType || 0),
+      status: task.status !== undefined ? task.status : task.Status,
+      submissionPayload: task.submissionPayload || task.SubmissionPayload || null,
+      submittedAt: task.submittedAt || task.SubmittedAt || null,
+      grade: task.grade !== undefined ? task.grade : task.Grade,
+      evaluationFeedback: task.evaluationFeedback || task.EvaluationFeedback || null,
+      gradedAt: task.gradedAt || task.GradedAt || null
+    }));
 
     return {
       id,
@@ -43,7 +65,8 @@ export function adaptMilestones(rawMilestones = [], rawDependencies = []) {
       deliverableType,
       prerequisiteIds,
       dependencyTypes,
-      tasks: milestone.tasks || milestone.Tasks || [],
+      status: milestone.status !== undefined ? milestone.status : milestone.Status,
+      tasks: adaptedTasks,
     };
   });
 }
