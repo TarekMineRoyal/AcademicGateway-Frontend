@@ -20,9 +20,9 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor: Catch global errors (like 401 Unauthorized)
+// Response Interceptor: Global Unwrapping Engine & Error Catching
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => response.data, // Automatically cuts out the Axios wrapper globally
   (error) => {
     if (error.response && error.response.status === 401) {
       localStorage.removeItem('token');
@@ -32,7 +32,7 @@ apiClient.interceptors.response.use(
         window.location.href = '/login';
       }
     }
-    return Promise.reject(error);
+    return Promise.reject(error); // Bounces straight to TanStack's onError cache handler
   }
 );
 

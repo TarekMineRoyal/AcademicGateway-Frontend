@@ -8,8 +8,8 @@ import apiClient from '../../api/apiClient';
  * @returns {Promise<{token: string}>}
  */
 export const loginUser = async (email, password) => {
-  const response = await apiClient.post('auth/login', { email, password });
-  return response.data; 
+  const data = await apiClient.post('auth/login', { email, password });
+  return data; 
 };
 
 /**
@@ -19,8 +19,8 @@ export const loginUser = async (email, password) => {
  * @returns {Promise<any>}
  */
 export const registerStudent = async (commandPayload) => {
-  const response = await apiClient.post('students', commandPayload);
-  return response.data;
+  const data = await apiClient.post('students', commandPayload);
+  return data;
 };
 
 /**
@@ -30,8 +30,8 @@ export const registerStudent = async (commandPayload) => {
  * @returns {Promise<any>}
  */
 export const registerProfessor = async (commandPayload) => {
-  const response = await apiClient.post('professors', commandPayload);
-  return response.data;
+  const data = await apiClient.post('professors', commandPayload);
+  return data;
 };
 
 /**
@@ -41,6 +41,6 @@ export const registerProfessor = async (commandPayload) => {
  * @returns {Promise<any>}
  */
 export const registerProvider = async (commandPayload) => {
-  const response = await apiClient.post('providers', commandPayload);
-  return response.data;
+  const data = await apiClient.post('providers', commandPayload);
+  return data;
 };

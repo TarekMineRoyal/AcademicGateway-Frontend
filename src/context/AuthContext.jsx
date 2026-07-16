@@ -28,9 +28,12 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       const decoded = parseJwt(token);
       if (decoded) {
-        // Look for the standard .NET Role claim URI or a flat 'role' key
-        const role = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || decoded.role;
-        setUser({ token, role, ...decoded });
+        setUser({
+          token,
+          id: decoded.id || decoded.sub,
+          role: decoded.role, // Pure flat resolution
+          email: decoded.email
+        });
       } else {
         localStorage.removeItem('token');
       }
@@ -41,15 +44,28 @@ export const AuthProvider = ({ children }) => {
   const login = (token) => {
     localStorage.setItem('token', token);
     const decoded = parseJwt(token);
-    const role = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || decoded.role;
-    setUser({ token, role, ...decoded });
-    return role; // Return role to component so it can handle immediate redirects
+    
+    if (decoded) {
+      setUser({
+        token,
+        id: decoded.id || decoded.sub,
+        role: decoded.role, // Pure flat resolution
+        email: decoded.email
+      });
+      return decoded.role; // Return role to component so it can handle immediate redirects
+    }
+    return null;
   };
 
-  const logout = () => {
+  const logout = (navigateCallback) => {
     localStorage.removeItem('token');
     setUser(null);
-    window.location.href = '/login';
+    
+    if (navigateCallback && typeof navigateCallback === 'function') {
+      navigateCallback();
+    } else {
+      window.location.href = '/login';
+    }
   };
 
   return (

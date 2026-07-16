@@ -15,8 +15,8 @@ export const initializeProjectInstance = async (projectTemplateId, professorId =
     professorId: professorId || null 
   };
 
-  const response = await apiClient.post('/project-instances', payload);
-  return response.data;
+  const data = await apiClient.post('/project-instances', payload);
+  return data;
 };
 
 /**
@@ -26,8 +26,8 @@ export const initializeProjectInstance = async (projectTemplateId, professorId =
  * @returns {Promise<Object>} The updated project workspace instance data.
  */
 export const transitionToSolo = async (projectInstanceId) => {
-  const response = await apiClient.post(`/project-instances/${projectInstanceId}/transition-to-solo`);
-  return response.data;
+  const data = await apiClient.post(`/project-instances/${projectInstanceId}/transition-to-solo`);
+  return data;
 };
 
 /**
@@ -38,10 +38,10 @@ export const transitionToSolo = async (projectInstanceId) => {
  * @returns {Promise<Object>} List of running project workspace summaries.
  */
 export const getActorProjects = async (actorId, role = 'Student') => {
-  const response = await apiClient.get(`/project-instances/actor/${actorId}`, {
+  const data = await apiClient.get(`/project-instances/actor/${actorId}`, {
     params: { role }
   });
-  return response.data;
+  return data;
 };
 
 /**
@@ -51,8 +51,8 @@ export const getActorProjects = async (actorId, role = 'Student') => {
  * @returns {Promise<Object>} Project instance metadata and skill snapshots.
  */
 export const getProjectDetails = async (projectInstanceId) => {
-  const response = await apiClient.get(`/project-instances/${projectInstanceId}`);
-  return response.data;
+  const data = await apiClient.get(`/project-instances/${projectInstanceId}`);
+  return data;
 };
 
 /**
@@ -62,8 +62,8 @@ export const getProjectDetails = async (projectInstanceId) => {
  * @returns {Promise<Object>} The milestone hierarchy and checklist mapping.
  */
 export const getProjectMilestones = async (projectInstanceId) => {
-  const response = await apiClient.get(`/project-instances/${projectInstanceId}/milestones`);
-  return response.data;
+  const data = await apiClient.get(`/project-instances/${projectInstanceId}/milestones`);
+  return data;
 };
 
 /**
@@ -74,8 +74,8 @@ export const getProjectMilestones = async (projectInstanceId) => {
  * @returns {Promise<Object>} Thread history of comments.
  */
 export const getMilestoneComments = async (projectInstanceId, milestoneId) => {
-  const response = await apiClient.get(`/project-instances/${projectInstanceId}/milestones/${milestoneId}/comments`);
-  return response.data;
+  const data = await apiClient.get(`/project-instances/${projectInstanceId}/milestones/${milestoneId}/comments`);
+  return data;
 };
 
 /**
@@ -88,8 +88,8 @@ export const getMilestoneComments = async (projectInstanceId, milestoneId) => {
  */
 export const postMilestoneComment = async (projectInstanceId, milestoneId, content) => {
   const payload = { content };
-  const response = await apiClient.post(`/project-instances/${projectInstanceId}/milestones/${milestoneId}/comments`, payload);
-  return response.data;
+  const data = await apiClient.post(`/project-instances/${projectInstanceId}/milestones/${milestoneId}/comments`, payload);
+  return data;
 };
 
 /**
@@ -108,6 +108,6 @@ export const submitTaskDeliverable = async (projectInstanceId, milestoneId, task
     ? submissionPayload
     : { submissionPayload };
 
-  const response = await apiClient.post(`/project-instances/${projectInstanceId}/milestones/${milestoneId}/tasks/${taskId}/submissions`, payload);
-  return response.data;
+  const data = await apiClient.post(`/project-instances/${projectInstanceId}/milestones/${milestoneId}/tasks/${taskId}/submissions`, payload);
+  return data;
 };

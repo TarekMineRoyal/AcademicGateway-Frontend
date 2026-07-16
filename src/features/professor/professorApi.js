@@ -7,8 +7,8 @@ import apiClient from '../../api/apiClient';
  * @returns {Promise<Array>} List of matching professor identities [{ id, fullName, email }]
  */
 export const searchProfessors = async (searchTerm = '') => {
-  const response = await apiClient.get('/professors', {
+  const data = await apiClient.get('/professors', {
     params: { searchTerm }
   });
-  return response.data;
+  return data;
 };

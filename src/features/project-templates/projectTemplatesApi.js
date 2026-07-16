@@ -13,8 +13,8 @@ export const getApprovedTemplates = async (skillId = null) => {
   }
   
   // Evaluates to: GET /api/project-templates/approved
-  const response = await apiClient.get('/project-templates/approved', config);
-  return response.data;
+  const data = await apiClient.get('/project-templates/approved', config);
+  return data;
 };
 
 /**
@@ -25,7 +25,7 @@ export const getApprovedTemplates = async (skillId = null) => {
  * @returns {Promise<Object>}
  */
 export const getProjectTemplateById = async (projectTemplateId) => {
-  // Evaluates to: GET /api/project-templates/{projectTemplateId}
-  const response = await apiClient.get(`/project-templates/${projectTemplateId}`);
-  return response.data;
+  // Evaluates to: GET /api/project-templates/${projectTemplateId}
+  const data = await apiClient.get(`/project-templates/${projectTemplateId}`);
+  return data;
 };

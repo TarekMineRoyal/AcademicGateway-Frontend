@@ -7,6 +7,6 @@ import apiClient from '../../api/apiClient';
  */
 export const getSkills = async () => {
   // Matches your backend skills feature slice query layout
-  const response = await apiClient.get('/skills');
-  return response.data;
+  const data = await apiClient.get('/skills');
+  return data;
 };

@@ -7,8 +7,8 @@ import apiClient from '../../api/apiClient';
  * @returns {Promise<Object>}
  */
 export const getStudentProfile = async () => {
-  const response = await apiClient.get('/students/profile');
-  return response.data;
+  const data = await apiClient.get('/students/profile');
+  return data;
 };
 
 /**
@@ -18,12 +18,12 @@ export const getStudentProfile = async () => {
  * @returns {Promise<Array>}
  */
 export const getStudentProjects = async (actorId) => {
-  const response = await apiClient.get(`/project-instances/actor/${actorId}`, {
+  const data = await apiClient.get(`/project-instances/actor/${actorId}`, {
     params: {
       role: 'Student' // Passes down string filter query parameter expected by [FromQuery]
     }
   });
-  return response.data;
+  return data;
 };
 
 /**
@@ -34,6 +34,6 @@ export const getStudentProjects = async (actorId) => {
  * @returns {Promise<Object>}
  */
 export const updateStudentProfile = async (profileData) => {
-  const response = await apiClient.put('/students', profileData);
-  return response.data;
+  const data = await apiClient.put('/students', profileData);
+  return data;
 };
