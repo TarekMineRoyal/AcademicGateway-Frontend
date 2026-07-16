@@ -20,6 +20,53 @@ import {
   Zap
 } from 'lucide-react';
 
+/**
+ * Normalizes backend blueprint payloads into a strict client-side data contract.
+ * Aggregates the separate dependencies edge array directly into the milestone nodes.
+ */
+export function adaptMilestones(rawMilestones = [], rawDependencies = []) {
+  return rawMilestones.map((milestone) => {
+    // 1. Defensively resolve backend casing variances
+    const id = milestone.id || milestone.Id;
+    const title = milestone.title || milestone.Title || '';
+    const description = milestone.description || milestone.Description || '';
+    const expectedHours = milestone.expectedEffortInHours !== undefined 
+      ? milestone.expectedEffortInHours 
+      : (milestone.ExpectedEffortInHours || 0);
+    const deliverableType = milestone.requiredDeliverableType !== undefined 
+      ? milestone.requiredDeliverableType 
+      : (milestone.RequiredDeliverableType || 0);
+
+    // 2. Filter the incoming dependencies matrix to isolate prerequisites blocking THIS node
+    const relatedEdges = rawDependencies.filter(
+      (dep) => (dep.successorId || dep.SuccessorId) === id
+    );
+
+    // 3. Map out an array of strict predecessor string GUIDs
+    const prerequisiteIds = relatedEdges.map(
+      (dep) => dep.predecessorId || dep.PredecessorId
+    );
+
+    // 4. Build a dictionary mapping each predecessor ID to its relation type (e.g., 1 = FS, 2 = SS)
+    const dependencyTypes = relatedEdges.reduce((acc, dep) => {
+      const predId = dep.predecessorId || dep.PredecessorId;
+      const type = dep.type !== undefined ? dep.type : dep.Type;
+      if (predId) acc[predId] = type;
+      return acc;
+    }, {});
+
+    return {
+      id,
+      title,
+      description,
+      expectedHours,
+      deliverableType,
+      prerequisiteIds,
+      dependencyTypes,
+    };
+  });
+}
+
 function ProjectTemplateDetails() {
   const { templateId } = useParams();
   const navigate = useNavigate();
@@ -118,17 +165,17 @@ function ProjectTemplateDetails() {
     }
   };
 
-  // Backend ProjectTemplateStatus Enum Interpreters
+  // Backend ProjectTemplateStatus Enum Interpreters modernized to support clean Tailwind utility mapping
   const getStatusBadgeConfig = (statusInt) => {
     switch (statusInt) {
-      case 1: return { text: 'Draft', bg: '#edf2f7', color: '#4a5568' };
-      case 2: return { text: 'Pending Review', bg: '#fef3c7', color: '#d97706' };
-      case 3: return { text: 'Changes Requested', bg: '#fff5f5', color: '#e53e3e' };
-      case 4: return { text: 'Pending Acceptance', bg: '#e0f2fe', color: '#0369a1' };
-      case 5: return { text: 'Publicly Approved', bg: '#f0fff4', color: '#38a169' };
-      case 6: return { text: 'Rejected', bg: '#fff5f5', color: '#c53030' };
-      case 7: return { text: 'Archived', bg: '#f7fafc', color: '#a0aec0' };
-      default: return { text: 'Unknown Identity', bg: '#edf2f7', color: '#4a5568' };
+      case 1: return { text: 'Draft', classes: 'bg-slate-100 text-slate-700 border-slate-700/20' };
+      case 2: return { text: 'Pending Review', classes: 'bg-amber-100 text-amber-700 border-amber-700/20' };
+      case 3: return { text: 'Changes Requested', classes: 'bg-red-50 text-red-600 border-red-600/20' };
+      case 4: return { text: 'Pending Acceptance', classes: 'bg-sky-100 text-sky-700 border-sky-700/20' };
+      case 5: return { text: 'Publicly Approved', classes: 'bg-green-50 text-green-700 border-green-700/20' };
+      case 6: return { text: 'Rejected', classes: 'bg-red-50 text-red-700 border-red-700/20' };
+      case 7: return { text: 'Archived', classes: 'bg-slate-50 text-slate-400 border-slate-400/20' };
+      default: return { text: 'Unknown Identity', classes: 'bg-slate-100 text-slate-700 border-slate-700/20' };
     }
   };
 
@@ -178,10 +225,14 @@ function ProjectTemplateDetails() {
   const milestones = template.milestones || template.Milestones || [];
   const dependencies = template.dependencies || template.Dependencies || [];
 
+  // Invoke the milestone transformer payload adapter and trigger state verification log
+  const adaptedMilestones = adaptMilestones(milestones, dependencies);
+  console.log(adaptedMilestones);
+
   const statusBadge = getStatusBadgeConfig(statusInt);
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '0 auto', position: 'relative' }}>
+    <div className="max-w-[1000px] mx-auto relative">
       {/* Upper Navigation Anchor */}
       <button 
         onClick={() => navigate('/dashboard/marketplace')}
@@ -190,36 +241,36 @@ function ProjectTemplateDetails() {
         <ArrowLeft size={16} /> Back to Project Marketplace
       </button>
 
-      {/* Main Core Briefing Sheet */}
-      <div style={{ backgroundColor: '#fff', padding: '2rem', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.02)', marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
+      {/* Main Core Briefing Sheet (Structural Shell Wrapper) */}
+      <div className="bg-white p-8 rounded-lg border border-slate-200 shadow-sm mb-8">
+        <div className="flex justify-between items-start flex-wrap gap-4 mb-4">
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#718096', fontSize: '0.85rem', fontWeight: '600', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
+            <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase mb-1">
               <Building2 size={14} />
               {companyName}
             </div>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: '800', color: '#1a202c', lineHeight: '1.2' }}>{title}</h1>
+            <h1 className="text-3xl font-extrabold text-slate-900 leading-tight">{title}</h1>
           </div>
-          <span style={{ padding: '0.35rem 0.75rem', borderRadius: '9999px', fontSize: '0.8rem', fontWeight: '700', backgroundColor: statusBadge.bg, color: statusBadge.color, border: `1px solid ${statusBadge.color}22` }}>
+          <span className={`px-3 py-1.5 rounded-full text-xs font-bold border ${statusBadge.classes}`}>
             Status: {statusBadge.text}
           </span>
         </div>
 
-        <p style={{ color: '#4a5568', fontSize: '0.95rem', lineHeight: '1.6', whiteSpace: 'pre-line', marginBottom: '1.5rem' }}>
+        <p className="text-slate-600 text-[0.95rem] leading-relaxed whitespace-pre-line mb-6">
           {description}
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', borderTop: '1px solid #edf2f7', paddingTop: '1.5rem' }}>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4 border-t border-slate-100 pt-6">
           <div>
-            <span style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#a0aec0', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Provider Identification Identifier</span>
-            <code style={{ fontSize: '0.85rem', backgroundColor: '#f7fafc', padding: '0.2rem 0.4rem', borderRadius: '4px', color: '#4a5568' }}>{providerId}</code>
+            <span className="block text-xs font-bold text-slate-400 uppercase mb-1">Provider Identification Identifier</span>
+            <code className="text-xs bg-slate-50 px-1.5 py-0.5 rounded text-slate-600">{providerId}</code>
           </div>
           {requiredSkills.length > 0 && (
             <div>
-              <span style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#a0aec0', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Target Capabilities & Prerequisites</span>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+              <span className="block text-xs font-bold text-slate-400 uppercase mb-1.5">Target Capabilities & Prerequisites</span>
+              <div className="flex flex-wrap gap-1.5">
                 {requiredSkills.map((sk, idx) => (
-                  <span key={sk.skillId || sk.Id || idx} style={{ fontSize: '0.75rem', backgroundColor: '#ebf8ff', color: '#2b6cb0', padding: '0.15rem 0.5rem', borderRadius: '4px', fontWeight: '600' }}>
+                  <span key={sk.skillId || sk.Id || idx} className="text-xs bg-sky-50 text-sky-700 px-2 py-0.5 rounded font-semibold">
                     {sk.name || sk.Name}
                   </span>
                 ))}
@@ -315,44 +366,20 @@ function ProjectTemplateDetails() {
         )}
       </div>
 
-      {/* Interface Action Control Panel Row */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', backgroundColor: '#f7fafc', padding: '1.25rem 2rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+      {/* Interface Action Control Panel Row (Strictly Student Flow Routing Only) */}
+      <div className="flex flex-wrap items-center justify-end gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200/60 mt-8">
         {userRole === 'student' && statusInt === 5 && (
           <button
             onClick={handleOpenInitiationModal}
-            style={{ padding: '0.65rem 1.5rem', backgroundColor: '#3182ce', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '700', fontSize: '0.95rem', cursor: 'pointer', transition: 'background-color 0.2s' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#2b6cb0'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#3182ce'; }}
+            className="bg-primary hover:bg-primary-hover text-white rounded-btn font-bold text-sm px-6 py-2.5 transition-all duration-200 shadow-sm"
           >
             Initialize Selection Pipeline
           </button>
         )}
-        
-        {userRole === 'provider' && (
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button style={{ padding: '0.5rem 1rem', backgroundColor: '#fff', color: '#4a5568', border: '1px solid #cbd5e0', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
-              Edit Blueprint Text
-            </button>
-            <button style={{ padding: '0.5rem 1rem', backgroundColor: '#3182ce', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
-              Manage Edge Milestones
-            </button>
-          </div>
-        )}
-
-        {userRole === 'admin' && statusInt === 2 && (
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button style={{ padding: '0.5rem 1rem', backgroundColor: '#e53e3e', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
-              Issue Rejection Gate
-            </button>
-            <button style={{ padding: '0.5rem 1rem', backgroundColor: '#38a169', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
-              Authorize and Approve Template
-            </button>
-          </div>
-        )}
 
         <button 
           onClick={() => navigate('/dashboard/marketplace')}
-          style={{ padding: '0.65rem 1.25rem', backgroundColor: '#fff', color: '#4a5568', border: '1px solid #cbd5e0', borderRadius: '6px', fontWeight: '600', cursor: 'pointer' }}
+          className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-btn font-semibold text-sm px-5 py-2.5 transition-all duration-200"
         >
           Cancel and Return
         </button>
