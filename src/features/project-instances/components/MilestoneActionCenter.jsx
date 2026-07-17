@@ -22,6 +22,7 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
   const [activeTab, setActiveTab] = useState('tasks'); // 'tasks' or 'feed'
   const [commentInput, setCommentInput] = useState('');
   const [submissionPayloads, setSubmissionPayloads] = useState({});
+  const [editingTasks, setEditingTasks] = useState({}); // Tracks active edit modes per task
   const [toast, setToast] = useState(null);
   const chatEndRef = useRef(null);
 
@@ -68,14 +69,12 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
   // Strict Contracts: Map identities precisely using strict camelCase server properties exclusively
   const getAuthorName = (comment) => {
     if (!project) return comment.authorIdentitySnapshot;
-
     if (comment.authorId === project.studentId) {
       return project.studentName;
     }
     if (comment.authorId === project.supervisorId) {
       return project.supervisorName;
     }
-
     return comment.authorIdentitySnapshot;
   };
 
@@ -86,7 +85,6 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
     if (comment.authorId === project?.supervisorId) {
       return "Faculty Advisor";
     }
-
     return comment.authorIdentitySnapshot;
   };
 
@@ -95,7 +93,6 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
     if (isNaN(dateObj.getTime())) {
       return "Just now";
     }
-
     return dateObj.toLocaleTimeString([], { 
       hour: '2-digit', 
       minute: '2-digit' 
@@ -122,7 +119,6 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
       setToast({ type: 'error', text: 'Please provide a valid submission URL.' });
       return;
     }
-
     submitTaskMutation.mutate({
       milestoneId: milestone.id,
       taskId,
@@ -135,6 +131,8 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
           delete next[taskId];
           return next;
         });
+        // Collapse the active editing mode panel state smoothly upon write confirm
+        setEditingTasks(prev => ({ ...prev, [taskId]: false }));
       },
       onError: () => {
         setToast({ type: 'error', text: 'Failed to submit deliverable. Please try again.' });
@@ -152,7 +150,6 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
   const handleSendMessage = (e) => {
     if (e && e.preventDefault) e.preventDefault();
     if (!commentInput.trim() || postCommentMutation.isPending) return;
-
     postCommentMutation.mutate({
       milestoneId: milestone.id,
       content: commentInput.trim()
@@ -166,7 +163,6 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
     });
   };
 
-  // Evaluate variable maps to safely determine individual target card element loaders
   const isTaskSubmitting = (taskId) => 
     submitTaskMutation.isPending && submitTaskMutation.variables?.taskId === taskId;
 
@@ -189,7 +185,7 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
         </div>
       )}
 
-      {/* Header with selected milestone meta info */}
+      {/* Header */}
       <div className="p-4 border-b border-neutral-100 bg-linear-to-b from-neutral-50/50 to-white">
         <span className="text-[10px] font-bold tracking-wider text-indigo-600 uppercase">Active Milestone</span>
         <h2 className="text-base font-bold text-neutral-800 truncate mt-0.5" title={milestone.title}>
@@ -237,11 +233,12 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
             ) : (
               milestone.tasks.map((task) => {
                 const status = getTaskStatusString(task.status);
+                const isEditingThisTask = editingTasks[task.id];
 
                 return (
                   <div key={task.id} className="border border-neutral-200 rounded-xl bg-white p-4 shadow-2xs hover:shadow-xs transition-shadow">
                     
-                    {/* Header: Title, weight & Status badge */}
+                    {/* Header Row */}
                     <div className="flex items-start justify-between gap-3 mb-2.5">
                       <div>
                         <h4 className="text-xs font-bold text-neutral-800 leading-tight">
@@ -251,7 +248,7 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
                           Weight: <span className="font-semibold text-neutral-600">{task.weight}%</span>
                         </span>
                       </div>
-
+                      
                       {/* Status Badging */}
                       {status === 'GRADED' ? (
                         <span className="flex items-center gap-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-100">
@@ -271,66 +268,91 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
                       )}
                     </div>
 
-                    {/* Task Snapshot Description */}
+                    {/* Description */}
                     <p className="text-xs text-neutral-500 mb-3 leading-relaxed">
                       {task.description}
                     </p>
 
-                    {/* STATE 1: PENDING SUBMISSION FORM */}
-                    {status === 'PENDING' && (
-                      <div className="flex items-center gap-2 mt-3 pt-3 border-t border-neutral-100">
-                        <input
-                          type="url"
-                          placeholder="Paste Git Repo or Deliverable URL..."
-                          value={submissionPayloads[task.id] || ''}
-                          onChange={(e) => setSubmissionPayloads(prev => ({ 
-                            ...prev, 
-                            [task.id]: e.target.value 
-                          }))}
-                          disabled={isTaskSubmitting(task.id)}
-                          className="flex-1 text-xs border border-neutral-200 rounded-lg px-2.5 py-2 outline-hidden focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:bg-neutral-50 disabled:text-neutral-400"
-                        />
+                    {/* STATE 1: PENDING FORM DISPLAY OR ACTIVE SUBMITTED EDIT MODE PANEL */}
+                    {(status === 'PENDING' || isEditingThisTask) && (
+                      <div className="flex flex-col gap-2 mt-3 pt-3 border-t border-neutral-100">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="url"
+                            placeholder="Paste Git Repo or Deliverable URL..."
+                            value={submissionPayloads[task.id] !== undefined ? submissionPayloads[task.id] : (task.submittedUrl || '')}
+                            onChange={(e) => setSubmissionPayloads(prev => ({ 
+                               ...prev, 
+                               [task.id]: e.target.value 
+                            }))}
+                            disabled={isTaskSubmitting(task.id)}
+                            className="flex-1 text-xs border border-neutral-200 rounded-lg px-2.5 py-2 outline-hidden focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:bg-neutral-50 disabled:text-neutral-400"
+                          />
+                          <button
+                            onClick={() => handleTaskSubmit(task.id)}
+                            disabled={isTaskSubmitting(task.id)}
+                            className="flex items-center gap-1 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg transition-colors cursor-pointer disabled:bg-indigo-400 disabled:cursor-not-allowed shrink-0"
+                          >
+                            {isTaskSubmitting(task.id) ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              'Submit'
+                            )}
+                          </button>
+                        </div>
+                        {isEditingThisTask && (
+                          <button
+                            type="button"
+                            onClick={() => setEditingTasks(prev => ({ ...prev, [task.id]: false }))}
+                            disabled={isTaskSubmitting(task.id)}
+                            className="text-left text-[10px] text-neutral-400 hover:text-neutral-600 font-semibold w-fit transition-colors cursor-pointer"
+                          >
+                            Cancel Modification
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {/* STATE 2: SUBMITTED RENDERING (WITH ACTIVE RE-SUBMIT OPEN TRIGGER) */}
+                    {status === 'SUBMITTED' && !isEditingThisTask && task.submittedUrl && (
+                      <div className="mt-2.5 p-2.5 px-3 bg-neutral-50 border border-neutral-100 rounded-lg flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2 truncate">
+                          <span className="text-neutral-400 shrink-0">Payload:</span>
+                          <a 
+                             href={task.submittedUrl} 
+                             target="_blank" 
+                             rel="noopener noreferrer" 
+                             className="text-indigo-600 hover:text-indigo-800 font-medium inline-flex items-center gap-1 hover:underline truncate"
+                          >
+                            View Link
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                        
                         <button
-                          onClick={() => handleTaskSubmit(task.id)}
-                          disabled={isTaskSubmitting(task.id)}
-                          className="flex items-center gap-1 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg transition-colors cursor-pointer disabled:bg-indigo-400 disabled:cursor-not-allowed shrink-0"
+                          type="button"
+                          onClick={() => {
+                            setEditingTasks(prev => ({ ...prev, [task.id]: true }));
+                            setSubmissionPayloads(prev => ({ ...prev, [task.id]: task.submittedUrl }));
+                          }}
+                          className="text-indigo-600 hover:text-indigo-800 font-bold text-xs cursor-pointer transition-colors shrink-0 ml-3"
                         >
-                          {isTaskSubmitting(task.id) ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          ) : (
-                            'Submit'
-                          )}
+                          Edit Link
                         </button>
                       </div>
                     )}
 
-                    {/* STATE 2: SUBMITTED (AWAITING GRADE) */}
-                    {status === 'SUBMITTED' && task.submittedUrl && (
-                      <div className="mt-2.5 p-2 px-3 bg-neutral-50 border border-neutral-100 rounded-lg flex items-center justify-between text-xs">
-                        <span className="text-neutral-400">Submission payload:</span>
-                        <a 
-                          href={task.submittedUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="text-indigo-600 hover:text-indigo-800 font-medium inline-flex items-center gap-1 hover:underline"
-                        >
-                          View Link
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      </div>
-                    )}
-
-                    {/* STATE 3: GRADED / EVALUATION FEEDBACK PANEL */}
+                    {/* STATE 3: EVALUATION COMPLETED */}
                     {status === 'GRADED' && (
                       <div className="mt-3.5 space-y-2 border-t border-neutral-100 pt-3">
                         {task.submittedUrl && (
                           <div className="flex items-center justify-between text-xs px-1">
                             <span className="text-neutral-400">Submission link:</span>
                             <a 
-                              href={task.submittedUrl} 
-                              target="_blank" 
-                              rel="noopener noreferrer" 
-                              className="text-indigo-600 hover:text-indigo-800 font-medium inline-flex items-center gap-1 hover:underline"
+                               href={task.submittedUrl} 
+                               target="_blank" 
+                               rel="noopener noreferrer" 
+                               className="text-indigo-600 hover:text-indigo-800 font-medium inline-flex items-center gap-1 hover:underline"
                             >
                               View Link
                               <ExternalLink className="w-3 h-3" />
@@ -338,7 +360,6 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
                           </div>
                         )}
                         
-                        {/* Grade Score and Comments container */}
                         <div className="bg-emerald-50/60 border border-emerald-100/70 p-3 rounded-lg space-y-1.5">
                           <div className="flex items-center justify-between">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">Evaluation Score</span>
@@ -367,8 +388,6 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
         {/* DISCUSSION FEED TAB */}
         {activeTab === 'feed' && (
           <div className="flex flex-col h-full">
-            
-            {/* Scrollable messages box */}
             <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-1 min-h-[340px] max-h-[340px]">
               {loadingComments ? (
                 <div className="flex flex-col items-center justify-center py-20 text-neutral-400">
@@ -395,18 +414,15 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
                         isStudent ? 'ml-auto items-end' : 'mr-auto items-start'
                       }`}
                     >
-                      {/* Meta information tags */}
                       <div className="flex items-center gap-1.5 mb-1 px-1 text-[10px] text-neutral-400">
                         <span className="font-bold text-neutral-500">
                           {getAuthorName(comment)}
                         </span>
-                        <span>•</span>
+                        <span> </span>
                         <span className="italic text-neutral-400 bg-neutral-100 px-1 rounded-sm">
                           {getAuthorIdentity(comment)}
                         </span>
                       </div>
-
-                      {/* Styled comment text bubble */}
                       <div className={`p-3 rounded-2xl text-xs leading-relaxed ${
                         isStudent 
                           ? 'bg-indigo-600 text-white rounded-tr-none' 
@@ -414,8 +430,6 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
                       }`}>
                         <p className="whitespace-pre-wrap">{comment.content}</p>
                       </div>
-
-                      {/* Display Timestamp */}
                       <span className="text-[9px] text-neutral-400 mt-1 px-1">
                         {formatCommentTime(comment)}
                       </span>
@@ -423,11 +437,9 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
                   );
                 })
               )}
-              {/* Reference Anchor for scroll pinning */}
               <div ref={chatEndRef} />
             </div>
 
-            {/* Comment Post Footer form box with dynamic Textarea key events */}
             <form onSubmit={handleSendMessage} className="border-t border-neutral-100 pt-3.5 bg-white flex gap-2 shrink-0 items-end">
               <textarea
                 rows={1}
@@ -450,7 +462,6 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
                 )}
               </button>
             </form>
-
           </div>
         )}
 
