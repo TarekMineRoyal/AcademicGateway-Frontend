@@ -1,77 +1,16 @@
 import React from 'react';
+import { LocalMilestoneStatus } from '../../../constants/enums';
 
-/**
- * MilestoneTimeline - Vertical roadmap tree of project milestones.
- * Includes interactive selection, task progress metrics, and dynamic dependency lock logic.
- */
-export default function MilestoneTimeline({ milestones, selectedMilestoneId, onSelectMilestone }) {
-  
-  // Format dates securely to MM/DD/YYYY
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return 'N/A';
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const year = date.getFullYear();
-      return `${month}/${day}/${year}`;
-    } catch (e) {
-      return 'N/A';
-    }
-  };
+// Simple presentation utility—no inline try/catch blocks needed as dates are guaranteed valid ISO strings
+const formatDate = (isoString) => {
+  return new Date(isoString).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
 
-  // Determine colors and animation states based on milestone status (handles strings/numbers)
-  const getStatusConfig = (status) => {
-    let statusStr = status;
-    
-    // Normalizing numerical enums or string representations
-    if (status === 0 || status === '0' || status === 'NotStarted') {
-      statusStr = 'NotStarted';
-    } else if (status === 1 || status === '1' || status === 'InProgress') {
-      statusStr = 'InProgress';
-    } else if (status === 2 || status === '2' || status === 'Submitted') {
-      statusStr = 'Submitted';
-    } else if (status === 3 || status === '3' || status === 'Graded' || status === 'Completed') {
-      statusStr = 'Completed';
-    }
-
-    switch (statusStr) {
-      case 'Completed': 
-        return { 
-          bg: 'bg-green-500', 
-          border: 'border-green-200', 
-          text: 'text-green-800 bg-green-50 border-green-200',
-          ring: 'ring-green-100',
-          displayName: 'Completed'
-        };
-      case 'Submitted': 
-        return { 
-          bg: 'bg-amber-500', 
-          border: 'border-amber-200', 
-          text: 'text-amber-800 bg-amber-50 border-amber-200',
-          ring: 'ring-amber-100',
-          displayName: 'Submitted'
-        };
-      case 'InProgress': 
-        return { 
-          bg: 'bg-blue-600 animate-pulse', 
-          border: 'border-blue-200', 
-          text: 'text-blue-800 bg-blue-50 border-blue-200',
-          ring: 'ring-blue-100',
-          displayName: 'In Progress'
-        };
-      default: 
-        return { 
-          bg: 'bg-gray-300', 
-          border: 'border-gray-100', 
-          text: 'text-gray-600 bg-gray-50 border-gray-100',
-          ring: 'ring-gray-100',
-          displayName: 'Not Started'
-        };
-    }
-  };
-
+export default function MilestoneTimeline({ milestones, selectedId, onSelect }) {
   if (!milestones || milestones.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-8 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
@@ -81,137 +20,70 @@ export default function MilestoneTimeline({ milestones, selectedMilestoneId, onS
   }
 
   return (
-    <div className="relative border-l-2 border-gray-200 ml-6 pl-8 space-y-8 py-4">
-      {milestones.map((milestone) => {
-        const isSelected = milestone.id === selectedMilestoneId;
-        const statusConfig = getStatusConfig(milestone.status);
+    <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
+      <div>
+        <h2 className="text-xl font-bold text-gray-900">Project Roadmap</h2>
+        <p className="text-gray-500 text-sm mt-0.5">Track sequential task dependencies and deliverables</p>
+      </div>
 
-        // Predecessor lookup and lock status determination
-        const predecessorIds = milestone.inboundDependencies || [];
-        const predecessorsData = predecessorIds.map(predId => {
-          // Robust checking if predecessor identifier is an object or pure ID
-          const targetId = typeof predId === 'object' && predId !== null ? predId.id || predId.predecessorId : predId;
-          const matchedMilestone = milestones.find(m => m.id === targetId);
-          
-          // A milestone dependency is resolved if status is Completed/Graded (value 3)
-          const isCompleted = matchedMilestone 
-            ? (matchedMilestone.status === 'Completed' || matchedMilestone.status === 'Graded' || matchedMilestone.status === 3 || matchedMilestone.status === '3')
-            : false;
+      <div className="relative border-l-2 border-gray-100 pl-6 ml-3 space-y-8">
+        {milestones.map((milestone) => {
+          // Zero runtime type-guessing. Dependencies are strictly flat arrays of IDs.
+          const hasUnresolvedDependencies = milestone.dependencyIds?.length > 0;
+          const isSelected = milestone.id === selectedId;
 
-          return {
-            title: matchedMilestone ? matchedMilestone.titleSnapshot : 'Prerequisite',
-            isCompleted: isCompleted
-          };
-        });
+          return (
+            <div 
+              key={milestone.id} 
+              onClick={() => onSelect(milestone.id)}
+              className={`relative cursor-pointer group transition-all ${isSelected ? 'scale-[1.01]' : ''}`}
+            >
+              {/* Timeline Indicator Dot linked directly to LocalMilestoneStatus */}
+              <span className={`absolute -left-[33px] top-1.5 w-4 h-4 rounded-full border-4 bg-white transition-colors ${
+                milestone.status === LocalMilestoneStatus.GRADED ? 'border-green-500' :
+                milestone.status === LocalMilestoneStatus.SUBMITTED ? 'border-amber-500' :
+                milestone.status === LocalMilestoneStatus.IN_PROGRESS ? 'border-blue-500' : 'border-gray-300'
+              }`} />
 
-        // Determine if milestone is locked by looking for any non-completed dependency
-        const isBlocked = predecessorsData.some(p => !p.isCompleted);
-
-        // Progress metrics calculation (handles numeric or string task status matching)
-        const tasks = milestone.tasks || [];
-        const completedTasksCount = tasks.filter(t => 
-          t.status === 'Graded' || 
-          t.status === 'Completed' || 
-          t.status === 2 || 
-          t.status === '2'
-        ).length;
-        const totalTasksCount = tasks.length;
-
-        // Visual presentation setup
-        const isMilestoneCompleted = milestone.status === 'Completed' || milestone.status === 'Graded' || milestone.status === 3 || milestone.status === '3';
-
-        return (
-          <div 
-            key={milestone.id} 
-            onClick={() => onSelectMilestone(milestone.id)}
-            className={`relative p-5 border rounded-xl cursor-pointer transition-all duration-200 ${
-              isSelected 
-                ? 'border-blue-500 bg-blue-50/10 ring-2 ring-blue-100 shadow-md transform -translate-y-0.5' 
-                : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
-            }`}
-          >
-            {/* Timeline status dot placement */}
-            <div className={`absolute -left-[41px] top-6 w-4 h-4 rounded-full ring-4 ring-white flex items-center justify-center shadow-sm ${statusConfig.bg}`}>
-              {isMilestoneCompleted && (
-                <svg className="w-2 h-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-              )}
-            </div>
-
-            {/* Dependency Banner Grid */}
-            {predecessorsData.length > 0 && (
-              <div className="mb-3 flex flex-wrap gap-2">
-                {predecessorsData.map((pred, idx) => (
-                  <div 
-                    key={idx} 
-                    className={`flex items-center gap-1.5 text-xs font-semibold px-2 py-0.5 rounded-md border ${
-                      pred.isCompleted 
-                        ? 'text-emerald-700 bg-emerald-50 border-emerald-100' 
-                        : 'text-amber-700 bg-amber-50 border-amber-200'
-                    }`}
-                  >
-                    <span>{pred.isCompleted ? '🔗' : '🔒'}</span>
-                    <span>
-                      {pred.isCompleted ? 'Prerequisite' : 'Requires'}: {pred.title} {pred.isCompleted ? '(Completed)' : ''}
-                    </span>
+              <div className={`p-4 rounded-xl border transition-all ${
+                isSelected 
+                  ? 'bg-blue-50/50 border-blue-200 shadow-sm' 
+                  : 'bg-white border-gray-100 hover:border-gray-200'
+              }`}>
+                <div className="flex justify-between items-start gap-4">
+                  <div>
+                    {/* Strict camelCase Destructuring inside the render nodes */}
+                    <h4 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                      {milestone.title}
+                    </h4>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Due Target: {formatDate(milestone.dueDate)}
+                    </p>
                   </div>
-                ))}
-              </div>
-            )}
 
-            {/* Title & Status Badge */}
-            <div className="flex justify-between items-start gap-3">
-              <div>
-                <h3 className="font-bold text-gray-900 leading-snug">{milestone.titleSnapshot}</h3>
-                {/* Timeline window presentation */}
-                <p className="text-xs text-gray-400 mt-0.5">
-                  Window: {formatDate(milestone.startDate || milestone.StartDate)} - {formatDate(milestone.endDate || milestone.EndDate)}
-                </p>
-              </div>
-              <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold border shrink-0 ${statusConfig.text}`}>
-                {statusConfig.displayName}
-              </span>
-            </div>
-            
-            {/* Description Snapshot */}
-            <p className="text-sm text-gray-500 mt-2 line-clamp-2 leading-relaxed">
-              {milestone.descriptionSnapshot}
-            </p>
+                  {/* Status Badges bound strictly to stable system enum keys */}
+                  <span className={`px-2.5 py-0.5 text-[11px] font-semibold rounded-full ${
+                    milestone.status === LocalMilestoneStatus.GRADED ? 'bg-green-50 text-green-700' :
+                    milestone.status === LocalMilestoneStatus.SUBMITTED ? 'bg-amber-50 text-amber-700' :
+                    milestone.status === LocalMilestoneStatus.IN_PROGRESS ? 'bg-blue-50 text-blue-700' : 'bg-gray-50 text-gray-600'
+                  }`}>
+                    {milestone.status}
+                  </span>
+                </div>
 
-            {/* Telemetry and Progress Grid */}
-            <div className="grid grid-cols-3 gap-2 mt-4 text-xs text-gray-500 border-t pt-3">
-              <div>
-                <span className="block text-[10px] uppercase tracking-wider text-gray-400 font-medium">Effort</span>
-                <span className="font-bold text-gray-800 text-sm">
-                  {milestone.expectedEffortInHours || 0} hrs
-                </span>
-              </div>
-              <div>
-                <span className="block text-[10px] uppercase tracking-wider text-gray-400 font-medium">WBS Weight</span>
-                <span className="font-bold text-gray-800 text-sm">
-                  {milestone.wbsWeight || 0}%
-                </span>
-              </div>
-              <div>
-                <span className="block text-[10px] uppercase tracking-wider text-gray-400 font-medium">Progress</span>
-                <span className={`inline-flex items-center px-1.5 py-0.5 rounded-md font-bold mt-0.5 ${
-                  completedTasksCount === totalTasksCount && totalTasksCount > 0
-                    ? 'text-emerald-700 bg-emerald-50'
-                    : 'text-blue-700 bg-blue-50'
-                }`}>
-                  Tasks: {completedTasksCount}/{totalTasksCount} Done
-                </span>
+                {hasUnresolvedDependencies && (
+                  <div className="mt-3 pt-2.5 border-t border-dashed border-gray-100 flex items-center gap-1.5 text-xs text-amber-600 font-medium">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v3m0-3h3m-3 0H9m12-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Requires completion of upstream prerequisite assignments</span>
+                  </div>
+                )}
               </div>
             </div>
-
-            {/* Sequentially Blocked Visual Cover Overlay */}
-            {isBlocked && (
-              <div className="absolute inset-0 bg-gray-50/20 backdrop-blur-[0.5px] rounded-xl pointer-events-none border border-dashed border-amber-200/50" />
-            )}
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }
