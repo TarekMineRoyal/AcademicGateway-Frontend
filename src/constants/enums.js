@@ -67,7 +67,7 @@ export const TechSupportProposalStatus = Object.freeze({
 export const ProjectTemplateStatus = Object.freeze({
   DRAFT: 'Draft',
   PENDING_REVIEW: 'PendingReview',
-  CHANGES_REQUESTED: 'ChangesRequested',
+  CHANGES_REQUESED: 'ChangesRequested',
   PENDING_PROVIDER_ACCEPTANCE: 'PendingProviderAcceptance',
   APPROVED: 'Approved',
   REJECTED: 'Rejected',
@@ -79,4 +79,17 @@ export const ProviderApplicationStatus = Object.freeze({
   PENDING_REVIEW: 'PendingReview',
   APPROVED: 'Approved',
   REJECTED: 'Rejected',
+});
+
+// ==========================================
+// 5. User Identity & Multi-Tenancy Enums
+// ==========================================
+
+export const UserRole = Object.freeze({
+  ADMINISTRATOR: 'Administrator',
+  REVIEWER: 'Reviewer',
+  STUDENT: 'Student',
+  PROVIDER: 'Provider',
+  PROFESSOR: 'Professor',
+  TECH_SUPPORT: 'TechSupport',
 });

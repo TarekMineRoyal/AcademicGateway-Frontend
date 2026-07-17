@@ -1,47 +1,48 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { navigationConfig } from '../config/navigationConfig';
 import { 
   LayoutDashboard, 
   BookOpen, 
   Search,
   Mail,
   Bell,
-  Sun,
-  Moon,
-  LogOut, 
-  User 
+  Award,
+  Folder,
+  Zap,
+  PlusCircle,
+  CheckCircle,
+  User,
+  LogOut 
 } from 'lucide-react';
+
+// Maps configuration string tokens cleanly back to imported Lucide component constructors
+const IconComponents = {
+  LayoutDashboard,
+  BookOpen,
+  Search,
+  Mail,
+  Bell,
+  Award,
+  Folder,
+  Zap,
+  PlusCircle,
+  CheckCircle,
+  User
+};
 
 function WorkspaceLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const userRole = user?.role?.toLowerCase();
   
-  // Local state to manage UI infrastructure for the theme toggle interface
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
   const handleLogoutClick = () => {
     logout();
     navigate('/login');
   };
 
-  // Chess.com-inspired Unified Navigation Matrix
-  const getNavLinks = () => {
-    switch (userRole) {
-      case 'student':
-      default:
-        return [
-          { label: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
-          { label: 'Project Marketplace', path: '/dashboard/marketplace', icon: <BookOpen size={20} /> },
-          { label: 'Search Users', path: '#', icon: <Search size={20} /> },
-          { label: 'Messages', path: '#', icon: <Mail size={20} /> },
-          { label: 'Notifications', path: '#', icon: <Bell size={20} /> },
-        ];
-    }
-  };
-
-  const links = getNavLinks();
+  // Resolve active navigation array implicitly via the metadata registry mapping matrix
+  const links = navigationConfig[user?.role] || [];
 
   return (
     <div className="h-screen w-screen flex overflow-hidden bg-brand-light font-sans">
@@ -67,6 +68,7 @@ function WorkspaceLayout() {
             <nav className="flex flex-col gap-1">
               {links.map((link, idx) => {
                 const isPlaceholder = link.path === '#';
+                const IconComponent = IconComponents[link.icon];
                 
                 return (
                   <NavLink
@@ -82,7 +84,9 @@ function WorkspaceLayout() {
                       } ${isPlaceholder ? 'cursor-default opacity-80' : ''}`
                     }
                   >
-                    <span className="shrink-0 text-slate-400 group-hover:text-slate-600">{link.icon}</span>
+                    <span className="shrink-0 text-slate-400 group-hover:text-slate-600">
+                      {IconComponent ? <IconComponent size={20} /> : null}
+                    </span>
                     <span className="truncate">{link.label}</span>
                   </NavLink>
                 );
@@ -91,20 +95,8 @@ function WorkspaceLayout() {
           )}
         </div>
 
-        {/* Bottom Segment: Integrated Theme Toggles, Identity, & Direct Sign Out */}
+        {/* Bottom Segment: Identity Context & Direct Sign Out (Purged Dead Cosmetic Stubs) */}
         <div className="flex flex-col gap-2 pt-4 border-t border-slate-100">
-          
-          {/* Direct Interactive Theme Toggle Button */}
-          <button
-            type="button"
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-btn font-medium text-sm text-slate-600 hover:bg-slate-100 hover:text-brand-dark transition-colors duration-200 ease-in-out cursor-pointer text-left"
-          >
-            <span className="shrink-0 text-slate-400">
-              {isDarkMode ? <Moon size={20} /> : <Sun size={20} />}
-            </span>
-            <span className="flex-1">{isDarkMode ? 'Dark UI' : 'Light UI'}</span>
-          </button>
           
           {/* Profile Identity Context Anchor block */}
           <NavLink 
