@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
-import { useParams, Link, Navigate, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { useParams, Link, Navigate } from 'react-router-dom';
 import StudentRegisterForm from '../features/identity/components/StudentRegisterForm';
 import ProfessorRegisterForm from '../features/identity/components/ProfessorRegisterForm';
 import ProviderRegisterForm from '../features/identity/components/ProviderRegisterForm';
-import { registerStudent, registerProfessor, registerProvider } from '../features/identity/identityApi';
+import { useRegisterWizard } from '../features/identity/hooks/useRegisterWizard';
 
 function RegisterPage() {
   const { role } = useParams();
-  const navigate = useNavigate();
+  
+  // Bind presentational shell to decoupled layout hook engine
+  const wizard = useRegisterWizard();
 
   // Safeguard: Immediate bounce home if an invalid route parameter is provided
   const activeRole = role?.toLowerCase();
@@ -15,164 +17,26 @@ function RegisterPage() {
     return <Navigate to="/" replace />;
   }
 
-  // Normalized role title string for UI presentation
-  const userRoleLabel = activeRole === 'researcher' ? 'provider' : activeRole;
-
-  // 1. Hoisted State: Unified state object tracking all registration dimensions across all steps
-  const [step, setStep] = useState(1);
-  const [formValues, setFormValues] = useState({
-    // Step 1: Core Credentials
-    email: '',
-    password: '',
-    confirmPassword: '',
-    // Step 2 Shared & Role-Specific Contexts
-    fullName: '',
-    graduationYear: '',
-    majorIds: [],
-    specialtyIds: [],
-    skillIds: [],
-    academicDepartment: '',
-    rank: '',
-    maxSupervisionCapacity: 3,
-    facultyVerificationId: '',
-    researchSpecialization: '',
-    companyName: '',
-    companyDescription: '',
-    websiteUrl: '',
-    industrySector: ''
-  });
-
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
-
-  // Universal state updater passed down to sub-forms
-  const handleFieldChange = (field, value) => {
-    setFormValues((prev) => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  // 2. Validation & Enforcement Layers
-  const isEmailValid = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-  const isStep1Valid = () => {
-    return (
-      isEmailValid(formValues.email) &&
-      formValues.password.length >= 6 &&
-      formValues.password === formValues.confirmPassword
-    );
-  };
-
-  const isStep2Valid = () => {
-    if (userRoleLabel === 'student') {
-      return formValues.fullName.trim().length > 0;
-    }
-    if (userRoleLabel === 'professor') {
-      return (
-        formValues.fullName.trim().length > 0 &&
-        formValues.academicDepartment.trim().length > 0 &&
-        formValues.rank.trim().length > 0
-      );
-    }
-    if (userRoleLabel === 'provider') {
-      return (
-        formValues.companyName.trim().length > 0 &&
-        formValues.companyDescription.trim().length > 0
-      );
-    }
-    return false;
-  };
-
-  const isStep3Valid = () => acceptedTerms;
-
-  // Handles navigation flow and prevents empty mandatory bypasses via keyboard
-  const handleNextStep = () => {
-    if (step === 1 && isStep1Valid()) setStep(2);
-    else if (step === 2 && isStep2Valid()) setStep(3);
-  };
-
-  const handleBackStep = () => {
-    if (step > 1) setStep((prev) => prev - 1);
-  };
-
-  // Prevent generic form actions bypassing step constraints on manual Enter hits
-  const handleKeyDownEnforcement = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      if (step === 1 && isStep1Valid()) handleNextStep();
-      else if (step === 2 && isStep2Valid()) handleNextStep();
-    }
-  };
-
-  // 3. Final Payload Assembly & API Dispatch Slice
-  const handleFinalSubmit = async (e) => {
-    e.preventDefault();
-    if (!isStep3Valid()) return;
-
-    setError('');
-    setIsSubmitting(true);
-
-    try {
-      if (userRoleLabel === 'student') {
-        const payload = {
-          email: formValues.email,
-          username: formValues.email,
-          password: formValues.password,
-          fullName: formValues.fullName,
-          graduationYear: formValues.graduationYear ? parseInt(formValues.graduationYear, 10) : null,
-          majorIds: formValues.majorIds,
-          specialtyIds: formValues.specialtyIds,
-          skillIds: formValues.skillIds
-        };
-        await registerStudent(payload);
-      } else if (userRoleLabel === 'professor') {
-        const payload = {
-          email: formValues.email,
-          username: formValues.email,
-          password: formValues.password,
-          fullName: formValues.fullName,
-          academicDepartment: formValues.academicDepartment,
-          rank: formValues.rank,
-          maxSupervisionCapacity: parseInt(formValues.maxSupervisionCapacity, 10) || 3
-        };
-        await registerProfessor(payload);
-      } else if (userRoleLabel === 'provider') {
-        const payload = {
-          email: formValues.email,
-          username: formValues.email,
-          password: formValues.password,
-          companyName: formValues.companyName,
-          companyDescription: formValues.companyDescription,
-          websiteUrl: formValues.websiteUrl.trim() || null
-        };
-        await registerProvider(payload);
-      }
-
-      navigate('/login?registered=true');
-    } catch (err) {
-      setError(err.response?.data?.message || 'An error occurred during account registration configuration.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Get dynamic descriptions for global view text context
-  const getPageContextDetails = () => {
-    if (userRoleLabel === 'student') {
-      return { title: 'Student Portal Enrolment', subtitle: 'Join as an applicant to browse and claim capstone project opportunities.' };
-    }
-    if (userRoleLabel === 'professor') {
-      return { title: 'Faculty Portal Onboarding', subtitle: 'Register your academic profile to supervise, track, and grade milestone projects.' };
-    }
-    return { title: 'Research Partner Onboarding', subtitle: 'Register your lab unit or corporate structure to sponsor and propose project templates.' };
-  };
-
-  const details = getPageContextDetails();
-
-  // Progress Bar calculation vector
-  const progressPercent = step === 1 ? 'w-1/3' : step === 2 ? 'w-2/3' : 'w-full';
+  // Zero-Defensive Contract Destructuring directly from the wizard engine hook
+  const {
+    step,
+    formValues,
+    acceptedTerms,
+    setAcceptedTerms,
+    error,
+    isSubmitting,
+    userRoleLabel,
+    details,
+    progressPercent,
+    handleFieldChange,
+    isStep1Valid,
+    isStep2Valid,
+    isStep3Valid,
+    handleNextStep,
+    handleBackStep,
+    handleKeyDownEnforcement,
+    handleFinalSubmit
+  } = wizard;
 
   return (
     <div onKeyDown={handleKeyDownEnforcement} className="min-h-screen bg-brand-light py-12 px-4 flex flex-col justify-center items-center font-sans antialiased">
@@ -185,7 +49,7 @@ function RegisterPage() {
       {/* Main Dynamic Wizard Shell Card Framework */}
       <div className="bg-white p-8 rounded-card shadow-xl border border-slate-100 max-w-lg w-full transition-all duration-300 flex flex-col">
         
-        {/* 🎚️ Global Header & Progress Block */}
+        {/* Global Header & Progress Block */}
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm font-semibold text-primary">{details.title}</span>
@@ -209,7 +73,7 @@ function RegisterPage() {
           </div>
         )}
 
-        {/* 🔒 STEP 1: Core Credentials */}
+        {/* STEP 1: Core Credentials */}
         {step === 1 && (
           <div className="space-y-4">
             <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2">Core Identity Credentials</h3>
@@ -252,7 +116,7 @@ function RegisterPage() {
           </div>
         )}
 
-        {/* ⚙️ STEP 2: Role-Specific Conditional Branching Sub-Modules */}
+        {/* STEP 2: Role-Specific Conditional Branching Sub-Modules */}
         {step === 2 && (
           <div className="space-y-1">
             {userRoleLabel === 'student' && (
@@ -267,7 +131,7 @@ function RegisterPage() {
           </div>
         )}
 
-        {/* 👁️ STEP 3: Global Payload Review & Submission */}
+        {/* STEP 3: Global Payload Review & Submission */}
         {step === 3 && (
           <form onSubmit={handleFinalSubmit} className="space-y-5">
             <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2">Review Account Details</h3>
@@ -283,11 +147,11 @@ function RegisterPage() {
                 <>
                   <div>
                     <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Full Name</span>
-                    <span className="text-slate-700 font-medium">{formValues.fullName || 'N/A'}</span>
+                    <span className="text-slate-700 font-medium">{formValues.fullName}</span>
                   </div>
                   <div>
                     <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Target Graduation Year</span>
-                    <span className="text-slate-700 font-medium">{formValues.graduationYear || 'Not Specified'}</span>
+                    <span className="text-slate-700 font-medium">{formValues.graduationYear}</span>
                   </div>
                 </>
               )}
@@ -296,15 +160,15 @@ function RegisterPage() {
                 <>
                   <div>
                     <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Faculty Identity</span>
-                    <span className="text-slate-700 font-medium">{formValues.fullName || 'N/A'}</span>
+                    <span className="text-slate-700 font-medium">{formValues.fullName}</span>
                   </div>
                   <div>
                     <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Academic Assignment Department</span>
-                    <span className="text-slate-700 font-medium">{formValues.academicDepartment || 'N/A'}</span>
+                    <span className="text-slate-700 font-medium">{formValues.academicDepartment}</span>
                   </div>
                   <div>
                     <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Academic Rank Title</span>
-                    <span className="text-slate-700 font-medium">{formValues.rank || 'N/A'}</span>
+                    <span className="text-slate-700 font-medium">{formValues.rank}</span>
                   </div>
                 </>
               )}
@@ -313,11 +177,11 @@ function RegisterPage() {
                 <>
                   <div>
                     <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Institution / Corporate Title</span>
-                    <span className="text-slate-700 font-medium">{formValues.companyName || 'N/A'}</span>
+                    <span className="text-slate-700 font-medium">{formValues.companyName}</span>
                   </div>
                   <div>
                     <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Portal Verification Website URL</span>
-                    <span className="text-slate-700 font-medium break-all">{formValues.websiteUrl || 'None Provided'}</span>
+                    <span className="text-slate-700 font-medium break-all">{formValues.websiteUrl}</span>
                   </div>
                 </>
               )}
@@ -339,7 +203,7 @@ function RegisterPage() {
           </form>
         )}
 
-        {/* 🔀 Step Footer Navigation Group */}
+        {/* Step Footer Navigation Group */}
         <div className="mt-8 pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
           {step === 1 ? (
             <button

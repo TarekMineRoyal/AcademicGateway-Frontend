@@ -12,7 +12,8 @@ export function useProjectMarketplace(filters = {}) {
     queryKey: ['projectMarketplace', filters],
     queryFn: async () => {
       // The global response interceptor in apiClient automatically unwraps response.data
-      return await apiClient.get('/projects/marketplace', { params: filters });
+      // Path corrected and verified via staging Swagger contract audit
+      return await apiClient.get('/project-templates/approved', { params: filters });
     },
     // Retains existing records in the viewport layer while background re-validation occurs
     placeholderData: (previousData) => previousData,
