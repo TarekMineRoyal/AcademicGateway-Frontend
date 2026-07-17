@@ -1,4 +1,5 @@
 import React from 'react';
+import { DependencyType } from '../../../constants/enums';
 
 /**
  * KanbanStrategyLayout
@@ -33,13 +34,13 @@ export function KanbanStrategyLayout({ milestones = [] }) {
     // Rule 2: Evaluate the Parallel Track Rule & Transitive Lock States
     // If it possesses any Finish-to-Start (Type 1) dependencies, it is locked.
     const hasFSDependency = prIds.some(
-      (predId) => milestone.dependencyTypes?.[predId] === 1
+      (predId) => milestone.dependencyTypes?.[predId] === DependencyType.FINISH_TO_START
     );
 
     // To run concurrently (Ready), every single prerequisite must be an independent milestone 
     // AND must be tied via a Start-to-Start constraint (Dependency Type = 2).
     const fulfillsParallelTrackRule = prIds.every(
-      (predId) => independentIds.has(predId) && milestone.dependencyTypes?.[predId] === 2
+      (predId) => independentIds.has(predId) && milestone.dependencyTypes?.[predId] === DependencyType.START_TO_START
     );
 
     if (!hasFSDependency && fulfillsParallelTrackRule) {

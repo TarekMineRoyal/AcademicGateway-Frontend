@@ -15,8 +15,11 @@ export function useUpdateStudentProfile(studentId) {
       return await updateStudentProfile(profileData);
     },
     onSuccess: () => {
-      // Invalidate the student dashboard cache to hydrate updated metrics/profiles instantly
+      // 1. Invalidate the student dashboard cache to hydrate metrics/profiles instantly
       queryClient.invalidateQueries({ queryKey: ['studentDashboard', studentId] });
+      
+      // 2. Add this line to invalidate the user skills cache so the template view refetches fresh data
+      queryClient.invalidateQueries({ queryKey: ['userSkills', studentId] });
     },
   });
 }

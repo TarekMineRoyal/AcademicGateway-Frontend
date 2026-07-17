@@ -218,11 +218,11 @@ export default function ProjectMarketplace() {
                   </div>
 
                   <h3 className="text-base font-bold text-brand-dark mb-2 line-clamp-1">
-                    {project.titleSnapshot}
+                    {project.title}
                   </h3>
 
                   <p className="line-clamp-3 text-sm text-slate-600 mb-6">
-                    {project.descriptionSnapshot}
+                    {project.description}
                   </p>
                 </div>
 

@@ -50,7 +50,7 @@ function WorkspaceLayout() {
       {/* Locked Full-Height Left Navigation Sidebar */}
       <aside className="w-64 h-full bg-white border-r border-slate-200 p-4 flex flex-col justify-between shrink-0 relative">
         
-        /* Top Segment: Core Branding & App Context Routing Links */
+        {/* Top Segment: Core Branding & App Context Routing Links */}
         <div className="flex flex-col gap-6">
           
           {/* Streamlined Clean Header Branding */}

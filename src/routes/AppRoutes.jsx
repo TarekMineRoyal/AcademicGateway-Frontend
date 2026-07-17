@@ -62,7 +62,7 @@ export const router = createBrowserRouter([
 
   /* Shared / Shared Profile Routes Gate */
   {
-    element: <ProtectedRoute allowedRoles={[UserRole.STUDENT, UserRole.PROFESSOR, UserRole.PROVIDER, UserRole.ADMINISTRATOR]} />, 
+    element: <ProtectedRoute allowedRoles={[UserRole.STUDENT, UserRole.PROFESSOR, UserRole.PROVIDER, UserRole.ADMINISTRATOR, UserRole.REVIEWER]} />, 
     children: [
       {
         path: "/dashboard",
@@ -71,6 +71,15 @@ export const router = createBrowserRouter([
           {
             path: "profile",
             element: <StudentProfile />
+          }
+        ]
+      },
+      {
+        element: <WorkspaceLayout />,
+        children: [
+          {
+            path: "/workspace/projects/:projectInstanceId",
+            element: <ProjectWorkspace />
           }
         ]
       }
@@ -121,15 +130,6 @@ export const router = createBrowserRouter([
           {
             path: "capacity",
             element: <PlaceholderView title="Threshold Allocation & Capacity Management" />
-          }
-        ]
-      },
-      {
-        element: <WorkspaceLayout />,
-        children: [
-          {
-            path: "/workspace/projects/:projectInstanceId",
-            element: <ProjectWorkspace />
           }
         ]
       }

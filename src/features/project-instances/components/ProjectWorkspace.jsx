@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useProjectWorkspace } from '../hooks/useProjectWorkspace';
 import MilestoneActionCenter from './MilestoneActionCenter';
 import MilestoneVisualizer from '../../../components/milestone/MilestoneVisualizer';
+import { ProjectInstanceStatus } from '../../../constants/enums';
 import { 
   ArrowLeft, 
   Clock, 
@@ -37,31 +38,31 @@ export default function ProjectWorkspace() {
 
   // Status-badge configuration mapper using beautiful Tailwind utility classes
   const getStatusConfig = (statusValue) => {
-    switch (statusValue) {
-      case 1: 
-        return { 
-          text: 'Awaiting Supervision', 
-          className: 'bg-amber-50 text-amber-700 border-amber-200', 
-          icon: <Clock size={14} /> 
-        }; 
-      case 2: 
-        return { 
-          text: 'Active Workspace', 
-          className: 'bg-green-50 text-green-800 border-green-200', 
-          icon: <CheckCircle size={14} /> 
-        }; 
-      case 3: 
-        return { 
-          text: 'Concluded', 
-          className: 'bg-blue-50 text-blue-700 border-blue-200', 
-          icon: <Award size={14} /> 
-        }; 
-      default: 
-        return { 
-          text: 'Canceled', 
-          className: 'bg-gray-50 text-gray-600 border-gray-200', 
-          icon: <ShieldAlert size={14} /> 
-        }; 
+  switch (statusValue) {
+    case ProjectInstanceStatus.AWAITING_SUPERVISION:
+      return {
+        text: 'Awaiting Supervision',
+        className: 'bg-amber-50 text-amber-700 border-amber-200',
+        icon: <Clock size={14} />
+      };
+    case ProjectInstanceStatus.ACTIVE:
+      return {
+        text: 'Active Workspace',
+        className: 'bg-green-50 text-green-800 border-green-200',
+        icon: <CheckCircle size={14} />
+      };
+    case ProjectInstanceStatus.CONCLUDED:
+      return {
+        text: 'Concluded',
+        className: 'bg-blue-50 text-blue-700 border-blue-200',
+        icon: <Award size={14} />
+      };
+    default:
+      return {
+        text: 'Canceled',
+        className: 'bg-gray-50 text-gray-600 border-gray-200',
+        icon: <ShieldAlert size={14} />
+      };
     }
   };
 

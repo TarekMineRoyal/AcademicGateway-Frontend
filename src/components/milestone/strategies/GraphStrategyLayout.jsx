@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import dagre from '@dagrejs/dagre';
 import { ReactFlow, Background, Controls, Handle, Position } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { DependencyType } from '../../../constants/enums';
 
 /**
  * CustomMilestoneNode
@@ -88,8 +89,7 @@ const getLayoutedElements = (milestones) => {
     const depTypes = m.dependencyTypes || {};
     
     prIds.forEach((predId) => {
-      // Type 2 represents concurrent Start-to-Start path rules
-      const isStartToStart = depTypes[predId] === 2;
+      const isStartToStart = depTypes[predId] === DependencyType.START_TO_START;
       
       edges.push({
         id: `e-${predId}-${m.id}`,
