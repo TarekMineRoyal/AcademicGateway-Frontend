@@ -6,10 +6,32 @@
 export function adaptMilestones(rawMilestones = [], rawDependencies = []) {
   return rawMilestones.map((milestone) => {
     const id = milestone.id;
-    const title = milestone.titleSnapshot;
-    const description = milestone.descriptionSnapshot;
-    const expectedHours = milestone.expectedEffortInHours;
-    const deliverableType = milestone.requiredDeliverableType;
+    
+    // Align with the backend's flat property names
+    const title = milestone.title || milestone.titleSnapshot || 'Untitled Milestone';
+    const description = milestone.description || milestone.descriptionSnapshot || '';
+    const expectedHours = milestone.expectedEffortInHours || 0;
+    
+    // Resolve tasks first so we can use them for milestone-level metadata fallbacks
+    const rawTasks = milestone.tasks || [];
+    const adaptedTasks = rawTasks.map((task) => ({
+      id: task.id,
+      title: task.title || task.titleSnapshot || 'Untitled Task',
+      description: task.description || task.descriptionSnapshot || '',
+      weight: task.weight || 0,
+      requiredDeliverableType: task.requiredDeliverableType || 'None',
+      status: task.status,
+      submissionPayload: task.submissionPayload,
+      submittedAt: task.submittedAt,
+      grade: task.grade,
+      evaluationFeedback: task.evaluationFeedback,
+      gradedAt: task.gradedAt,
+    }));
+
+    // If the milestone doesn't have a deliverable type, derive it from its first task
+    const deliverableType = milestone.deliverableType || 
+                            milestone.requiredDeliverableType || 
+                            (adaptedTasks[0]?.requiredDeliverableType || 'None');
 
     // Resolve dependencies strictly using camelCase contract properties
     const embeddedDeps = milestone.inboundDependencies || [];
@@ -29,30 +51,14 @@ export function adaptMilestones(rawMilestones = [], rawDependencies = []) {
       return acc;
     }, {});
 
-    // Task mapping with strict contract property enforcement
-    const rawTasks = milestone.tasks || [];
-    const adaptedTasks = rawTasks.map((task) => ({
-      id: task.id,
-      title: task.titleSnapshot,
-      description: task.descriptionSnapshot,
-      weight: task.weight,
-      requiredDeliverableType: task.requiredDeliverableType,
-      status: task.status,
-      submissionPayload: task.submissionPayload,
-      submittedAt: task.submittedAt,
-      grade: task.grade,
-      evaluationFeedback: task.evaluationFeedback,
-      gradedAt: task.gradedAt,
-    }));
-
     return {
       id,
       title,
-      titleSnapshot: title, // Preserves baseline context for down-stream rendering logic
+      titleSnapshot: title, 
       description,
-      descriptionSnapshot: description, // Preserves baseline context for down-stream rendering logic
+      descriptionSnapshot: description, 
       expectedHours,
-      expectedEffortInHours: expectedHours, // Supports downstream telemetry metrics view blocks
+      expectedEffortInHours: expectedHours, 
       deliverableType,
       prerequisiteIds,
       dependencyTypes,
