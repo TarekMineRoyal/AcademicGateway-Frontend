@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
-import { registerStudent, registerProfessor, registerProvider } from '../identityApi';
+import { UserRole } from '../../../constants/enums';
+import { registrationStrategies } from '../strategies/registrationStrategies';
 
 /**
  * Custom logic orchestrator hook for the registration multi-step wizard.
@@ -15,6 +16,15 @@ export function useRegisterWizard() {
   // Normalize parameters and roles immediately
   const activeRole = role?.toLowerCase();
   const userRoleLabel = activeRole === 'researcher' ? 'provider' : activeRole;
+
+  // Resolve the proper global network contract enum key based on the parameterized route
+  const strategyLookupKey = 
+    userRoleLabel === 'student' ? UserRole.STUDENT :
+    userRoleLabel === 'professor' ? UserRole.PROFESSOR :
+    userRoleLabel === 'provider' ? UserRole.PROVIDER : null;
+
+  // Resolve the active role profile configuration block dynamically from the factory map
+  const activeStrategy = registrationStrategies[strategyLookupKey];
 
   // 1. Isolated Logic Layer State Modules
   const [step, setStep] = useState(1);
@@ -59,24 +69,9 @@ export function useRegisterWizard() {
     );
   };
 
+  // Delegate the validation workload directly to the active strategy profile layout
   const isStep2Valid = () => {
-    if (userRoleLabel === 'student') {
-      return formValues.fullName.trim().length > 0;
-    }
-    if (userRoleLabel === 'professor') {
-      return (
-        formValues.fullName.trim().length > 0 &&
-        formValues.academicDepartment.trim().length > 0 &&
-        formValues.rank.trim().length > 0
-      );
-    }
-    if (userRoleLabel === 'provider') {
-      return (
-        formValues.companyName.trim().length > 0 &&
-        formValues.companyDescription.trim().length > 0
-      );
-    }
-    return false;
+    return activeStrategy ? activeStrategy.validate(formValues) : false;
   };
 
   const isStep3Valid = () => acceptedTerms;
@@ -103,46 +98,13 @@ export function useRegisterWizard() {
   // 3. Encapsulated DTO Compilation Matrix via Unified Mutation Pipeline
   const registerMutation = useMutation({
     mutationFn: async () => {
-      if (userRoleLabel === 'student') {
-        const payload = {
-          email: formValues.email,
-          username: formValues.email,
-          password: formValues.password,
-          fullName: formValues.fullName,
-          graduationYear: formValues.graduationYear ? parseInt(formValues.graduationYear, 10) : null,
-          majorIds: formValues.majorIds,
-          specialtyIds: formValues.specialtyIds,
-          skillIds: formValues.skillIds
-        };
-        return await registerStudent(payload);
-      }
-      
-      if (userRoleLabel === 'professor') {
-        const payload = {
-          email: formValues.email,
-          username: formValues.email,
-          password: formValues.password,
-          fullName: formValues.fullName,
-          academicDepartment: formValues.academicDepartment,
-          rank: formValues.rank,
-          maxSupervisionCapacity: parseInt(formValues.maxSupervisionCapacity, 10) || 3
-        };
-        return await registerProfessor(payload);
-      }
-      
-      if (userRoleLabel === 'provider') {
-        const payload = {
-          email: formValues.email,
-          username: formValues.email,
-          password: formValues.password,
-          companyName: formValues.companyName,
-          companyDescription: formValues.companyDescription,
-          websiteUrl: formValues.websiteUrl.trim() || null
-        };
-        return await registerProvider(payload);
+      if (!activeStrategy) {
+        throw new Error('Invalid multi-tenant registry domain context mapped.');
       }
 
-      throw new Error('Invalid multi-tenant registry domain context mapped.');
+      // Delegate DTO compilation and submission routing directly to the strategy profile
+      const compiledPayloadDto = activeStrategy.compileDto(formValues);
+      return await activeStrategy.submitAction(compiledPayloadDto);
     },
     onSuccess: () => {
       navigate('/login?registered=true');
@@ -159,18 +121,8 @@ export function useRegisterWizard() {
     registerMutation.mutate();
   };
 
-  // Dynamic presentational tracking vectors mapped strictly to state properties
-  const getPageContextDetails = () => {
-    if (userRoleLabel === 'student') {
-      return { title: 'Student Portal Enrolment', subtitle: 'Join as an applicant to browse and claim capstone project opportunities.' };
-    }
-    if (userRoleLabel === 'professor') {
-      return { title: 'Faculty Portal Onboarding', subtitle: 'Register your academic profile to supervise, track, and grade milestone projects.' };
-    }
-    return { title: 'Research Partner Onboarding', subtitle: 'Register your lab unit or corporate structure to sponsor and propose project templates.' };
-  };
-
-  const details = getPageContextDetails();
+  // Resolve dynamic presentational metrics securely via the isolated strategy object blocks
+  const details = activeStrategy?.displayContext || { title: '', subtitle: '' };
   const progressPercent = step === 1 ? 'w-1/3' : step === 2 ? 'w-2/3' : 'w-full';
 
   return {
