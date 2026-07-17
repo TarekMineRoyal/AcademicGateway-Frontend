@@ -118,17 +118,45 @@ const getLayoutedElements = (milestones) => {
  *
  * @param {Object} props
  * @param {Array} props.milestones - Normalized milestones array from parent shell
+ * @param {boolean} props.isWorkspace - Flags if visualization runs inside a live execution instance
+ * @param {string|null} props.selectedMilestoneId - The unique ID of the currently focused milestone
+ * @param {Function} props.onSelectMilestone - Dispatch callback to update active milestone context
  */
-export function GraphStrategyLayout({ milestones = [] }) {
-  // 1. Local state block handling slide-out modal / drawer lifecycle
+export function GraphStrategyLayout({ 
+  milestones = [], 
+  isWorkspace = false,
+  selectedMilestoneId = null,
+  onSelectMilestone = () => {}
+}) {
+  // 1. Local state block handling slide-out modal / drawer lifecycle (Only used in static template previews)
   const [activeMilestoneDetails, setActiveMilestoneDetails] = useState(null);
 
-  // Memoize graph elements computation to avoid redundant calculations across overlay visibility changes
+  // Memoize layout baseline coordinate generation to isolate rendering threads
   const { nodes, edges } = useMemo(() => getLayoutedElements(milestones), [milestones]);
+
+  // Append dynamic focus highlighting styles smoothly without breaking structural canvas coordinates
+  const visualNodes = useMemo(() => {
+    return nodes.map((node) => ({
+      ...node,
+      style: node.id === selectedMilestoneId 
+        ? { 
+            border: '2px solid #4f46e5', 
+            borderRadius: '0.5rem', 
+            boxShadow: '0 0 0 4px rgba(79, 70, 229, 0.15)' 
+          }
+        : {}
+    }));
+  }, [nodes, selectedMilestoneId]);
 
   // 2. React Flow selection payload adapter
   const handleNodeSelection = (nodeData) => {
-    setActiveMilestoneDetails(nodeData);
+    if (isWorkspace) {
+      // Tunnel click directly back to root tracking state[cite: 1]
+      onSelectMilestone(nodeData.id);
+    } else {
+      // Fallback to static descriptive drawer panels solely for model templates preview
+      setActiveMilestoneDetails(nodeData);
+    }
   };
 
   // 3. Document keyboard interception to support safe Escape key dismissals
@@ -154,7 +182,7 @@ export function GraphStrategyLayout({ milestones = [] }) {
   return (
     <div className="w-full h-[500px] border border-slate-200/60 bg-slate-50/50 rounded-card overflow-hidden relative">
       <ReactFlow
-        nodes={nodes}
+        nodes={visualNodes}
         edges={edges}
         nodeTypes={{ customMilestone: CustomMilestoneNode }}
         onNodeClick={(event, node) => handleNodeSelection(node.data)} // Native Event binding configuration
@@ -165,8 +193,8 @@ export function GraphStrategyLayout({ milestones = [] }) {
         <Controls showInteractive={false} className="shadow-xs border border-slate-200 rounded" />
       </ReactFlow>
 
-      {/* 5. Stateful Slide-Out Premium Floating Card Overlay Container */}
-      {activeMilestoneDetails && (
+      {/* 5. Stateful Slide-Out Premium Floating Card Overlay Container (Template Mode Exclusively) */}
+      {!isWorkspace && activeMilestoneDetails && (
         <div 
           className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex justify-end animate-fade-in"
           onClick={() => setActiveMilestoneDetails(null)} // Seamless background vector backdrop tap dismissal
@@ -218,7 +246,7 @@ export function GraphStrategyLayout({ milestones = [] }) {
                     Deliverable Type
                   </span>
                   <span className="text-xs font-semibold text-slate-700 block">
-                    📦 Group Type Contract #{activeMilestoneDetails.deliverableType ?? 0}
+                    📦 Required: {activeMilestoneDetails.deliverableType || 'None'}
                   </span>
                 </div>
               </div>
@@ -232,7 +260,6 @@ export function GraphStrategyLayout({ milestones = [] }) {
                 {associatedTasks.length > 0 ? (
                   <div className="space-y-2">
                     {associatedTasks.map((task, index) => {
-                      // Handle array strings, payload object maps or model properties dynamically
                       const taskLabel = typeof task === 'string' ? task : (task.title || task.Name || 'Untitled Objective');
                       return (
                         <div 

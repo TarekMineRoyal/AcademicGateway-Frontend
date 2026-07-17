@@ -10,8 +10,15 @@ import { GraphStrategyLayout } from './strategies/GraphStrategyLayout';
  * @param {Object} props
  * @param {Array} props.milestones - Strict array prop holding normalized items
  * @param {boolean} props.isWorkspace - Flags if visualization runs inside a live execution instance
+ * @param {string|null} props.selectedMilestoneId - The unique ID of the currently focused milestone
+ * @param {Function} props.onSelectMilestone - Dispatch callback to update active milestone context
  */
-export default function MilestoneVisualizer({ milestones = [], isWorkspace = true }) {
+export default function MilestoneVisualizer({ 
+  milestones = [], 
+  isWorkspace = true,
+  selectedMilestoneId = null,
+  onSelectMilestone = () => {}
+}) {
   // String state controller to swap between strategy engine layouts
   // Lands on execution columns for workspaces, and defaults to holistic roadmaps for previews
   const [viewStrategy, setViewStrategy] = useState(isWorkspace ? 'kanban' : 'graph');
@@ -48,12 +55,20 @@ export default function MilestoneVisualizer({ milestones = [], isWorkspace = tru
         </div>
       )}
 
-      {/* Dynamic Render Pipeline Engine Swap */}
-      {/* If it's a static preview, bypass state entirely and force render GraphStrategyLayout exclusively */}
+      {/* Dynamic Render Pipeline Engine Swap with full Prop Tunneling */}
       {isWorkspace && viewStrategy === 'kanban' ? (
-        <KanbanStrategyLayout milestones={milestones} />
+        <KanbanStrategyLayout 
+          milestones={milestones} 
+          selectedMilestoneId={selectedMilestoneId}
+          onSelectMilestone={onSelectMilestone}
+        />
       ) : (
-        <GraphStrategyLayout milestones={milestones} />
+        <GraphStrategyLayout 
+          milestones={milestones} 
+          isWorkspace={isWorkspace}
+          selectedMilestoneId={selectedMilestoneId}
+          onSelectMilestone={onSelectMilestone}
+        />
       )}
     </section>
   );
