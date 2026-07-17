@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useProjectTemplateDetails } from '../hooks/useProjectTemplateDetails';
 import { initializeProjectInstance } from '../../project-instances/projectInstancesApi';
 import { adaptMilestones } from '../../../utils/milestoneAdapter'; 
@@ -25,6 +26,7 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
   const { templateId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const userRole = user?.role; // Utilizing clean string token from normalized auth boundary
   
   // Workflow Modal States
@@ -84,6 +86,10 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
         templateId, 
         initiationMode === 'supervised' ? selectedProfessor.id : null
       );
+
+      if (user?.id) {
+        queryClient.invalidateQueries({ queryKey: ['studentDashboard', user.id] });
+      }
 
       setIsModalOpen(false);
       navigate('/dashboard');
