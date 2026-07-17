@@ -353,7 +353,7 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
                     ) : (
                       directoryResults.map(prof => {
                         const isChosen = selectedProfessor?.id === prof.id;
-                        const isFull = Number(prof.slots) >= 4;
+                        const isFull = Number(prof.slots) >= Number(prof.maxSupervisionCapacity);
                         
                         const isDomainExpert = primaryDiscipline && prof.specialties?.some(spec => {
                           const specStr = typeof spec === 'object' ? (spec.name || '') : String(spec);
@@ -380,7 +380,7 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
                                 <div className="text-[11px] text-slate-500 truncate">{prof.email}</div>
                                 
                                 <div className="text-[11px] font-medium text-slate-500 mt-0.5">
-                                  Available Slots: {prof.slots || 0}/4
+                                  <span>Available Slots: {prof.slots || 0}/{prof.maxSupervisionCapacity}</span>
                                 </div>
 
                                 {prof.specialties && prof.specialties.length > 0 && (

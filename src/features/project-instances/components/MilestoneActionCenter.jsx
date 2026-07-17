@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getMilestoneComments } from '../projectInstancesApi';
 import { useSubmitTaskDeliverable } from '../hooks/useSubmitTaskDeliverable';
 import { usePostMilestoneComment } from '../hooks/usePostMilestoneComment';
+import { LocalTaskStatus } from '../../../constants/enums';
 import { 
   Send, 
   ExternalLink, 
@@ -102,17 +103,16 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
   };
 
   const getTaskStatusString = (statusValue) => {
-    if (statusValue === 0 || statusValue === '0' || statusValue === 'NotStarted') {
-      return 'PENDING';
+    switch (statusValue) {
+      case LocalTaskStatus.NOT_STARTED:
+        return 'PENDING';
+      case LocalTaskStatus.SUBMITTED:
+        return 'SUBMITTED';
+      case LocalTaskStatus.GRADED:
+        return 'GRADED';
+      default:
+        return String(statusValue).toUpperCase();
     }
-    if (statusValue === 1 || statusValue === '1' || statusValue === 'Submitted') {
-      return 'SUBMITTED';
-    }
-    if (statusValue === 2 || statusValue === '2' || statusValue === 'Graded') {
-      return 'GRADED';
-    }
-    
-    return String(statusValue).toUpperCase();
   };
 
   // Bind interface handlers explicitly to custom mutation state machine triggers
