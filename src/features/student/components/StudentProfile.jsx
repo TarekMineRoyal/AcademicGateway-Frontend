@@ -1,127 +1,87 @@
 import React, { useState, useEffect } from 'react';
 import { Edit3 } from 'lucide-react';
-import { getStudentProfile, updateStudentProfile } from '../studentDashboardApi';
+import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '../../../context/AuthContext';
+import { useStudentDashboard } from '../hooks/useStudentDashboard';
+import { useUpdateStudentProfile } from '../hooks/useUpdateStudentProfile';
 import { getMajorsWithSpecialties } from '../../curriculum/curriculumApi';
 import { getSkills } from '../../skills/skillsApi';
 import SearchableCombobox from '../../../components/SearchableCombobox';
 
 function StudentProfile() {
-  // 1. Primitive Payload Form Fields (Matching PUT command properties)
+  const { user } = useAuth();
+  const studentId = user.id;
+
+  // 1. Declarative Server-State Hydration Layer
+  const { dashboardData, isLoading: dashboardLoading } = useStudentDashboard(studentId);
+  
+  const { data: majorsData = [], isLoading: majorsLoading } = useQuery({
+    queryKey: ['majorsWithSpecialties'],
+    queryFn: getMajorsWithSpecialties,
+  });
+
+  const { data: skillsData = [], isLoading: skillsLoading } = useQuery({
+    queryKey: ['skills'],
+    queryFn: getSkills,
+  });
+
+  // 2. Centralized Form Submission State Machine
+  const updateProfileMutation = useUpdateStudentProfile(studentId);
+
+  // 3. Isolated Local UI Interactive State Blocks
   const [fullName, setFullName] = useState('');
   const [graduationYear, setGraduationYear] = useState('');
-
-  // 2. Collection Tracking Identifiers (Arrays of backend GUID strings)
   const [selectedMajorIds, setSelectedMajorIds] = useState([]);
   const [selectedSpecialtyIds, setSelectedSpecialtyIds] = useState([]);
   const [selectedSkillIds, setSelectedSkillIds] = useState([]);
-
-  // 3. Lookup Configurations (Populated dynamically via parallel api resolution)
-  const [majorsData, setMajorsData] = useState([]);
-  const [skillsData, setSkillsData] = useState([]);
-
-  // 4. Interface Workflow & Lifecycle Baseline Snapshot States
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
-  
-  // Backup snapshot storage state for frictionless rollback recovery on form cancellation
-  const [initialProfileSnapshot, setInitialProfileSnapshot] = useState(null);
 
-  // Load existing user record alongside system lookups simultaneously on component load
+  const profile = dashboardData?.profile;
+
+  // Track and synchronize local presentation state whenever the server cache updates
   useEffect(() => {
-    async function fetchProfileAndLookups() {
-      try {
-        setLoading(true);
-        const [profileRes, majorsRes, skillsRes] = await Promise.all([
-          getStudentProfile(),
-          getMajorsWithSpecialties(),
-          getSkills()
-        ]);
-
-        // Seed system reference lookup blocks
-        setMajorsData(majorsRes);
-        setSkillsData(skillsRes);
-
-        // Map initial value arrays extracting raw item GUID keys safely regardless of casing
-        if (profileRes) {
-          const fetchedName = profileRes.fullName || profileRes.FullName || '';
-          const fetchedGradYear = profileRes.graduationYear || profileRes.GraduationYear || '';
-          
-          const majors = profileRes.majors || profileRes.Majors || [];
-          const fetchedMajorIds = majors.map(m => m.id || m.Id);
-          
-          const specialties = profileRes.specialties || profileRes.Specialties || [];
-          const fetchedSpecialtyIds = specialties.map(s => s.id || s.Id);
-          
-          const skills = profileRes.skills || profileRes.Skills || [];
-          const fetchedSkillIds = skills.map(sk => sk.id || sk.Id);
-
-          // Populate tracking workflow states
-          setFullName(fetchedName);
-          setGraduationYear(fetchedGradYear);
-          setSelectedMajorIds(fetchedMajorIds);
-          setSelectedSpecialtyIds(fetchedSpecialtyIds);
-          setSelectedSkillIds(fetchedSkillIds);
-
-          // Preserve baseline data snapshot for flawless rolling back changes
-          setInitialProfileSnapshot({
-            fullName: fetchedName,
-            graduationYear: fetchedGradYear,
-            majorIds: fetchedMajorIds,
-            specialtyIds: fetchedSpecialtyIds,
-            skillIds: fetchedSkillIds
-          });
-        }
-      } catch (err) {
-        setMessage({ type: 'error', text: 'Failed to populate core student profile identity structures.' });
-      } finally {
-        setLoading(false);
-      }
+    if (profile) {
+      setFullName(profile.fullName);
+      setGraduationYear(profile.graduationYear);
+      setSelectedMajorIds(profile.majors.map(m => m.id));
+      setSelectedSpecialtyIds(profile.specialties.map(s => s.id));
+      setSelectedSkillIds(profile.skills.map(sk => sk.id));
     }
+  }, [profile]);
 
-    fetchProfileAndLookups();
-  }, []);
-
-  // Filter child sub-tracks to keep options limited to selected parent majors
+  // Compute allowed child tracks dynamically according to active parent nodes exclusively
   const availableSpecialties = majorsData
     .filter(major => selectedMajorIds.includes(major.id))
-    .flatMap(major => major.specialties || []);
+    .flatMap(major => major.specialties);
 
   // Custom handler to sync parent selections and scrub orphans dynamically
   const handleMajorsChange = (selectedObjects) => {
     const nextMajorIds = selectedObjects.map(o => o.id);
     setSelectedMajorIds(nextMajorIds);
 
-    // Compute child specialties permitted under the newly adjusted major selections
     const dynamicSpecialties = majorsData
       .filter(major => nextMajorIds.includes(major.id))
-      .flatMap(major => major.specialties || []);
+      .flatMap(major => major.specialties);
     const dynamicSpecialtyIds = dynamicSpecialties.map(s => s.id);
 
-    // Clear out any previously checked specialties that no longer match an active parent major selection
     setSelectedSpecialtyIds(prev => prev.filter(id => dynamicSpecialtyIds.includes(id)));
   };
 
-  // Restores component state cleanly back to the loaded database configuration parameters
+  // Restores component fields cleanly back to the active query cache record parameters
   const handleCancel = () => {
-    if (initialProfileSnapshot) {
-      setFullName(initialProfileSnapshot.fullName);
-      setGraduationYear(initialProfileSnapshot.graduationYear);
-      setSelectedMajorIds(initialProfileSnapshot.majorIds);
-      setSelectedSpecialtyIds(initialProfileSnapshot.specialtyIds);
-      setSelectedSkillIds(initialProfileSnapshot.skillIds);
+    if (profile) {
+      setFullName(profile.fullName);
+      setGraduationYear(profile.graduationYear);
+      setSelectedMajorIds(profile.majors.map(m => m.id));
+      setSelectedSpecialtyIds(profile.specialties.map(s => s.id));
+      setSelectedSkillIds(profile.skills.map(sk => sk.id));
     }
-    setMessage({ type: '', text: '' });
     setIsEditing(false);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setSaving(true);
-    setMessage({ type: '', text: '' });
-
-    // Compiles the structural request payload matching the DTO constraints exactly
+    
     const commandPayload = {
       fullName: fullName.trim(),
       graduationYear: graduationYear ? parseInt(graduationYear, 10) : null,
@@ -130,28 +90,14 @@ function StudentProfile() {
       skillIds: selectedSkillIds,
     };
 
-    try {
-      await updateStudentProfile(commandPayload);
-      
-      // Update baseline database snapshot to lock in the saved data state values
-      setInitialProfileSnapshot({
-        fullName: commandPayload.fullName,
-        graduationYear: commandPayload.graduationYear || '',
-        majorIds: selectedMajorIds,
-        specialtyIds: selectedSpecialtyIds,
-        skillIds: selectedSkillIds
-      });
-
-      setMessage({ type: 'success', text: 'Academic profile sync successfully completed!' });
-      setIsEditing(false);
-    } catch (err) {
-      setMessage({ type: 'error', text: err.response?.data?.message || 'Failed to persist command tracking updates.' });
-    } finally {
-      setSaving(false);
-    }
+    updateProfileMutation.mutate(commandPayload, {
+      onSuccess: () => {
+        setIsEditing(false);
+      },
+    });
   };
 
-  if (loading) {
+  if (dashboardLoading || majorsLoading || skillsLoading) {
     return (
       <div className="text-slate-600 text-center py-16 font-semibold animate-pulse tracking-wide">
         Assembling database records...
@@ -162,14 +108,16 @@ function StudentProfile() {
   return (
     <div className="max-w-2xl mx-auto bg-white p-8 rounded-card border border-slate-200/60 shadow-sm">
       
-      {/* Dynamic Status Action Feedback Banners */}
-      {message.text && (
-        <div className={
-          message.type === 'success'
-            ? "bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-lg text-sm font-medium mb-6"
-            : "bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-lg text-sm font-medium mb-6"
-        }>
-          {message.text}
+      {/* Dynamic Mutation Status Action Feedback Banners */}
+      {updateProfileMutation.isSuccess && (
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-lg text-sm font-medium mb-6">
+          Academic profile sync successfully completed!
+        </div>
+      )}
+
+      {updateProfileMutation.isError && (
+        <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-lg text-sm font-medium mb-6">
+          Submission failed: {updateProfileMutation.error.message}
         </div>
       )}
 
@@ -182,10 +130,10 @@ function StudentProfile() {
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 pb-4 border-b border-slate-100">
             <div>
               <h2 className="text-2xl font-extrabold text-brand-dark tracking-tight">
-                {fullName || 'Unspecified Identity'}
+                {fullName}
               </h2>
               <p className="text-slate-500 text-sm mt-1">
-                Class of {graduationYear || 'N/A'}
+                Class of {graduationYear}
               </p>
             </div>
             <button
@@ -310,7 +258,7 @@ function StudentProfile() {
             />
           </div>
 
-          {/* Combobox Matrix Section 3: Specialties (Dependent Visibility Constraint) */}
+          {/* Combobox Matrix Section 3: Specialties */}
           {selectedMajorIds.length > 0 && (
             <div className="animate-fadeIn">
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
@@ -351,10 +299,10 @@ function StudentProfile() {
             </button>
             <button 
               type="submit" 
-              disabled={saving}
+              disabled={updateProfileMutation.isPending}
               className="bg-primary hover:bg-primary-hover text-white rounded-btn px-5 py-2 text-sm font-semibold shadow-xs transition-all duration-200 cursor-pointer disabled:opacity-70"
             >
-              {saving ? 'Syncing...' : 'Save Changes'}
+              {updateProfileMutation.isPending ? 'Syncing...' : 'Save Changes'}
             </button>
           </div>
         </form>

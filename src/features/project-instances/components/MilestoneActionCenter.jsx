@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  getMilestoneComments, 
-  postMilestoneComment, 
-  submitTaskDeliverable 
-} from '../projectInstancesApi';
+import { useQuery } from '@tanstack/react-query';
+import { getMilestoneComments } from '../projectInstancesApi';
+import { useSubmitTaskDeliverable } from '../hooks/useSubmitTaskDeliverable';
+import { usePostMilestoneComment } from '../hooks/usePostMilestoneComment';
 import { 
   Send, 
   ExternalLink, 
@@ -20,19 +19,20 @@ import {
 
 export default function MilestoneActionCenter({ projectInstanceId, milestone, project, onRefresh }) {
   const [activeTab, setActiveTab] = useState('tasks'); // 'tasks' or 'feed'
-  const [comments, setComments] = useState([]);
-  const [loadingComments, setLoadingComments] = useState(false);
   const [commentInput, setCommentInput] = useState('');
-  const [postingComment, setPostingComment] = useState(false);
-  
-  // Maps taskId -> input string for student repository submission
   const [submissionPayloads, setSubmissionPayloads] = useState({});
-  const [submittingTasks, setSubmittingTasks] = useState({}); // taskId -> boolean (loading state)
-  
-  // Custom toast notification system
   const [toast, setToast] = useState(null);
-
   const chatEndRef = useRef(null);
+
+  // 1. Declarative Server-State Isolation Layers
+  const { data: comments = [], isLoading: loadingComments } = useQuery({
+    queryKey: ['milestoneComments', projectInstanceId, milestone?.id],
+    queryFn: () => getMilestoneComments(projectInstanceId, milestone.id),
+    enabled: !!milestone?.id && activeTab === 'feed',
+  });
+
+  const submitTaskMutation = useSubmitTaskDeliverable(projectInstanceId);
+  const postCommentMutation = usePostMilestoneComment(projectInstanceId);
 
   // Auto-dismiss toast notification after 4 seconds
   useEffect(() => {
@@ -41,24 +41,6 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
       return () => clearTimeout(timer);
     }
   }, [toast]);
-
-  // Reload comment feed when selected milestone or active tab changes
-  useEffect(() => {
-    if (milestone && activeTab === 'feed') {
-      setLoadingComments(true);
-      getMilestoneComments(projectInstanceId, milestone.id)
-        .then((data) => {
-          setComments(data || []);
-        })
-        .catch((err) => {
-          console.error("Error fetching comments:", err);
-          setToast({ type: 'error', text: 'Failed to fetch discussion feed history.' });
-        })
-        .finally(() => {
-          setLoadingComments(false);
-        });
-    }
-  }, [projectInstanceId, milestone?.id, activeTab]);
 
   // Smooth scroll to the latest chat feed message
   useEffect(() => {
@@ -82,52 +64,33 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
     );
   }
 
-  // Helper to dynamically map the comment's authorId to their actual name
+  // Strict Contracts: Map identities precisely using strict camelCase server properties exclusively
   const getAuthorName = (comment) => {
-    if (!project) return comment.authorIdentitySnapshot || comment.AuthorIdentitySnapshot || "Participant";
+    if (!project) return comment.authorIdentitySnapshot;
 
-    const authorId = comment.authorId || comment.AuthorId;
-    const studentId = project.studentId || project.StudentId;
-    const supervisorId = project.supervisorId || project.SupervisorId;
-
-    if (authorId === studentId) {
-      return project.studentName || project.StudentName || "Student Developer";
+    if (comment.authorId === project.studentId) {
+      return project.studentName;
     }
-    if (authorId === supervisorId) {
-      return project.supervisorName || project.SupervisorName || "Faculty Advisor";
+    if (comment.authorId === project.supervisorId) {
+      return project.supervisorName;
     }
 
-    return comment.authorIdentitySnapshot || comment.AuthorIdentitySnapshot || "External User";
+    return comment.authorIdentitySnapshot;
   };
 
-  // Clean, fallback-safe mapper to output high-quality role tags instead of broken DB entries
   const getAuthorIdentity = (comment) => {
-    const authorId = comment.authorId || comment.AuthorId;
-    const studentId = project?.studentId || project?.StudentId;
-    const supervisorId = project?.supervisorId || project?.SupervisorId;
-
-    if (authorId && authorId === studentId) {
+    if (comment.authorId === project?.studentId) {
       return "Student Developer";
     }
-    if (authorId && authorId === supervisorId) {
+    if (comment.authorId === project?.supervisorId) {
       return "Faculty Advisor";
     }
 
-    const snapshot = comment.authorIdentitySnapshot || comment.AuthorIdentitySnapshot;
-    if (snapshot && snapshot !== "Unknown Participant") {
-      return snapshot;
-    }
-
-    return "External Partner";
+    return comment.authorIdentitySnapshot;
   };
 
-  // Human-readable case-defensive date parser to make chat timestamps look clean
   const formatCommentTime = (comment) => {
-    const rawDate = comment.createdAt || comment.CreatedAt;
-    
-    if (!rawDate) return "Just now";
-
-    const dateObj = new Date(rawDate);
+    const dateObj = new Date(comment.createdAt);
     if (isNaN(dateObj.getTime())) {
       return "Just now";
     }
@@ -138,7 +101,6 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
     });
   };
 
-  // Safe mapper for incoming Task statuses (handles integers or strings)
   const getTaskStatusString = (statusValue) => {
     if (statusValue === 0 || statusValue === '0' || statusValue === 'NotStarted') {
       return 'PENDING';
@@ -150,90 +112,67 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
       return 'GRADED';
     }
     
-    // Fallback/Defense mechanism
-    const parsed = String(statusValue || 'Pending').toUpperCase();
-    if (parsed === 'NOTSTARTED' || parsed === 'PENDING') return 'PENDING';
-    return parsed;
+    return String(statusValue).toUpperCase();
   };
 
-  // Handle students submitting URLs/repository links for tasks
-  const handleTaskSubmit = async (taskId) => {
+  // Bind interface handlers explicitly to custom mutation state machine triggers
+  const handleTaskSubmit = (taskId) => {
     const textValue = (submissionPayloads[taskId] || '').trim();
     if (!textValue) {
       setToast({ type: 'error', text: 'Please provide a valid submission URL.' });
       return;
     }
 
-    setSubmittingTasks((prev) => ({ ...prev, [taskId]: true }));
+    submitTaskMutation.mutate({
+      milestoneId: milestone.id,
+      taskId,
+      submissionPayload: textValue
+    }, {
+      onSuccess: () => {
+        setToast({ type: 'success', text: 'Task submitted successfully! Roadmaps updated.' });
+        setSubmissionPayloads((prev) => {
+          const next = { ...prev };
+          delete next[taskId];
+          return next;
+        });
 
-    try {
-      // Pass the milestone.id as the second argument, before the taskId
-      await submitTaskDeliverable(projectInstanceId, milestone.id, taskId, textValue);
-      
-      setToast({ type: 'success', text: 'Task submitted successfully! Roadmaps updated.' });
-      
-      // Clear specific input text state
-      setSubmissionPayloads((prev) => {
-        const next = { ...prev };
-        delete next[taskId];
-        return next;
-      });
-
-      // Call refresh on parent shell to pull down updated workspace metadata
-      if (onRefresh) {
-        await onRefresh();
+        if (onRefresh) {
+          onRefresh();
+        }
+      },
+      onError: () => {
+        setToast({ type: 'error', text: 'Failed to submit deliverable. Please try again.' });
       }
-    } catch (err) {
-      console.error("Error submitting task:", err);
-      setToast({ type: 'error', text: 'Failed to submit deliverable. Please try again.' });
-    } finally {
-      setSubmittingTasks((prev) => ({ ...prev, [taskId]: false }));
-    }
+    });
   };
 
-  // Keyboard action controller: maps Enter to submit and Shift+Enter to newline
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault(); // Stop native newline from being appended inside textarea
-      handleSendMessage(e); // Trigger submission
+      e.preventDefault();
+      handleSendMessage(e);
     }
   };
 
-  // Handle post comment submission with optimistic sync and state recovery
-  const handleSendMessage = async (e) => {
+  const handleSendMessage = (e) => {
     if (e && e.preventDefault) e.preventDefault();
-    if (!commentInput.trim() || postingComment) return;
+    if (!commentInput.trim() || postCommentMutation.isPending) return;
 
-    const originalInput = commentInput;
-    setPostingComment(true);
-
-    try {
-      setCommentInput('');
-
-      const newCommentResponse = await postMilestoneComment(
-        projectInstanceId, 
-        milestone.id, 
-        originalInput
-      );
-      
-      const completedComment = {
-        id: (newCommentResponse && (newCommentResponse.id || newCommentResponse.Id)) || Date.now().toString(),
-        content: (newCommentResponse && (newCommentResponse.content || newCommentResponse.Content)) || originalInput,
-        authorId: (newCommentResponse && (newCommentResponse.authorId || newCommentResponse.AuthorId)) || project?.studentId || project?.StudentId,
-        authorIdentitySnapshot: (newCommentResponse && (newCommentResponse.authorIdentitySnapshot || newCommentResponse.AuthorIdentitySnapshot)) || "Student Developer",
-        createdAt: (newCommentResponse && (newCommentResponse.createdAt || newCommentResponse.CreatedAt)) || new Date().toISOString()
-      };
-
-      setComments((prevComments) => [...prevComments, completedComment]);
-    } catch (err) {
-      console.error("Failed to post comment:", err);
-      setCommentInput(originalInput);
-      setToast({ type: 'error', text: 'Message failed to send. Please check your connection.' });
-      alert("Message failed to send. Please check your network connection and try again.");
-    } finally {
-      setPostingComment(false);
-    }
+    postCommentMutation.mutate({
+      milestoneId: milestone.id,
+      content: commentInput.trim()
+    }, {
+      onSuccess: () => {
+        setCommentInput('');
+      },
+      onError: () => {
+        setToast({ type: 'error', text: 'Message failed to send. Please check your connection.' });
+      }
+    });
   };
+
+  // Evaluate variable maps to safely determine individual target card element loaders
+  const isTaskSubmitting = (taskId) => 
+    submitTaskMutation.isPending && submitTaskMutation.variables?.taskId === taskId;
 
   return (
     <div className="bg-white border border-neutral-200 rounded-xl shadow-xs overflow-hidden flex flex-col h-[550px] relative">
@@ -258,7 +197,7 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
       <div className="p-4 border-b border-neutral-100 bg-linear-to-b from-neutral-50/50 to-white">
         <span className="text-[10px] font-bold tracking-wider text-indigo-600 uppercase">Active Milestone</span>
         <h2 className="text-base font-bold text-neutral-800 truncate mt-0.5" title={milestone.title}>
-          {milestone.title || milestone.name || "Selected Milestone"}
+          {milestone.title}
         </h2>
       </div>
 
@@ -294,36 +233,26 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
         {/* TASK DELIVERABLES TAB */}
         {activeTab === 'tasks' && (
           <div className="space-y-3.5">
-            {!milestone.tasks || milestone.tasks.length === 0 ? (
+            {milestone.tasks.length === 0 ? (
               <div className="text-center py-12 text-neutral-400">
                 <AlertCircle className="w-8 h-8 mx-auto mb-2 text-neutral-300" />
                 <p className="text-xs">No tasks mapped to this milestone.</p>
               </div>
             ) : (
               milestone.tasks.map((task) => {
-                // DEFENSIVE SAFEGUARD: Handle casing mismatches for Task IDs
-                const taskId = task.id || task.Id || task.taskId || task.TaskId;
-
-                // Safeguards against varying backend data field names
-                const title = task.title || task.titleSnapshot || task.name || "Untitled Task";
-                const description = task.description || task.descriptionSnapshot || "No task description details provided.";
-                const weight = task.weight !== undefined ? task.weight : 0;
-                
-                // CRITICAL FIX: Safe conversion of status
                 const status = getTaskStatusString(task.status);
-                const submittedUrl = task.submittedUrl || task.submissionUrl || task.payload;
 
                 return (
-                  <div key={taskId} className="border border-neutral-200 rounded-xl bg-white p-4 shadow-2xs hover:shadow-xs transition-shadow">
+                  <div key={task.id} className="border border-neutral-200 rounded-xl bg-white p-4 shadow-2xs hover:shadow-xs transition-shadow">
                     
                     {/* Header: Title, weight & Status badge */}
                     <div className="flex items-start justify-between gap-3 mb-2.5">
                       <div>
                         <h4 className="text-xs font-bold text-neutral-800 leading-tight">
-                          {title}
+                          {task.title}
                         </h4>
                         <span className="text-[10px] text-neutral-400 mt-0.5 inline-block">
-                          Weight: <span className="font-semibold text-neutral-600">{weight}%</span>
+                          Weight: <span className="font-semibold text-neutral-600">{task.weight}%</span>
                         </span>
                       </div>
 
@@ -348,7 +277,7 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
 
                     {/* Task Snapshot Description */}
                     <p className="text-xs text-neutral-500 mb-3 leading-relaxed">
-                      {description}
+                      {task.description}
                     </p>
 
                     {/* STATE 1: PENDING SUBMISSION FORM */}
@@ -357,20 +286,20 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
                         <input
                           type="url"
                           placeholder="Paste Git Repo or Deliverable URL..."
-                          value={submissionPayloads[taskId] || ''}
+                          value={submissionPayloads[task.id] || ''}
                           onChange={(e) => setSubmissionPayloads(prev => ({ 
                             ...prev, 
-                            [taskId]: e.target.value 
+                            [task.id]: e.target.value 
                           }))}
-                          disabled={submittingTasks[taskId]}
+                          disabled={isTaskSubmitting(task.id)}
                           className="flex-1 text-xs border border-neutral-200 rounded-lg px-2.5 py-2 outline-hidden focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:bg-neutral-50 disabled:text-neutral-400"
                         />
                         <button
-                          onClick={() => handleTaskSubmit(taskId)}
-                          disabled={submittingTasks[taskId]}
+                          onClick={() => handleTaskSubmit(task.id)}
+                          disabled={isTaskSubmitting(task.id)}
                           className="flex items-center gap-1 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg transition-colors cursor-pointer disabled:bg-indigo-400 disabled:cursor-not-allowed shrink-0"
                         >
-                          {submittingTasks[taskId] ? (
+                          {isTaskSubmitting(task.id) ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
                           ) : (
                             'Submit'
@@ -380,11 +309,11 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
                     )}
 
                     {/* STATE 2: SUBMITTED (AWAITING GRADE) */}
-                    {status === 'SUBMITTED' && submittedUrl && (
+                    {status === 'SUBMITTED' && task.submittedUrl && (
                       <div className="mt-2.5 p-2 px-3 bg-neutral-50 border border-neutral-100 rounded-lg flex items-center justify-between text-xs">
                         <span className="text-neutral-400">Submission payload:</span>
                         <a 
-                          href={submittedUrl} 
+                          href={task.submittedUrl} 
                           target="_blank" 
                           rel="noopener noreferrer" 
                           className="text-indigo-600 hover:text-indigo-800 font-medium inline-flex items-center gap-1 hover:underline"
@@ -398,11 +327,11 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
                     {/* STATE 3: GRADED / EVALUATION FEEDBACK PANEL */}
                     {status === 'GRADED' && (
                       <div className="mt-3.5 space-y-2 border-t border-neutral-100 pt-3">
-                        {submittedUrl && (
+                        {task.submittedUrl && (
                           <div className="flex items-center justify-between text-xs px-1">
                             <span className="text-neutral-400">Submission link:</span>
                             <a 
-                              href={submittedUrl} 
+                              href={task.submittedUrl} 
                               target="_blank" 
                               rel="noopener noreferrer" 
                               className="text-indigo-600 hover:text-indigo-800 font-medium inline-flex items-center gap-1 hover:underline"
@@ -419,7 +348,7 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
                             <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">Evaluation Score</span>
                             <div className="flex items-center gap-1 text-xs font-extrabold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-md">
                               <Award className="w-3.5 h-3.5" />
-                              <span>{task.grade !== undefined ? task.grade : '0'} / 100</span>
+                              <span>{task.grade} / 100</span>
                             </div>
                           </div>
                           {task.evaluationFeedback && (
@@ -460,11 +389,8 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
                 </div>
               ) : (
                 comments.map((comment) => {
-                  const authorId = comment.authorId || comment.AuthorId;
-                  const studentId = project?.studentId || project?.StudentId;
-                  
-                  const isStudent = (authorId && studentId && authorId === studentId) || 
-                    (comment.authorIdentitySnapshot || comment.AuthorIdentitySnapshot || '').toLowerCase().includes('student');
+                  const isStudent = comment.authorId === project?.studentId || 
+                    comment.authorIdentitySnapshot.toLowerCase().includes('student');
                   
                   return (
                     <div 
@@ -513,15 +439,15 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
                 value={commentInput}
                 onChange={(e) => setCommentInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                disabled={postingComment}
+                disabled={postCommentMutation.isPending}
                 className="flex-1 text-xs border border-neutral-200 rounded-xl px-3 py-2.5 outline-hidden focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:bg-neutral-50 disabled:text-neutral-400 resize-none max-h-[80px]"
               />
               <button
                 type="submit"
-                disabled={!commentInput.trim() || postingComment}
+                disabled={!commentInput.trim() || postCommentMutation.isPending}
                 className="p-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-neutral-200 disabled:hover:bg-neutral-200 text-white disabled:text-neutral-400 rounded-xl transition-colors cursor-pointer disabled:cursor-not-allowed shrink-0 mb-0.5"
               >
-                {postingComment ? (
+                {postCommentMutation.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <Send className="w-4 h-4" />
