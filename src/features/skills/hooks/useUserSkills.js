@@ -31,16 +31,11 @@ export const useUserSkills = () => {
         
         // Fetch the full student profile stream
         const profileData = await getStudentProfile();
-        const rawSkills = profileData?.skills || [];
 
         // Phase 2 Clean Contract Pass:
-        // No more guessing games. We maps strictly to the backend's locked lowercase shape.
-        const cleanSkills = rawSkills.map((sk) => ({
-          id: String(sk?.id || '').trim(),
-          name: String(sk?.name || '').trim()
-        }));
-
-        setUserSkills(cleanSkills);
+        // No more loop-casting or manual trimming arrays.
+        // We strictly trust the incoming model contract structure.
+        setUserSkills(profileData?.skills || []);
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to hydrate user capability profile from server.');
       } finally {

@@ -43,25 +43,22 @@ export default function StudentDashboard() {
     }
   };
 
-  // Helper mapping to interpret ProjectInstanceStatus enum strings via Tailwind tokens
+  // Helper mapping to interpret ProjectInstanceStatus enum values strictly
   const getStatusBadge = (status) => {
     switch (status) {
       case ProjectInstanceStatus.AWAITING_SUPERVISION:
-      case 'AwaitingSupervision':
         return (
           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 text-xs font-semibold">
             <Clock size={14} /> Awaiting Supervision
           </span>
         );
       case ProjectInstanceStatus.ACTIVE:
-      case 'Active':
         return (
           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold">
             <CheckCircle size={14} /> Active
           </span>
         );
       case ProjectInstanceStatus.CONCLUDED:
-      case 'Concluded':
         return (
           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-sky-50 text-sky-700 border border-sky-200 text-xs font-semibold">
             <Award size={14} /> Concluded
@@ -87,12 +84,12 @@ export default function StudentDashboard() {
   // Zero-Defensive Contract Destructuring (assumes clean camelCase payload delivery)
   const { profile = {}, projects = [] } = dashboardData || {};
 
-  // Segregate allocations based on explicit string-backed enum states
-  const activeWorkspaces = projects.filter(p => p.status === ProjectInstanceStatus.ACTIVE || p.status === 'Active'); 
-  const pipelineApplications = projects.filter(p => p.status === ProjectInstanceStatus.AWAITING_SUPERVISION || p.status === 'AwaitingSupervision');
+  // Clean Enum-Only Evaluation Pipelines
+  const activeWorkspaces = projects.filter(p => p.status === ProjectInstanceStatus.ACTIVE); 
+  const pipelineApplications = projects.filter(p => p.status === ProjectInstanceStatus.AWAITING_SUPERVISION);
   const historicWorkspaces = projects.filter(p => 
-    p.status === ProjectInstanceStatus.CONCLUDED || p.status === 'Concluded' || 
-    p.status === ProjectInstanceStatus.CANCELED || p.status === 'Canceled'
+    p.status === ProjectInstanceStatus.CONCLUDED || 
+    p.status === ProjectInstanceStatus.CANCELED
   );
 
   const studentFullName = profile.fullName || user?.unique_name || 'Academic Scholar';

@@ -154,27 +154,28 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
     );
   }
 
-  const title = template.title || template.Title;
-  const description = template.description || template.Description;
-  const statusInt = template.status !== undefined ? template.status : template.Status;
-  const companyName = template.providerCompanyName || template.ProviderCompanyName || 'Enterprise Sponsor Partner';
-  const requiredSkills = template.requiredSkills || template.RequiredSkills || template.skills || template.Skills || [];
-  const milestones = template.milestones || template.Milestones || [];
-  const dependencies = template.dependencies || template.Dependencies || [];
-  const primaryDiscipline = template.discipline || template.Discipline || template.category || template.Category || '';
+  // Pure Contract Destructuring: Trusting the Normalized Layout Shape
+  const {
+    title,
+    description,
+    status: statusInt,
+    providerCompanyName = 'Enterprise Sponsor Partner',
+    requiredSkills = [],
+    milestones = [],
+    dependencies = [],
+    discipline: primaryDiscipline = ''
+  } = template;
 
   const adaptedMilestones = adaptMilestones(milestones, dependencies);
-  console.log(adaptedMilestones);
 
   const totalEstimatedScope = adaptedMilestones.reduce((sum, m) => sum + (Number(m.expectedHours) || 0), 0);
   const totalCheckpoints = adaptedMilestones.length;
 
-  // Real-time clean ID matching execution layer
+  // Real-time clean ID matching execution layer without defensive casting layers
   const totalRequirementCount = requiredSkills.length;
-  const matchIntersectionCount = requiredSkills.filter(sk => {
-    const skId = String(sk.id || sk.skillId || sk.Id || '').trim();
-    return userSkills.some(userSk => userSk.id === skId);
-  }).length;
+  const matchIntersectionCount = requiredSkills.filter(sk => 
+    userSkills.some(userSk => userSk.id === sk.id)
+  ).length;
 
   const statusBadge = getStatusBadgeConfig(statusInt);
 
@@ -224,19 +225,18 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
 
               <div className="flex flex-wrap gap-1.5">
                 {requiredSkills.map((sk, idx) => {
-                  const currentSkillId = String(sk.id || sk.skillId || sk.Id || '').trim();
-                  const studentOwnsSkill = userSkills.some(userSk => userSk.id === currentSkillId);
+                  const studentOwnsSkill = userSkills.some(userSk => userSk.id === sk.id);
 
                   return (
                     <span 
-                      key={currentSkillId || idx} 
+                      key={sk.id || idx} 
                       className={`text-xs px-2 py-0.5 rounded font-semibold border transition-colors ${
                         studentOwnsSkill
                           ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
                           : 'bg-slate-100 text-slate-400 border-slate-200'
                       }`}
                     >
-                      {sk.name || sk.Name}
+                      {sk.name}
                     </span>
                   );
                 })}
@@ -371,7 +371,7 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
                         const isFull = Number(prof.slots) >= 4;
                         
                         const isDomainExpert = primaryDiscipline && prof.specialties?.some(spec => {
-                          const specStr = typeof spec === 'object' ? (spec.name || spec.Name || '') : String(spec);
+                          const specStr = typeof spec === 'object' ? (spec.name || '') : String(spec);
                           return specStr.toLowerCase().includes(primaryDiscipline.toLowerCase()) || primaryDiscipline.toLowerCase().includes(specStr.toLowerCase());
                         });
 
@@ -402,7 +402,7 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
                                   <div className="flex flex-wrap gap-1 mt-1.5">
                                     {prof.specialties.map((spec, sIdx) => (
                                       <span key={sIdx} className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-medium">
-                                        {typeof spec === 'object' ? (spec.name || spec.Name) : spec}
+                                        {typeof spec === 'object' ? spec.name : spec}
                                       </span>
                                     ))}
                                   </div>
