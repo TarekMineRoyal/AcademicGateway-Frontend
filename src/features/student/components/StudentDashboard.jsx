@@ -19,7 +19,7 @@ import {
 export default function StudentDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const targetId = user?.id || user?.sub;
+  const targetId = user?.id; // Normalized at boundary layer
 
   // Consume server-state hook for zero-boilerplate cache synchronization
   const { dashboardData, isLoading, error, refetch } = useStudentDashboard(targetId);
@@ -92,7 +92,7 @@ export default function StudentDashboard() {
     p.status === ProjectInstanceStatus.CANCELED
   );
 
-  const studentFullName = profile.fullName || user?.unique_name || 'Academic Scholar';
+  const studentFullName = profile.fullName || user?.name || 'Academic Scholar';
 
   return (
     <div className="w-full max-w-6xl mx-auto space-y-8">

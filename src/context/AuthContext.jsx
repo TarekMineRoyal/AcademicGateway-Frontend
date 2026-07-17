@@ -19,6 +19,23 @@ const parseJwt = (token) => {
   }
 };
 
+/**
+ * Normalizes identity claims directly at the token decryption boundary
+ * so presentational views never have to guess property variations.
+ */
+export function handleTokenHydration(token) {
+  const decoded = parseJwt(token);
+  if (!decoded) return null;
+
+  return {
+    token,
+    id: decoded.id || decoded.sub,
+    name: decoded.fullName || decoded.unique_name,
+    role: decoded.role,
+    email: decoded.email,
+  };
+}
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -26,14 +43,9 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      const decoded = parseJwt(token);
-      if (decoded) {
-        setUser({
-          token,
-          id: decoded.id || decoded.sub,
-          role: decoded.role, // Pure flat resolution
-          email: decoded.email
-        });
+      const normalizedUser = handleTokenHydration(token);
+      if (normalizedUser) {
+        setUser(normalizedUser);
       } else {
         localStorage.removeItem('token');
       }
@@ -43,16 +55,11 @@ export const AuthProvider = ({ children }) => {
 
   const login = (token) => {
     localStorage.setItem('token', token);
-    const decoded = parseJwt(token);
+    const normalizedUser = handleTokenHydration(token);
     
-    if (decoded) {
-      setUser({
-        token,
-        id: decoded.id || decoded.sub,
-        role: decoded.role, // Pure flat resolution
-        email: decoded.email
-      });
-      return decoded.role; // Return role to component so it can handle immediate redirects
+    if (normalizedUser) {
+      setUser(normalizedUser);
+      return normalizedUser.role; // Return role to component so it can handle immediate redirects
     }
     return null;
   };

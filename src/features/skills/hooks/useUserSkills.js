@@ -1,55 +1,18 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../../../context/AuthContext';
-import { getStudentProfile } from '../../student/studentDashboardApi';
+import { useQuery } from '@tanstack/react-query';
+import apiClient from '../../../api/apiClient';
 
 /**
- * Custom hook to safely handle multi-tenancy role gating, 
- * asynchronous server-state hydration, and data passing 
- * for the authenticated student's core competencies.
+ * Custom hook managing multi-tenancy core competency records.
+ * Completely role-agnostic implementation: queries off data context regardless of user role.
+ * 
+ * @param {string} userId - The explicit tracking GUID for the authenticated user context.
  */
-export const useUserSkills = () => {
-  const { user } = useAuth();
-  const [userSkills, setUserSkills] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  const isStudent = user?.role?.toLowerCase() === 'student';
-
-  useEffect(() => {
-    // Phase 1 Multi-Tenancy Boundary Guard: 
-    // Short-circuit network request completely if user is a Professor or Provider
-    if (!isStudent) {
-      setUserSkills([]);
-      setLoading(false);
-      return;
-    }
-
-    async function hydrateSkills() {
-      try {
-        setLoading(true);
-        setError('');
-        
-        // Fetch the full student profile stream
-        const profileData = await getStudentProfile();
-
-        // Phase 2 Clean Contract Pass:
-        // No more loop-casting or manual trimming arrays.
-        // We strictly trust the incoming model contract structure.
-        setUserSkills(profileData?.skills || []);
-      } catch (err) {
-        setError(err.response?.data?.message || 'Failed to hydrate user capability profile from server.');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    hydrateSkills();
-  }, [user, isStudent]);
-
-  return {
-    userSkills,
-    isStudent,
-    loading,
-    error
-  };
-};
+export function useUserSkills(userId) {
+  return useQuery({
+    queryKey: ['userSkills', userId],
+    queryFn: async () => {
+      return await apiClient.get(`/skills/user/${userId}`);
+    },
+    enabled: !!userId, // Safely gates execution until identifier state is accessible
+  });
+}

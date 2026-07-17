@@ -5,6 +5,7 @@ import { useProjectTemplateDetails } from '../hooks/useProjectTemplateDetails';
 import { initializeProjectInstance } from '../../project-instances/projectInstancesApi';
 import { adaptMilestones } from '../../../utils/milestoneAdapter'; 
 import MilestoneVisualizer from '../../../components/milestone/MilestoneVisualizer'; 
+import { ProjectTemplateStatus } from '../../../constants/enums';
 import { 
   ArrowLeft, 
   Building2, 
@@ -24,7 +25,7 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
   const { templateId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const userRole = user?.role?.toLowerCase();
+  const userRole = user?.role; // Utilizing clean string token from normalized auth boundary
   
   // Workflow Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -93,16 +94,24 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
     }
   };
 
-  const getStatusBadgeConfig = (statusInt) => {
-    switch (statusInt) {
-      case 1: return { text: 'Draft', classes: 'bg-slate-100 text-slate-700 border-slate-700/20' };
-      case 2: return { text: 'Pending Review', classes: 'bg-amber-100 text-amber-700 border-amber-700/20' };
-      case 3: return { text: 'Changes Requested', classes: 'bg-red-50 text-red-600 border-red-600/20' };
-      case 4: return { text: 'Pending Acceptance', classes: 'bg-sky-100 text-sky-700 border-sky-700/20' };
-      case 5: return { text: 'Publicly Approved', classes: 'bg-green-50 text-green-700 border-green-700/20' };
-      case 6: return { text: 'Rejected', classes: 'bg-red-50 text-red-700 border-red-700/20' };
-      case 7: return { text: 'Archived', classes: 'bg-slate-50 text-slate-400 border-slate-400/20' };
-      default: return { text: 'Unknown Identity', classes: 'bg-slate-100 text-slate-700 border-slate-700/20' };
+  const getStatusBadgeConfig = (statusToken) => {
+    switch (statusToken) {
+      case ProjectTemplateStatus.DRAFT: 
+        return { text: 'Draft', classes: 'bg-slate-100 text-slate-700 border-slate-700/20' };
+      case ProjectTemplateStatus.PENDING_REVIEW: 
+        return { text: 'Pending Review', classes: 'bg-amber-100 text-amber-700 border-amber-700/20' };
+      case ProjectTemplateStatus.CHANGES_REQUESED: 
+        return { text: 'Changes Requested', classes: 'bg-red-50 text-red-600 border-red-600/20' };
+      case ProjectTemplateStatus.PENDING_PROVIDER_ACCEPTANCE: 
+        return { text: 'Pending Acceptance', classes: 'bg-sky-100 text-sky-700 border-sky-700/20' };
+      case ProjectTemplateStatus.APPROVED: 
+        return { text: 'Publicly Approved', classes: 'bg-green-50 text-green-700 border-green-700/20' };
+      case ProjectTemplateStatus.REJECTED: 
+        return { text: 'Rejected', classes: 'bg-red-50 text-red-700 border-red-700/20' };
+      case ProjectTemplateStatus.ARCHIVED: 
+        return { text: 'Archived', classes: 'bg-slate-50 text-slate-400 border-slate-400/20' };
+      default: 
+        return { text: 'Unknown Identity', classes: 'bg-slate-100 text-slate-700 border-slate-700/20' };
     }
   };
 
@@ -134,7 +143,7 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
   const {
     title,
     description,
-    status: statusInt,
+    status: statusToken,
     providerCompanyName = 'Enterprise Sponsor Partner',
     requiredSkills = [],
     milestones = [],
@@ -153,7 +162,7 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
     userSkills.some(userSk => userSk.id === sk.id)
   ).length;
 
-  const statusBadge = getStatusBadgeConfig(statusInt);
+  const statusBadge = getStatusBadgeConfig(statusToken);
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-6 relative">
@@ -235,7 +244,7 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
       </div>
 
       <div className="flex flex-wrap items-center justify-end gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200/60 mt-4">
-        {userRole === 'student' && statusInt === 5 && (
+        {isStudent && statusToken === ProjectTemplateStatus.APPROVED && (
           <button
             onClick={handleOpenInitiationModal}
             className="bg-primary hover:bg-primary-hover text-white rounded-btn font-bold text-sm px-6 py-2.5 transition-all duration-200 shadow-sm cursor-pointer"

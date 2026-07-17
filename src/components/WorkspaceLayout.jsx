@@ -50,7 +50,7 @@ function WorkspaceLayout() {
       {/* Locked Full-Height Left Navigation Sidebar */}
       <aside className="w-64 h-full bg-white border-r border-slate-200 p-4 flex flex-col justify-between shrink-0 relative">
         
-        {/* Top Segment: Core Branding & App Context Routing Links */}
+        /* Top Segment: Core Branding & App Context Routing Links */
         <div className="flex flex-col gap-6">
           
           {/* Streamlined Clean Header Branding */}
@@ -95,7 +95,7 @@ function WorkspaceLayout() {
           )}
         </div>
 
-        {/* Bottom Segment: Identity Context & Direct Sign Out (Purged Dead Cosmetic Stubs) */}
+        {/* Bottom Segment: Identity Context & Direct Sign Out */}
         <div className="flex flex-col gap-2 pt-4 border-t border-slate-100">
           
           {/* Profile Identity Context Anchor block */}
@@ -113,7 +113,7 @@ function WorkspaceLayout() {
               <User size={16} />
             </div>
             <span className="text-sm font-medium text-slate-700 truncate max-w-[160px]">
-              {user?.unique_name || 'Account'}
+              {user?.name || 'Account'}
             </span>
           </NavLink>
 

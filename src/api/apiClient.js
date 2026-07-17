@@ -46,12 +46,8 @@ apiClient.interceptors.response.use(
   },
   (error) => {
     if (error.response && error.response.status === 401) {
-      localStorage.removeItem('token');
-      
-      // Safeguard: Do not force a hard page reload if the user is already attempting to authenticate
-      if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login';
-      }
+      // CLEAR THIS BLOCK: Raw window reloads removed to protect the SPA routing ecosystem.
+      // Handled cleanly by TanStack Query's queryCache/mutationCache inside main.jsx.
     }
     return Promise.reject(error); // Bounces straight to TanStack's onError cache handler
   }
