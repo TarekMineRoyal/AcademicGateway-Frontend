@@ -17,7 +17,7 @@ import {
   Check
 } from 'lucide-react';
 
-export default function MilestoneActionCenter({ projectInstanceId, milestone, project, onRefresh }) {
+export default function MilestoneActionCenter({ projectInstanceId, milestone, project }) {
   const [activeTab, setActiveTab] = useState('tasks'); // 'tasks' or 'feed'
   const [commentInput, setCommentInput] = useState('');
   const [submissionPayloads, setSubmissionPayloads] = useState({});
@@ -135,10 +135,6 @@ export default function MilestoneActionCenter({ projectInstanceId, milestone, pr
           delete next[taskId];
           return next;
         });
-
-        if (onRefresh) {
-          onRefresh();
-        }
       },
       onError: () => {
         setToast({ type: 'error', text: 'Failed to submit deliverable. Please try again.' });

@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
-import { getProjectTemplateById } from '../projectTemplatesApi';
+import { useProjectTemplateDetails } from '../hooks/useProjectTemplateDetails';
 import { initializeProjectInstance } from '../../project-instances/projectInstancesApi';
-import { searchProfessors } from '../../professor/professorApi';
 import { adaptMilestones } from '../../../utils/milestoneAdapter'; 
 import MilestoneVisualizer from '../../../components/milestone/MilestoneVisualizer'; 
 import { 
@@ -26,64 +25,41 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
   const navigate = useNavigate();
   const { user } = useAuth();
   const userRole = user?.role?.toLowerCase();
-
-  const [template, setTemplate] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   
   // Workflow Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [initiationMode, setInitiationMode] = useState(null); 
   const [professorSearchQuery, setProfessorSearchQuery] = useState('');
-  const [professorResults, setProfessorResults] = useState([]);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedProfessor, setSelectedProfessor] = useState(null);
-  const [searchingProfessors, setSearchingProfessors] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [modalError, setModalError] = useState('');
 
-  useEffect(() => {
-    async function fetchTemplateData() {
-      try {
-        setLoading(true);
-        setError('');
-        const data = await getProjectTemplateById(templateId);
-        setTemplate(data);
-      } catch (err) {
-        setError(err.response?.data?.message || 'Failed to sync detailed project aggregate specifications from database.');
-      } finally {
-        setLoading(false);
-      }
-    }
-    if (templateId) {
-      fetchTemplateData();
-    }
-  }, [templateId]);
-
-  // Real-time Professor Directory lookup handler
+  // Manage UI-only side effects (like debouncing an input string) locally
   useEffect(() => {
     if (initiationMode !== 'supervised') return;
-    
-    const delayDebounceFn = setTimeout(async () => {
-      try {
-        setSearchingProfessors(true);
-        setModalError('');
-        const results = await searchProfessors(professorSearchQuery);
-        setProfessorResults(results);
-      } catch (err) {
-        setModalError('Failed to fetch matching faculty listings from directory.');
-      } finally {
-        setSearchingProfessors(false);
-      }
-    }, 300); 
 
-    return () => clearTimeout(delayDebounceFn);
+    const handler = setTimeout(() => {
+      setDebouncedSearch(professorSearchQuery);
+    }, 300); // 300ms debounce buffer
+
+    return () => clearTimeout(handler);
   }, [professorSearchQuery, initiationMode]);
+
+  // Pure presentation layer server-state data consumption
+  const { 
+    template, 
+    directoryResults, 
+    isLoading, 
+    isSearching, 
+    error: hookError 
+  } = useProjectTemplateDetails(templateId, debouncedSearch);
 
   const handleOpenInitiationModal = () => {
     setIsModalOpen(true);
     setInitiationMode(null);
     setProfessorSearchQuery('');
-    setProfessorResults([]);
+    setDebouncedSearch('');
     setSelectedProfessor(null);
     setModalError('');
   };
@@ -130,7 +106,7 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="text-slate-600 text-center py-16 font-medium">
         De-serializing comprehensive blueprint records...
@@ -138,12 +114,12 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
     );
   }
 
-  if (error || !template) {
+  if (hookError || !template) {
     return (
       <div className="p-8 max-w-3xl mx-auto bg-white rounded-xl border border-red-200 text-center space-y-4">
         <AlertCircle size={40} className="text-red-600 mx-auto mb-2" />
         <h3 className="text-lg font-bold text-red-700 mb-1">Blueprint Synchronization Error</h3>
-        <p className="text-slate-500 text-sm mb-6">{error || 'The requested template could not be mapped to an active dataset entity.'}</p>
+        <p className="text-slate-500 text-sm mb-6">{hookError?.message || 'The requested template could not be mapped to an active dataset entity.'}</p>
         <button 
           onClick={() => navigate('/dashboard/marketplace')} 
           className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700 text-sm font-semibold cursor-pointer transition-colors"
@@ -194,7 +170,7 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
             <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase mb-1">
               <Building2 size={14} />
               <span className="text-slate-900 font-bold hover:text-primary hover:underline cursor-pointer transition-colors">
-                {companyName}
+                {providerCompanyName}
               </span>
             </div>
             <h1 className="text-3xl font-extrabold text-slate-900 leading-tight mb-2">{title}</h1>
@@ -359,14 +335,14 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
                   </div>
 
                   <div className="border border-slate-200 rounded-lg max-h-[220px] overflow-y-auto bg-slate-50/50">
-                    {searchingProfessors ? (
+                    {isSearching ? (
                       <div className="p-4 text-xs text-slate-500 text-center">Querying corporate faculty clusters...</div>
-                    ) : professorResults.length === 0 ? (
+                    ) : directoryResults.length === 0 ? (
                       <div className="p-4 text-xs text-slate-400 text-center">
                         {professorSearchQuery ? 'No matching faculty identities found.' : 'Type to query directory grid...'}
                       </div>
                     ) : (
-                      professorResults.map(prof => {
+                      directoryResults.map(prof => {
                         const isChosen = selectedProfessor?.id === prof.id;
                         const isFull = Number(prof.slots) >= 4;
                         

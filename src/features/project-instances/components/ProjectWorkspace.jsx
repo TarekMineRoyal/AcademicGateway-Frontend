@@ -249,9 +249,6 @@ export default function ProjectWorkspace() {
             projectInstanceId={projectInstanceId}
             milestone={selectedMilestone}
             project={project} 
-            // React Query handles background cache updates automatically, 
-            // so passing a no-op function maintains backwards compatibility with the prop 
-            onRefresh={() => {}} 
           />
         </div>
 
