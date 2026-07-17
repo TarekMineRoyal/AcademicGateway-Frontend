@@ -1,71 +1,62 @@
 /**
  * Normalizes backend blueprint payloads into a strict client-side data contract.
  * Aggregates separate or embedded dependency edge arrays directly into the milestone nodes.
+ * Enforces strict camelCase contract compliance with zero defensive property-guessing cascades.
  */
 export function adaptMilestones(rawMilestones = [], rawDependencies = []) {
   return rawMilestones.map((milestone) => {
-    const id = milestone.id || milestone.Id;
-    const title = milestone.titleSnapshot || milestone.TitleSnapshot || milestone.title || milestone.Title || '';
-    const description = milestone.descriptionSnapshot || milestone.DescriptionSnapshot || milestone.description || milestone.Description || '';
-    
-    const expectedHours = milestone.expectedEffortInHours !== undefined 
-      ? milestone.expectedEffortInHours 
-      : (milestone.ExpectedEffortInHours || 0);
-      
-    const deliverableType = milestone.requiredDeliverableType !== undefined 
-      ? milestone.requiredDeliverableType 
-      : (milestone.RequiredDeliverableType || 0);
+    const id = milestone.id;
+    const title = milestone.titleSnapshot;
+    const description = milestone.descriptionSnapshot;
+    const expectedHours = milestone.expectedEffortInHours;
+    const deliverableType = milestone.requiredDeliverableType;
 
-    // --- SELF HEALING DEPENDENCY RESOLUTION ---
-    // If global dependencies array is empty (Live Track), extract them from the embedded milestone node
-    const embeddedDeps = milestone.inboundDependencies || milestone.InboundDependencies || [];
+    // Resolve dependencies strictly using camelCase contract properties
+    const embeddedDeps = milestone.inboundDependencies || [];
     const relatedEdges = rawDependencies.length > 0
-      ? rawDependencies.filter((dep) => (dep.successorId || dep.SuccessorId) === id)
+      ? rawDependencies.filter((dep) => dep.successorId === id)
       : embeddedDeps;
 
     // Map out an array of strict predecessor string GUIDs
-    const prerequisiteIds = relatedEdges.map(
-      (dep) => dep.predecessorId || dep.PredecessorId
-    );
+    const prerequisiteIds = relatedEdges.map((dep) => dep.predecessorId);
 
     // Build a dictionary mapping each predecessor ID to its relation type
     const dependencyTypes = relatedEdges.reduce((acc, dep) => {
-      const predId = dep.predecessorId || dep.PredecessorId;
-      const type = dep.type !== undefined ? dep.type : dep.Type;
-      if (predId) acc[predId] = type;
+      const predId = dep.predecessorId;
+      if (predId) {
+        acc[predId] = dep.type;
+      }
       return acc;
     }, {});
 
-    // --- TASK MAPPING ---
-    const rawTasks = milestone.localTasks || milestone.LocalTasks || 
-                     milestone.globalTasks || milestone.GlobalTasks || 
-                     milestone.tasks || milestone.Tasks || [];
-
+    // Task mapping with strict contract property enforcement
+    const rawTasks = milestone.tasks || [];
     const adaptedTasks = rawTasks.map((task) => ({
-      id: task.id || task.Id,
-      title: task.titleSnapshot || task.TitleSnapshot || task.title || task.Title || '',
-      description: task.descriptionSnapshot || task.DescriptionSnapshot || task.description || task.Description || '',
-      weight: task.weight !== undefined ? task.weight : (task.Weight || 0),
-      requiredDeliverableType: task.requiredDeliverableType !== undefined 
-        ? task.requiredDeliverableType 
-        : (task.RequiredDeliverableType || 0),
-      status: task.status !== undefined ? task.status : task.Status,
-      submissionPayload: task.submissionPayload || task.SubmissionPayload || null,
-      submittedAt: task.submittedAt || task.SubmittedAt || null,
-      grade: task.grade !== undefined ? task.grade : task.Grade,
-      evaluationFeedback: task.evaluationFeedback || task.EvaluationFeedback || null,
-      gradedAt: task.gradedAt || task.GradedAt || null
+      id: task.id,
+      title: task.titleSnapshot,
+      description: task.descriptionSnapshot,
+      weight: task.weight,
+      requiredDeliverableType: task.requiredDeliverableType,
+      status: task.status,
+      submissionPayload: task.submissionPayload,
+      submittedAt: task.submittedAt,
+      grade: task.grade,
+      evaluationFeedback: task.evaluationFeedback,
+      gradedAt: task.gradedAt,
     }));
 
     return {
       id,
       title,
+      titleSnapshot: title, // Preserves baseline context for down-stream rendering logic
       description,
+      descriptionSnapshot: description, // Preserves baseline context for down-stream rendering logic
       expectedHours,
+      expectedEffortInHours: expectedHours, // Supports downstream telemetry metrics view blocks
       deliverableType,
       prerequisiteIds,
       dependencyTypes,
-      status: milestone.status !== undefined ? milestone.status : milestone.Status,
+      status: milestone.status,
       tasks: adaptedTasks,
     };
   });
