@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useProjectMarketplace } from '../hooks/useProjectMarketplace';
@@ -9,7 +9,7 @@ import SearchableCombobox from '../../../components/SearchableCombobox';
 
 export default function ProjectMarketplace() {
   const navigate = useNavigate();
-  const observerRef = useRef(null);
+  const loadMoreRef = useRef(null);
 
   // 1. Local UI State reserved strictly for non-persisted interactive parameters
   const [searchQuery, setSearchQuery] = useState('');
@@ -18,7 +18,6 @@ export default function ProjectMarketplace() {
   const [selectedSkills, setSelectedSkills] = useState([]);
   const [showUnverified, setShowUnverified] = useState(false);
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(6);
 
   // Reset specialty focus if the parent major selection is cleared
   useEffect(() => {
@@ -38,9 +37,12 @@ export default function ProjectMarketplace() {
     queryFn: getSkills,
   });
 
-  // 3. Primary Server-State Consumption Layer with Unified Filters
+  // 3. Primary Server-State Consumption Layer with Unified Filters & Infinite Scroll Channels
   const { 
-    data: marketplaceProjects = [], 
+    data, 
+    fetchNextPage, 
+    hasNextPage, 
+    isFetchingNextPage, 
     isLoading, 
     error 
   } = useProjectMarketplace({
@@ -51,33 +53,36 @@ export default function ProjectMarketplace() {
     showUnverified
   });
 
-  // Infinite Scroll Intersection Observer Boundary Handler
-  const baselineBoundaryRef = useCallback((node) => {
-    if (isLoading) return;
-    if (observerRef.current) observerRef.current.disconnect();
+  // Native intersection observer binding for endless scrolling automation
+  useEffect(() => {
+    const observerElement = loadMoreRef.current;
+    if (!observerElement || !hasNextPage) return;
 
-    observerRef.current = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        setVisibleCount((prev) => prev + 6);
-      }
-    });
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage(); // Request downstream database metrics natively
+        }
+      },
+      { threshold: 1.0 }
+    );
 
-    if (node) observerRef.current.observe(node);
-  }, [isLoading]);
+    observer.observe(observerElement);
+    return () => {
+      if (observerElement) observer.unobserve(observerElement);
+    };
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   // Dynamic dropdown dependency generation
   const availableSpecialties = selectedMajor
     ? majorsCatalog.find(m => m.id === selectedMajor.id)?.specialties || []
     : [];
 
-  // Reset viewport pagination size when active filter parameters change
-  useEffect(() => {
-    setVisibleCount(6);
-  }, [searchQuery, selectedMajor, selectedSpecialty, selectedSkills, showUnverified]);
-
   // Visual status evaluations
   const hasActiveFilters = selectedMajor || selectedSpecialty || selectedSkills.length > 0 || showUnverified;
-  const displayedTemplates = marketplaceProjects.slice(0, visibleCount);
+  
+  // Modern frontend optimization: flatten chunk nested pages array into single flat iterable mapping list
+  const displayedTemplates = data?.pages.flatMap((page) => page) || [];
 
   if (isLoading) {
     return (
@@ -254,12 +259,16 @@ export default function ProjectMarketplace() {
         </div>
       )}
 
-      {/* Intersection Observer Infinite Scroll Trigger Baseline Boundary */}
-      {marketplaceProjects.length > displayedTemplates.length && (
-        <div ref={baselineBoundaryRef} className="w-full h-16 flex items-center justify-center mt-6">
+      {/* Infinite Scroll Trigger Indicator Anchor Element */}
+      <div ref={loadMoreRef} className="py-8 text-center text-sm text-slate-400 w-full flex items-center justify-center mt-6">
+        {isFetchingNextPage ? (
           <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        </div>
-      )}
+        ) : hasNextPage ? (
+          'Scroll down to fetch more templates'
+        ) : displayedTemplates.length > 0 ? (
+          'All available blueprints successfully indexed.'
+        ) : null}
+      </div>
     </div>
   );
 }
