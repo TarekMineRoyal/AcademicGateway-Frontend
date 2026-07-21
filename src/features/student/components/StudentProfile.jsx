@@ -8,6 +8,8 @@ import { getMajorsWithSpecialties } from '../../curriculum/curriculumApi';
 import { getSkills } from '../../skills/skillsApi';
 import SearchableCombobox from '../../../components/SearchableCombobox';
 
+const MAX_ABOUT_ME_LENGTH = 2000;
+
 function StudentProfile() {
   const { user } = useAuth();
   const studentId = user.id;
@@ -31,6 +33,7 @@ function StudentProfile() {
   // 3. Isolated Local UI Interactive State Blocks
   const [fullName, setFullName] = useState('');
   const [graduationYear, setGraduationYear] = useState('');
+  const [aboutMe, setAboutMe] = useState('');
   const [selectedMajorIds, setSelectedMajorIds] = useState([]);
   const [selectedSpecialtyIds, setSelectedSpecialtyIds] = useState([]);
   const [selectedSkillIds, setSelectedSkillIds] = useState([]);
@@ -41,11 +44,12 @@ function StudentProfile() {
   // Track and synchronize local presentation state whenever the server cache updates
   useEffect(() => {
     if (profile) {
-      setFullName(profile.fullName);
-      setGraduationYear(profile.graduationYear);
-      setSelectedMajorIds(profile.majors.map(m => m.id));
-      setSelectedSpecialtyIds(profile.specialties.map(s => s.id));
-      setSelectedSkillIds(profile.skills.map(sk => sk.id));
+      setFullName(profile.fullName || '');
+      setGraduationYear(profile.graduationYear || '');
+      setAboutMe(profile.aboutMe || '');
+      setSelectedMajorIds(profile.majors?.map(m => m.id) || []);
+      setSelectedSpecialtyIds(profile.specialties?.map(s => s.id) || []);
+      setSelectedSkillIds(profile.skills?.map(sk => sk.id) || []);
     }
   }, [profile]);
 
@@ -70,13 +74,21 @@ function StudentProfile() {
   // Restores component fields cleanly back to the active query cache record parameters
   const handleCancel = () => {
     if (profile) {
-      setFullName(profile.fullName);
-      setGraduationYear(profile.graduationYear);
-      setSelectedMajorIds(profile.majors.map(m => m.id));
-      setSelectedSpecialtyIds(profile.specialties.map(s => s.id));
-      setSelectedSkillIds(profile.skills.map(sk => sk.id));
+      setFullName(profile.fullName || '');
+      setGraduationYear(profile.graduationYear || '');
+      setAboutMe(profile.aboutMe || '');
+      setSelectedMajorIds(profile.majors?.map(m => m.id) || []);
+      setSelectedSpecialtyIds(profile.specialties?.map(s => s.id) || []);
+      setSelectedSkillIds(profile.skills?.map(sk => sk.id) || []);
     }
     setIsEditing(false);
+  };
+
+  const handleAboutMeChange = (e) => {
+    const val = e.target.value;
+    if (val.length <= MAX_ABOUT_ME_LENGTH) {
+      setAboutMe(val);
+    }
   };
 
   const handleSubmit = (e) => {
@@ -85,6 +97,7 @@ function StudentProfile() {
     const commandPayload = {
       fullName: fullName.trim(),
       graduationYear: graduationYear ? parseInt(graduationYear, 10) : null,
+      aboutMe: aboutMe.trim() || null,
       majorIds: selectedMajorIds,
       specialtyIds: selectedSpecialtyIds,
       skillIds: selectedSkillIds,
@@ -148,6 +161,22 @@ function StudentProfile() {
 
           {/* Non-Clickable Metadata Tags Presentation Block Tree */}
           <div className="space-y-6">
+            {/* About Me / Biography Display with Fallback State */}
+            <div>
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                About Me / Biography
+              </h3>
+              {aboutMe ? (
+                <p className="text-sm text-slate-700 whitespace-pre-line leading-relaxed bg-slate-50/50 p-3.5 rounded-lg border border-slate-100">
+                  {aboutMe}
+                </p>
+              ) : (
+                <p className="text-sm text-slate-400 italic bg-slate-50/50 p-3.5 rounded-lg border border-slate-100">
+                  No biography provided yet.
+                </p>
+              )}
+            </div>
+
             <div>
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5">
                 Academic Majors
@@ -242,6 +271,25 @@ function StudentProfile() {
                 className="w-full text-sm bg-white border border-slate-300 text-brand-dark rounded-lg px-3 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-200"
               />
             </div>
+          </div>
+
+          {/* About Me / Biography Textarea Input Field */}
+          <div>
+            <div className="flex justify-between items-center mb-1.5">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide">
+                About Me / Biography
+              </label>
+              <span className={`text-xs font-medium ${aboutMe.length > MAX_ABOUT_ME_LENGTH ? 'text-red-500 font-bold' : 'text-slate-400'}`}>
+                {aboutMe.length} / {MAX_ABOUT_ME_LENGTH}
+              </span>
+            </div>
+            <textarea
+              rows={4}
+              value={aboutMe}
+              onChange={handleAboutMeChange}
+              placeholder="Tell us a little bit about yourself, your research interests, project goals, or work style..."
+              className="w-full text-sm bg-white border border-slate-300 text-brand-dark rounded-lg px-3 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-200"
+            />
           </div>
 
           {/* Combobox Matrix Section 2: Majors */}
