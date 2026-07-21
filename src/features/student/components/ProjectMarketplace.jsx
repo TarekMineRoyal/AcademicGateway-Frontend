@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useProjectMarketplace } from '../hooks/useProjectMarketplace';
 import { getMajorsWithSpecialties } from '../../curriculum/curriculumApi';
 import { getSkills } from '../../skills/skillsApi';
-import { Search, Building2, Code, ArrowUpRight, Inbox, SlidersHorizontal } from 'lucide-react';
+import { Search, Building2, Code, ArrowUpRight, Inbox, SlidersHorizontal, GraduationCap } from 'lucide-react';
 import SearchableCombobox from '../../../components/SearchableCombobox';
 
 export default function ProjectMarketplace() {
@@ -26,7 +26,7 @@ export default function ProjectMarketplace() {
     }
   }, [selectedMajor]);
 
-  // 2. Declarative Lookup Data Fetching (No inline useEffect or state management)
+  // 2. Declarative Lookup Data Fetching
   const { data: majorsCatalog = [] } = useQuery({
     queryKey: ['majorsWithSpecialties'],
     queryFn: getMajorsWithSpecialties,
@@ -61,7 +61,7 @@ export default function ProjectMarketplace() {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-          fetchNextPage(); // Request downstream database metrics natively
+          fetchNextPage();
         }
       },
       { threshold: 1.0 }
@@ -81,7 +81,7 @@ export default function ProjectMarketplace() {
   // Visual status evaluations
   const hasActiveFilters = selectedMajor || selectedSpecialty || selectedSkills.length > 0 || showUnverified;
   
-  // Modern frontend optimization: flatten chunk nested pages array into single flat iterable mapping list
+  // Flatten chunk nested pages array into single flat iterable mapping list
   const displayedTemplates = data?.pages.flatMap((page) => page) || [];
 
   if (isLoading) {
@@ -135,7 +135,7 @@ export default function ProjectMarketplace() {
           </button>
         </div>
 
-        {/* Bottom Row: Adaptive Flex Registry Filters (Conditionally Toggled) */}
+        {/* Bottom Row: Adaptive Flex Registry Filters */}
         {showFiltersPanel && (
           <div className="flex flex-col md:flex-row md:items-center gap-4 pt-3 border-t border-slate-100">
             <SearchableCombobox
@@ -227,6 +227,28 @@ export default function ProjectMarketplace() {
                 </div>
 
                 <div>
+                  {/* Academic Alignment Tags */}
+                  {(project.majorName || project.specialtyName) && (
+                    <div className="mb-4">
+                      <div className="flex items-center gap-1 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                        <GraduationCap size={12} /> Academic Alignment
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {project.majorName && (
+                          <span className="text-xs bg-indigo-50 text-indigo-700 border border-indigo-100 font-semibold px-2 py-0.5 rounded">
+                            {project.majorName}
+                          </span>
+                        )}
+                        {project.specialtyName && (
+                          <span className="text-xs bg-purple-50 text-purple-700 border border-purple-100 font-semibold px-2 py-0.5 rounded">
+                            {project.specialtyName}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Skills / Capabilities */}
                   {project.skills && project.skills.length > 0 && (
                     <div className="mb-5">
                       <div className="flex items-center gap-1 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">

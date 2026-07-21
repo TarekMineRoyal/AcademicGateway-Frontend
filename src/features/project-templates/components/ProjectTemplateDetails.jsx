@@ -18,10 +18,11 @@ import {
   Check,
   X,
   UserCheck,
-  Zap
+  Zap,
+  GraduationCap
 } from 'lucide-react';
 
-// Pure Presentation Component: Now fully decoupled from session hooks and 100% testable
+// Pure Presentation Component: Decoupled from session hooks and 100% testable
 function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoading = false }) {
   const { templateId } = useParams();
   const navigate = useNavigate();
@@ -38,7 +39,7 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
   const [submitLoading, setSubmitLoading] = useState(false);
   const [modalError, setModalError] = useState('');
 
-  // Manage UI-only side effects (like debouncing an input string) locally
+  // Manage UI-only side effects locally
   useEffect(() => {
     if (initiationMode !== 'supervised') return;
 
@@ -145,7 +146,7 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
     );
   }
 
-  // Pure Contract Destructuring: Trusting the Normalized Layout Shape
+  // Pure Contract Destructuring
   const {
     title,
     description,
@@ -154,7 +155,9 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
     requiredSkills = [],
     milestones = [],
     dependencies = [],
-    discipline: primaryDiscipline = ''
+    discipline: primaryDiscipline = '',
+    majorName = null,
+    specialtyName = null
   } = template;
 
   const adaptedMilestones = adaptMilestones(milestones, dependencies);
@@ -162,7 +165,7 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
   const totalEstimatedScope = adaptedMilestones.reduce((sum, m) => sum + (Number(m.expectedHours) || 0), 0);
   const totalCheckpoints = adaptedMilestones.length;
 
-  // Real-time clean ID matching execution layer without defensive casting layers
+  // Real-time clean ID matching execution layer
   const totalRequirementCount = requiredSkills.length;
   const matchIntersectionCount = requiredSkills.filter(sk => 
     userSkills.some(userSk => userSk.id === sk.id)
@@ -204,6 +207,34 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
         <p className="text-slate-600 text-[0.95rem] leading-relaxed whitespace-pre-line mb-6">
           {description}
         </p>
+
+        {/* Academic Alignment Details Section */}
+        <div className="border-t border-slate-200/60 w-full pt-6 mb-6">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+            <GraduationCap size={14} className="text-primary" />
+            Academic Alignment
+          </div>
+          <div className="flex flex-wrap gap-2 items-center">
+            {majorName || specialtyName ? (
+              <>
+                {majorName && (
+                  <span className="text-xs bg-indigo-50 text-indigo-700 border border-indigo-200/70 font-bold px-3 py-1 rounded-md">
+                    Major: {majorName}
+                  </span>
+                )}
+                {specialtyName && (
+                  <span className="text-xs bg-purple-50 text-purple-700 border border-purple-200/70 font-bold px-3 py-1 rounded-md">
+                    Specialty: {specialtyName}
+                  </span>
+                )}
+              </>
+            ) : (
+              <span className="text-xs bg-slate-100 text-slate-600 border border-slate-200 font-semibold px-3 py-1 rounded-md italic">
+                All Majors / General Alignment
+              </span>
+            )}
+          </div>
+        </div>
 
         {isStudent && !skillsLoading && totalRequirementCount > 0 && (
           <div className="border-t border-slate-200/60 w-full pt-6">
