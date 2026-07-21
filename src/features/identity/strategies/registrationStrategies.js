@@ -8,13 +8,16 @@ export const registrationStrategies = {
       subtitle: 'Join as an applicant to browse and claim capstone project opportunities.',
     },
     validate: (formValues) => {
-      return formValues.fullName.trim().length > 0;
+      const isFullNameValid = formValues.fullName.trim().length > 0;
+      const isAboutMeValid = !formValues.aboutMe || formValues.aboutMe.length <= 2000;
+      return isFullNameValid && isAboutMeValid;
     },
     compileDto: (formValues) => ({
       email: formValues.email,
       username: formValues.email,
       password: formValues.password,
       fullName: formValues.fullName,
+      aboutMe: formValues.aboutMe?.trim() || null,
       graduationYear: formValues.graduationYear ? parseInt(formValues.graduationYear, 10) : null,
       majorIds: formValues.majorIds,
       specialtyIds: formValues.specialtyIds,
@@ -29,10 +32,12 @@ export const registrationStrategies = {
       subtitle: 'Register your academic profile to supervise, track, and grade milestone projects.',
     },
     validate: (formValues) => {
+      const isAboutMeValid = !formValues.aboutMe || formValues.aboutMe.length <= 2000;
       return (
         formValues.fullName.trim().length > 0 &&
         formValues.academicDepartment.trim().length > 0 &&
-        formValues.rank.trim().length > 0
+        formValues.rank.trim().length > 0 &&
+        isAboutMeValid
       );
     },
     compileDto: (formValues) => ({
@@ -40,6 +45,7 @@ export const registrationStrategies = {
       username: formValues.email,
       password: formValues.password,
       fullName: formValues.fullName,
+      aboutMe: formValues.aboutMe?.trim() || null,
       academicDepartment: formValues.academicDepartment,
       rank: formValues.rank,
       maxSupervisionCapacity: parseInt(formValues.maxSupervisionCapacity, 10) || 3,
