@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useProjectTemplateDetails } from '../hooks/useProjectTemplateDetails';
+import { useRecommendedProfessors } from '../../recommendations/hooks/useRecommendedProfessors';
 import { initializeProjectInstance } from '../../project-instances/projectInstancesApi';
 import { adaptMilestones } from '../../../utils/milestoneAdapter'; 
 import MilestoneVisualizer from '../../../components/milestone/MilestoneVisualizer'; 
@@ -19,7 +20,8 @@ import {
   X,
   UserCheck,
   Zap,
-  GraduationCap
+  GraduationCap,
+  Sparkles
 } from 'lucide-react';
 
 // Pure Presentation Component: Decoupled from session hooks and 100% testable
@@ -58,6 +60,16 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
     isSearching, 
     error: hookError 
   } = useProjectTemplateDetails(templateId, debouncedSearch);
+
+  // AI Vector Recommendation Engine Integration for Faculty Advisors
+  const { 
+    recommendedProfessors = [], 
+    isLoading: isRecsLoading 
+  } = useRecommendedProfessors(
+    templateId, 
+    5, 
+    isStudent && initiationMode === 'supervised'
+  );
 
   const handleOpenInitiationModal = () => {
     setIsModalOpen(true);
@@ -365,6 +377,61 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
                   >
                     ← Back to selection options
                   </button>
+
+                  {/* AI Recommended Advisors Block */}
+                  <div className="mb-5">
+                    <div className="flex items-center gap-1.5 text-xs font-extrabold text-indigo-700 uppercase tracking-wider mb-2">
+                      <Sparkles size={14} className="text-indigo-600" />
+                      AI Recommended Advisors
+                    </div>
+                    {isRecsLoading ? (
+                      <div className="p-3 text-xs text-slate-400 text-center bg-slate-50 rounded-lg animate-pulse font-medium">
+                        Calculating vector-similarity faculty matches...
+                      </div>
+                    ) : recommendedProfessors.length > 0 ? (
+                      <div className="space-y-2">
+                        {recommendedProfessors.map((prof, idx) => {
+                          const isChosen = selectedProfessor?.id === prof.id;
+                          return (
+                            <div
+                              key={prof.id}
+                              onClick={() => setSelectedProfessor(prof)}
+                              className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${
+                                isChosen
+                                  ? 'bg-indigo-50/80 border-indigo-400 text-indigo-900 shadow-xs'
+                                  : 'bg-white border-indigo-100 hover:border-indigo-300 hover:bg-slate-50'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2.5">
+                                <User size={15} className={isChosen ? 'text-indigo-600' : 'text-slate-500'} />
+                                <div>
+                                  <div className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <span>{prof.fullName}</span>
+                                    <span className="bg-indigo-100 text-indigo-700 text-[10px] px-1.5 py-0.2 rounded font-extrabold">
+                                      #{idx + 1} Match
+                                    </span>
+                                  </div>
+                                  <div className="text-[11px] text-slate-500">{prof.email}</div>
+                                </div>
+                              </div>
+                              {isChosen && <Check size={16} className="text-indigo-600 shrink-0" />}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="p-3 text-xs text-slate-400 text-center bg-slate-50 rounded-lg font-medium">
+                        No AI advisor recommendations found for this template.
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="relative flex items-center justify-center my-4">
+                    <div className="border-t border-slate-200 w-full" />
+                    <span className="bg-white px-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider shrink-0">
+                      Or Search Full Directory
+                    </span>
+                  </div>
                   
                   <label className="block text-xs font-bold text-slate-600 uppercase mb-2">
                     Search Advisor Directory

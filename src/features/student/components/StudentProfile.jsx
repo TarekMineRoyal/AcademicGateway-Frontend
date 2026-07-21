@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Edit3 } from 'lucide-react';
+import { Edit3, Sparkles, Plus } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../../context/AuthContext';
 import { useStudentDashboard } from '../hooks/useStudentDashboard';
 import { useUpdateStudentProfile } from '../hooks/useUpdateStudentProfile';
+import { useRecommendedSkills } from '../../recommendations/hooks/useRecommendedSkills';
 import { getMajorsWithSpecialties } from '../../curriculum/curriculumApi';
 import { getSkills } from '../../skills/skillsApi';
 import SearchableCombobox from '../../../components/SearchableCombobox';
@@ -26,6 +27,12 @@ function StudentProfile() {
     queryKey: ['skills'],
     queryFn: getSkills,
   });
+
+  // AI Vector Recommendation Engine Integration for Skill Growth
+  const { 
+    recommendedSkills = [], 
+    isLoading: isRecsSkillsLoading 
+  } = useRecommendedSkills(10);
 
   // 2. Centralized Form Submission State Machine
   const updateProfileMutation = useUpdateStudentProfile(studentId);
@@ -233,6 +240,42 @@ function StudentProfile() {
                 )}
               </div>
             </div>
+
+            {/* AI Recommended Skill Growth Block */}
+            <div className="pt-4 border-t border-slate-100">
+              <div className="flex items-center gap-1.5 text-xs font-extrabold text-indigo-700 uppercase tracking-wider mb-2.5">
+                <Sparkles size={14} className="text-indigo-600" />
+                Recommended Skills for Growth
+              </div>
+              {isRecsSkillsLoading ? (
+                <div className="text-xs text-slate-400 animate-pulse font-medium">
+                  Calculating adjacent skill growth recommendations...
+                </div>
+              ) : recommendedSkills.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {recommendedSkills.map((sk) => {
+                    const isAlreadyAdded = selectedSkillIds.includes(sk.id);
+                    return (
+                      <span
+                        key={sk.id}
+                        className={`text-xs font-semibold px-2.5 py-1 rounded-md border flex items-center gap-1 transition-colors ${
+                          isAlreadyAdded
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : 'bg-indigo-50/70 text-indigo-800 border-indigo-200/80'
+                        }`}
+                      >
+                        {sk.name}
+                        {isAlreadyAdded && <span className="text-[10px] font-extrabold uppercase">(Added)</span>}
+                      </span>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400 italic">
+                  Your skill profile is up to date!
+                </p>
+              )}
+            </div>
           </div>
         </div>
       ) : (
@@ -334,6 +377,34 @@ function StudentProfile() {
               onChange={(items) => setSelectedSkillIds(items.map(i => i.id))}
               isMulti={true}
             />
+
+            {/* AI Suggested Skills Quick-Add */}
+            {recommendedSkills.length > 0 && (
+              <div className="mt-3 p-3 bg-indigo-50/50 border border-indigo-100 rounded-lg">
+                <div className="flex items-center gap-1.5 text-xs font-extrabold text-indigo-700 uppercase tracking-wider mb-2">
+                  <Sparkles size={13} className="text-indigo-600" />
+                  AI Suggested Skills to Add
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {recommendedSkills
+                    .filter((sk) => !selectedSkillIds.includes(sk.id))
+                    .map((sk) => (
+                      <button
+                        key={sk.id}
+                        type="button"
+                        onClick={() => setSelectedSkillIds((prev) => [...prev, sk.id])}
+                        className="inline-flex items-center gap-1 text-xs bg-white text-indigo-700 border border-indigo-200 hover:bg-indigo-50 font-semibold px-2.5 py-1 rounded-md transition-colors cursor-pointer"
+                      >
+                        <Plus size={12} />
+                        {sk.name}
+                      </button>
+                    ))}
+                  {recommendedSkills.filter((sk) => !selectedSkillIds.includes(sk.id)).length === 0 && (
+                    <span className="text-xs text-indigo-500 italic">All suggested skills have been added!</span>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Form Command Action Segments Footer Bar */}

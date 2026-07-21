@@ -2,9 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useProjectMarketplace } from '../hooks/useProjectMarketplace';
+import { useRecommendedProjects } from '../../recommendations/hooks/useRecommendedProjects';
 import { getMajorsWithSpecialties } from '../../curriculum/curriculumApi';
 import { getSkills } from '../../skills/skillsApi';
-import { Search, Building2, Code, ArrowUpRight, Inbox, SlidersHorizontal, GraduationCap } from 'lucide-react';
+import { Search, Building2, Code, ArrowUpRight, Inbox, SlidersHorizontal, GraduationCap, Sparkles } from 'lucide-react';
 import SearchableCombobox from '../../../components/SearchableCombobox';
 
 export default function ProjectMarketplace() {
@@ -37,7 +38,13 @@ export default function ProjectMarketplace() {
     queryFn: getSkills,
   });
 
-  // 3. Primary Server-State Consumption Layer with Unified Filters & Infinite Scroll Channels
+  // 3. AI Vector Recommendation Engine Integration
+  const { 
+    recommendedProjects = [], 
+    isLoading: isRecsLoading 
+  } = useRecommendedProjects(6);
+
+  // 4. Primary Server-State Consumption Layer with Unified Filters & Infinite Scroll Channels
   const { 
     data, 
     fetchNextPage, 
@@ -104,6 +111,112 @@ export default function ProjectMarketplace() {
             Discover and apply to verified capstone blueprints sponsored directly by authenticated enterprise partners.
           </p>
         </div>
+      </div>
+
+      {/* AI Recommendations Section */}
+      <div className="mb-10">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-md">
+            <Sparkles size={18} />
+          </div>
+          <h2 className="text-lg font-extrabold text-brand-dark tracking-tight">
+            AI-Matched Recommendations
+          </h2>
+          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+            Vector Ranked
+          </span>
+        </div>
+
+        {isRecsLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {[1, 2, 3].map((n) => (
+              <div key={n} className="h-48 bg-slate-100 rounded-card animate-pulse" />
+            ))}
+          </div>
+        ) : recommendedProjects.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {recommendedProjects.map((project, index) => (
+              <div 
+                key={project.id}
+                className="flex flex-col justify-between p-6 bg-gradient-to-br from-indigo-50/40 via-white to-purple-50/20 border border-indigo-200/80 rounded-card shadow-sm hover:border-indigo-400 hover:shadow-md transition-all duration-200 relative overflow-hidden"
+              >
+                {/* Top Rank Badge */}
+                <div className="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-extrabold uppercase px-3 py-1 rounded-bl-lg tracking-wider">
+                  #{index + 1} Match
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-1.5 text-slate-600 text-xs font-semibold uppercase tracking-wider mb-3">
+                    <Building2 size={14} className="text-indigo-500" />
+                    {project.providerCompanyName}
+                  </div>
+
+                  <h3 className="text-base font-bold text-brand-dark mb-2 line-clamp-1 pr-14">
+                    {project.title}
+                  </h3>
+
+                  <p className="line-clamp-3 text-sm text-slate-600 mb-6">
+                    {project.description}
+                  </p>
+                </div>
+
+                <div>
+                  {/* Academic Alignment Tags */}
+                  {(project.majorName || project.specialtyName) && (
+                    <div className="mb-4">
+                      <div className="flex items-center gap-1 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                        <GraduationCap size={12} /> Academic Alignment
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {project.majorName && (
+                          <span className="text-xs bg-indigo-50 text-indigo-700 border border-indigo-100 font-semibold px-2 py-0.5 rounded">
+                            {project.majorName}
+                          </span>
+                        )}
+                        {project.specialtyName && (
+                          <span className="text-xs bg-purple-50 text-purple-700 border border-purple-100 font-semibold px-2 py-0.5 rounded">
+                            {project.specialtyName}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Skills / Capabilities */}
+                  {project.skills && project.skills.length > 0 && (
+                    <div className="mb-5">
+                      <div className="flex items-center gap-1 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                        <Code size={12} /> Target Capabilities
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {project.skills.map((sk) => (
+                          <span 
+                            key={sk.id} 
+                            className="text-xs bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded"
+                          >
+                            {sk.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={() => navigate(`/dashboard/marketplace/${project.id}`)}
+                    className="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-btn shadow-xs transition-colors cursor-pointer"
+                  >
+                    View Project Blueprint
+                    <ArrowUpRight size={14} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-card text-xs text-slate-500 text-center font-medium">
+            No personalized AI matches available right now. Update your profile bio and specialties to receive tailored recommendations!
+          </div>
+        )}
       </div>
 
       {/* Filter Control Station */}
