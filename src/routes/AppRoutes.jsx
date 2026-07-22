@@ -46,6 +46,30 @@ const ProjectTemplateDetailsRouteWrapper = () => {
   );
 };
 
+/**
+ * Smart Role-Based Index Switcher
+ * Resolves the primary dashboard view dynamically for the authenticated user's role.
+ */
+const RoleDashboardIndex = () => {
+  const { user } = useAuth();
+  const userRole = user?.role;
+
+  switch (userRole) {
+    case UserRole.STUDENT:
+      return <StudentDashboard />;
+    case UserRole.REVIEWER:
+      return <ReviewerDashboard />;
+    case UserRole.PROFESSOR:
+      return <PlaceholderView title="Faculty Supervision Console" />;
+    case UserRole.PROVIDER:
+      return <PlaceholderView title="Sponsor Blueprint Proposal Inventory" />;
+    case UserRole.ADMINISTRATOR:
+      return <PlaceholderView title="Global Project Verification Board" />;
+    default:
+      return <Navigate to="/" replace />;
+  }
+};
+
 // Static Router Export allowing network interceptors to control routing outside standard React hooks
 export const router = createBrowserRouter([
   {
@@ -61,44 +85,35 @@ export const router = createBrowserRouter([
     element: <RegisterPage />
   },
 
-  /* Shared / Shared Profile Routes Gate */
+  /* Consolidated Dashboard Security Boundary */
   {
-    element: <ProtectedRoute allowedRoles={[UserRole.STUDENT, UserRole.PROFESSOR, UserRole.PROVIDER, UserRole.ADMINISTRATOR, UserRole.REVIEWER]} />, 
+    element: (
+      <ProtectedRoute 
+        allowedRoles={[
+          UserRole.STUDENT, 
+          UserRole.PROFESSOR, 
+          UserRole.PROVIDER, 
+          UserRole.ADMINISTRATOR, 
+          UserRole.REVIEWER
+        ]} 
+      />
+    ), 
     children: [
       {
         path: "/dashboard",
         element: <WorkspaceLayout />,
         children: [
+          /* Dynamic Index Route: Renders role-specific dashboard */
+          {
+            index: true,
+            element: <RoleDashboardIndex />
+          },
           {
             path: "profile",
             element: <StudentProfile />
-          }
-        ]
-      },
-      {
-        element: <WorkspaceLayout />,
-        children: [
-          {
-            path: "/workspace/projects/:projectInstanceId",
-            element: <ProjectWorkspace />
-          }
-        ]
-      }
-    ]
-  },
-
-  /* Student-Only Security Boundary */
-  {
-    element: <ProtectedRoute allowedRoles={[UserRole.STUDENT]} />, 
-    children: [
-      {
-        path: "/dashboard",
-        element: <WorkspaceLayout />,
-        children: [
-          {
-            index: true,
-            element: <StudentDashboard />
           },
+
+          /* Student Specific Sub-routes */
           {
             path: "marketplace",
             element: <ProjectMarketplace />
@@ -106,41 +121,15 @@ export const router = createBrowserRouter([
           {
             path: "marketplace/:templateId",
             element: <ProjectTemplateDetailsRouteWrapper />
-          }
-        ]
-      }
-    ]
-  },
-
-  /* Reviewer Vetting Boundary */
-  {
-    element: <ProtectedRoute allowedRoles={[UserRole.REVIEWER]} />, 
-    children: [
-      {
-        path: "/dashboard",
-        element: <WorkspaceLayout />,
-        children: [
-          {
-            index: true,
-            element: <ReviewerDashboard />
           },
+
+          /* Reviewer Specific Sub-routes */
           {
             path: "reviewer",
             element: <ReviewerDashboard />
-          }
-        ]
-      }
-    ]
-  },
+          },
 
-  /* Institutional Faculty Boundary */
-  {
-    element: <ProtectedRoute allowedRoles={[UserRole.PROFESSOR]} />, 
-    children: [
-      {
-        path: "/dashboard",
-        element: <WorkspaceLayout />,
-        children: [
+          /* Professor Specific Sub-routes */
           {
             path: "supervision-requests",
             element: <PlaceholderView title="Incoming Supervision Vetting Board" />
@@ -152,20 +141,9 @@ export const router = createBrowserRouter([
           {
             path: "capacity",
             element: <PlaceholderView title="Threshold Allocation & Capacity Management" />
-          }
-        ]
-      }
-    ]
-  },
+          },
 
-  /* Provider / Industry Sponsor Boundary */
-  {
-    element: <ProtectedRoute allowedRoles={[UserRole.PROVIDER]} />, 
-    children: [
-      {
-        path: "/dashboard",
-        element: <WorkspaceLayout />,
-        children: [
+          /* Provider Specific Sub-routes */
           {
             path: "propose-template",
             element: <PlaceholderView title="R&D Capability Template Proposer Form" />
@@ -177,20 +155,9 @@ export const router = createBrowserRouter([
           {
             path: "lab-groups",
             element: <PlaceholderView title="Active Co-Managed Experimental Lab Channels" />
-          }
-        ]
-      }
-    ]
-  },
+          },
 
-  /* Platform Administrator Management Boundary */
-  {
-    element: <ProtectedRoute allowedRoles={[UserRole.ADMINISTRATOR]} />, 
-    children: [
-      {
-        path: "/dashboard",
-        element: <WorkspaceLayout />,
-        children: [
+          /* Administrator Specific Sub-routes */
           {
             path: "approve-templates",
             element: <PlaceholderView title="Global Project Verification Board" />
@@ -202,6 +169,15 @@ export const router = createBrowserRouter([
           {
             path: "users",
             element: <PlaceholderView title="Global User Core Account Directory" />
+          }
+        ]
+      },
+      {
+        element: <WorkspaceLayout />,
+        children: [
+          {
+            path: "/workspace/projects/:projectInstanceId",
+            element: <ProjectWorkspace />
           }
         ]
       }
