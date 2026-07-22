@@ -37,8 +37,10 @@ export function ApplicationDetailModal({
 
   if (!isOpen || !applicationId) return null;
 
-  // Key mappings per backend specification
-  const companyDisplayName = application?.companyName || application?.providerName || 'Unspecified Entity';
+  // Key mappings per latest backend contract specification
+  const companyName = application?.companyName || application?.providerName || 'Unspecified Entity';
+  const contactEmail = application?.contactEmail;
+  const contactPerson = application?.contactPersonName || application?.fullName;
   const submissionDate = application?.createdAt || application?.submittedAt;
 
   return (
@@ -77,11 +79,11 @@ export function ApplicationDetailModal({
               {/* Header Info Block */}
               <div className="flex items-start gap-4 pb-5 border-b border-slate-100">
                 <div className="w-14 h-14 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-2xl shrink-0">
-                  {companyDisplayName.charAt(0) || <Building2 size={28} />}
+                  {companyName.charAt(0) || <Building2 size={28} />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-xl font-bold text-slate-900 leading-tight mb-1">
-                    {companyDisplayName}
+                    {companyName}
                   </h3>
 
                   <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
@@ -106,32 +108,36 @@ export function ApplicationDetailModal({
                 </div>
               </div>
 
-              {/* Contact & Credentials Summary */}
+              {/* Primary Contact & Credentials Summary */}
               <div>
                 <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
                   <User size={14} className="text-primary" />
-                  Contact & Credentials Summary
+                  Primary Contact & Organizational Details
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-4 rounded-lg border border-slate-100 text-xs">
-                  <div>
-                    <span className="text-slate-400 block mb-0.5 font-medium">Contact Person</span>
-                    <span className="font-bold text-slate-800">{application.contactPersonName || application.fullName || 'N/A'}</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100 text-xs">
+                  
+                  {/* Prominently Featured Contact Email Highlight Box */}
+                  <div className="sm:col-span-2 bg-white p-3 rounded-lg border border-slate-200/80 flex items-center justify-between">
+                    <div>
+                      <span className="text-slate-400 block text-[11px] font-semibold uppercase tracking-wider">Primary Contact Email</span>
+                      {contactEmail ? (
+                        <a href={`mailto:${contactEmail}`} className="text-sm font-bold text-primary hover:underline flex items-center gap-1.5 mt-0.5">
+                          <Mail size={15} />
+                          <span>{contactEmail}</span>
+                        </a>
+                      ) : (
+                        <span className="text-slate-400 italic">No contact email on record</span>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Contact Email in ApplicationDetailModal.jsx */}
-                  <div>
-                    <span className="text-slate-400 block mb-0.5 font-medium">Contact Email</span>
-                    {(application.contactEmail || application.email || application.applicantEmail) ? (
-                      <a 
-                        href={`mailto:${application.contactEmail || application.email || application.applicantEmail}`} 
-                        className="font-semibold text-primary hover:underline flex items-center gap-1"
-                      >
-                        <Mail size={12} /> {application.contactEmail || application.email || application.applicantEmail}
-                      </a>
-                    ) : (
-                      <span className="text-slate-500">N/A</span>
-                    )}
-                  </div>
+                  {/* Optional Contact Person (only renders if provided) */}
+                  {contactPerson && (
+                    <div>
+                      <span className="text-slate-400 block mb-0.5 font-medium">Contact Person</span>
+                      <span className="font-bold text-slate-800">{contactPerson}</span>
+                    </div>
+                  )}
 
                   {application.phoneNumber && (
                     <div>
