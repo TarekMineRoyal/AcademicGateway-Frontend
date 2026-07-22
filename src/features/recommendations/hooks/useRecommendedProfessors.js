@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getRecommendedProfessors } from '../recommendationsApi';
+import { getRecommendedProfessors } from '../recommendationsApi.js';
 
 /**
  * Custom hook managing faculty advisor suggestions for a specific project template blueprint.

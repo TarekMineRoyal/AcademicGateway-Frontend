@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getRecommendedProjects } from '../recommendationsApi';
+import { getRecommendedProjects } from '../recommendationsApi.js';
 
 /**
  * Custom hook managing AI-matched project recommendations for the authenticated student.

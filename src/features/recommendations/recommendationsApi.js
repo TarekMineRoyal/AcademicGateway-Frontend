@@ -25,6 +25,12 @@ import apiClient from '../../api/apiClient';
  * @property {string} id - Unique professor identifier GUID.
  * @property {string} fullName - Full name of the professor.
  * @property {string} email - University email address of the professor.
+ * @property {string} department - Academic department.
+ * @property {string} aboutMe - Bio and research overview.
+ * @property {string[]} researchInterests - Array of primary research topics.
+ * @property {number} currentProjectCount - Active supervisee count.
+ * @property {number} maxSupervisionCapacity - Maximum permitted supervisee slots.
+ * @property {boolean} isAcceptingProjects - Flag indicating whether slots are available.
  */
 
 /**

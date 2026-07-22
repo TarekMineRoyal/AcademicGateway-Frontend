@@ -33,3 +33,14 @@ export const updateProfessorProfile = async (profileData) => {
   const data = await apiClient.put('/professors/profile', profileData);
   return data;
 };
+
+/**
+ * Fetches the public profile of a specific professor by ID.
+ * Maps to backend: GET /api/v1/professors/{id}
+ * @param {string} professorId - Unique GUID identifier of the target professor.
+ * @returns {Promise<Object>} Professor public profile details.
+ */
+export const getProfessorById = async (professorId) => {
+  const data = await apiClient.get(`/v1/professors/${professorId}`);
+  return data;
+};

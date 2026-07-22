@@ -4,6 +4,8 @@ import { useAuth } from '../../../context/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useProjectTemplateDetails } from '../hooks/useProjectTemplateDetails';
 import { useRecommendedProfessors } from '../../recommendations/hooks/useRecommendedProfessors';
+import { AdvisorCard } from '../../recommendations/components/AdvisorCard';
+import { ProfessorProfileModal } from '../../professor/components/ProfessorProfileModal';
 import { initializeProjectInstance } from '../../project-instances/projectInstancesApi';
 import { adaptMilestones } from '../../../utils/milestoneAdapter'; 
 import MilestoneVisualizer from '../../../components/milestone/MilestoneVisualizer'; 
@@ -21,7 +23,8 @@ import {
   UserCheck,
   Zap,
   GraduationCap,
-  Sparkles
+  Sparkles,
+  Eye
 } from 'lucide-react';
 
 // Pure Presentation Component: Decoupled from session hooks and 100% testable
@@ -38,6 +41,7 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
   const [professorSearchQuery, setProfessorSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedProfessor, setSelectedProfessor] = useState(null);
+  const [viewingProfessorId, setViewingProfessorId] = useState(null);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [modalError, setModalError] = useState('');
 
@@ -77,6 +81,7 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
     setProfessorSearchQuery('');
     setDebouncedSearch('');
     setSelectedProfessor(null);
+    setViewingProfessorId(null);
     setModalError('');
   };
 
@@ -312,7 +317,7 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl overflow-hidden flex flex-col">
+          <div className="bg-white w-full max-w-xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
               <h3 className="text-base font-bold text-slate-900">Project Initialization Matrix</h3>
@@ -325,7 +330,7 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto max-h-[calc(80vh-100px)]">
+            <div className="p-6 overflow-y-auto">
               {modalError && (
                 <div className="flex gap-2 items-start text-red-700 bg-red-50 border border-red-200 p-3 rounded-lg text-sm font-medium mb-4">
                   <AlertCircle size={16} className="shrink-0 mt-0.5 text-red-600" />
@@ -378,57 +383,40 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
                     ← Back to selection options
                   </button>
 
-                  {/* AI Recommended Advisors Block */}
-                  <div className="mb-5">
-                    <div className="flex items-center gap-1.5 text-xs font-extrabold text-indigo-700 uppercase tracking-wider mb-2">
+                  {/* AI Recommended Advisors Section */}
+                  <div className="mb-6">
+                    <div className="flex items-center gap-1.5 text-xs font-extrabold text-indigo-700 uppercase tracking-wider mb-3">
                       <Sparkles size={14} className="text-indigo-600" />
                       AI Recommended Advisors
                     </div>
+                    
                     {isRecsLoading ? (
-                      <div className="p-3 text-xs text-slate-400 text-center bg-slate-50 rounded-lg animate-pulse font-medium">
+                      <div className="p-4 text-xs text-slate-400 text-center bg-slate-50 rounded-xl animate-pulse font-medium border border-slate-100">
                         Calculating vector-similarity faculty matches...
                       </div>
                     ) : recommendedProfessors.length > 0 ? (
-                      <div className="space-y-2">
-                        {recommendedProfessors.map((prof, idx) => {
-                          const isChosen = selectedProfessor?.id === prof.id;
-                          return (
-                            <div
-                              key={prof.id}
-                              onClick={() => setSelectedProfessor(prof)}
-                              className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${
-                                isChosen
-                                  ? 'bg-indigo-50/80 border-indigo-400 text-indigo-900 shadow-xs'
-                                  : 'bg-white border-indigo-100 hover:border-indigo-300 hover:bg-slate-50'
-                              }`}
-                            >
-                              <div className="flex items-center gap-2.5">
-                                <User size={15} className={isChosen ? 'text-indigo-600' : 'text-slate-500'} />
-                                <div>
-                                  <div className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                                    <span>{prof.fullName}</span>
-                                    <span className="bg-indigo-100 text-indigo-700 text-[10px] px-1.5 py-0.2 rounded font-extrabold">
-                                      #{idx + 1} Match
-                                    </span>
-                                  </div>
-                                  <div className="text-[11px] text-slate-500">{prof.email}</div>
-                                </div>
-                              </div>
-                              {isChosen && <Check size={16} className="text-indigo-600 shrink-0" />}
-                            </div>
-                          );
-                        })}
+                      <div className="space-y-3">
+                        {recommendedProfessors.map((prof, idx) => (
+                          <AdvisorCard
+                            key={prof.id}
+                            professor={prof}
+                            rankIndex={idx}
+                            isSelected={selectedProfessor?.id === prof.id}
+                            onSelect={(selected) => setSelectedProfessor(selected)}
+                            onViewProfile={(targetProf) => setViewingProfessorId(targetProf.id)}
+                          />
+                        ))}
                       </div>
                     ) : (
-                      <div className="p-3 text-xs text-slate-400 text-center bg-slate-50 rounded-lg font-medium">
+                      <div className="p-4 text-xs text-slate-400 text-center bg-slate-50 rounded-xl font-medium border border-slate-100">
                         No AI advisor recommendations found for this template.
                       </div>
                     )}
                   </div>
 
-                  <div className="relative flex items-center justify-center my-4">
+                  <div className="relative flex items-center justify-center my-5">
                     <div className="border-t border-slate-200 w-full" />
-                    <span className="bg-white px-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider shrink-0">
+                    <span className="bg-white px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider shrink-0">
                       Or Search Full Directory
                     </span>
                   </div>
@@ -457,9 +445,13 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
                     ) : (
                       directoryResults.map(prof => {
                         const isChosen = selectedProfessor?.id === prof.id;
-                        const isFull = Number(prof.slots) >= Number(prof.maxSupervisionCapacity);
                         
-                        const isDomainExpert = primaryDiscipline && prof.specialties?.some(spec => {
+                        const currentCount = prof.currentProjectCount ?? prof.slots ?? 0;
+                        const maxCap = prof.maxSupervisionCapacity ?? 0;
+                        const isFull = prof.isAcceptingProjects === false || (maxCap > 0 && Number(currentCount) >= Number(maxCap));
+                        
+                        const profInterests = prof.researchInterests || prof.specialties || [];
+                        const isDomainExpert = primaryDiscipline && profInterests.some(spec => {
                           const specStr = typeof spec === 'object' ? (spec.name || '') : String(spec);
                           return specStr.toLowerCase().includes(primaryDiscipline.toLowerCase()) || primaryDiscipline.toLowerCase().includes(specStr.toLowerCase());
                         });
@@ -467,11 +459,15 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
                         return (
                           <div 
                             key={prof.id}
-                            onClick={() => !isFull && setSelectedProfessor(prof)}
-                            className={`flex items-start justify-between p-3 border-b border-slate-100 cursor-pointer transition-colors ${isChosen ? 'bg-sky-50/70' : 'bg-transparent hover:bg-slate-50'} ${isFull ? 'opacity-50 pointer-events-none' : ''}`}
+                            className={`p-3 border-b border-slate-100 transition-colors flex items-center justify-between ${
+                              isChosen ? 'bg-sky-50/70' : 'bg-transparent hover:bg-slate-50'
+                            } ${isFull ? 'opacity-50' : ''}`}
                           >
-                            <div className="flex items-start gap-2.5 w-full">
-                              <User size={15} className={`mt-0.5 ${isChosen ? 'text-primary' : 'text-slate-500'}`} />
+                            <div 
+                              onClick={() => !isFull && setSelectedProfessor(prof)}
+                              className="flex items-start gap-2.5 flex-1 cursor-pointer min-w-0"
+                            >
+                              <User size={15} className={`mt-0.5 shrink-0 ${isChosen ? 'text-primary' : 'text-slate-500'}`} />
                               <div className="flex-1 min-w-0">
                                 <div className="text-xs font-bold text-slate-800 flex items-center gap-1.5 flex-wrap">
                                   <span>{prof.fullName}</span>
@@ -484,12 +480,12 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
                                 <div className="text-[11px] text-slate-500 truncate">{prof.email}</div>
                                 
                                 <div className="text-[11px] font-medium text-slate-500 mt-0.5">
-                                  <span>Available Slots: {prof.slots || 0}/{prof.maxSupervisionCapacity}</span>
+                                  <span>Available Slots: {currentCount}/{maxCap}</span>
                                 </div>
 
-                                {prof.specialties && prof.specialties.length > 0 && (
+                                {profInterests.length > 0 && (
                                   <div className="flex flex-wrap gap-1 mt-1.5">
-                                    {prof.specialties.map((spec, sIdx) => (
+                                    {profInterests.map((spec, sIdx) => (
                                       <span key={sIdx} className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-medium">
                                         {typeof spec === 'object' ? spec.name : spec}
                                       </span>
@@ -498,7 +494,18 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
                                 )}
                               </div>
                             </div>
-                            {isChosen && <Check size={16} className="text-primary shrink-0 ml-2" />}
+
+                            <div className="flex items-center gap-2 shrink-0 ml-2">
+                              <button
+                                type="button"
+                                onClick={() => setViewingProfessorId(prof.id)}
+                                className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors cursor-pointer"
+                                title="View Profile"
+                              >
+                                <Eye size={15} />
+                              </button>
+                              {isChosen && <Check size={16} className="text-primary shrink-0" />}
+                            </div>
                           </div>
                         );
                       })
@@ -551,6 +558,15 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
           </div>
         </div>
       )}
+
+      {/* Faculty Advisor Public Profile Modal */}
+      <ProfessorProfileModal
+        professorId={viewingProfessorId}
+        isOpen={Boolean(viewingProfessorId)}
+        onClose={() => setViewingProfessorId(null)}
+        onSelect={(prof) => setSelectedProfessor(prof)}
+        isSelected={selectedProfessor?.id === viewingProfessorId}
+      />
     </div>
   );
 }

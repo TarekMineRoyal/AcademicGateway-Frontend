@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getRecommendedSkills } from '../recommendationsApi';
+import { getRecommendedSkills } from '../recommendationsApi.js';
 
 /**
  * Custom hook managing AI-suggested skill growth recommendations for the authenticated student.
