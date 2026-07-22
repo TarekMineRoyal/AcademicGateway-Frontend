@@ -127,89 +127,94 @@ export function ProjectTemplatesQueue() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
-              {templates.map((template) => (
-                <tr key={template.id} className="hover:bg-slate-50/70 transition-colors group">
-                  
-                  {/* Template Title & Overview Column */}
-                  <td className="py-3.5 px-4 max-w-sm">
-                    <div className="flex items-start gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center font-bold shrink-0 mt-0.5">
-                        <Layers size={18} />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="font-bold text-slate-900 text-sm line-clamp-1">{template.title}</div>
-                        <p className="text-slate-500 text-[11px] line-clamp-2 mt-0.5 leading-relaxed">
-                          {template.description || 'No detailed summary provided.'}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
+              {templates.map((template) => {
+                // Key mapping provided by backend team
+                const submissionDate = template.submittedAt || template.createdAt;
 
-                  {/* Academic Alignment Column */}
-                  <td className="py-3.5 px-4">
-                    <div className="space-y-1">
-                      {template.majorName ? (
-                        <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-md">
-                          <GraduationCap size={12} />
-                          <span>{template.majorName}</span>
+                return (
+                  <tr key={template.id} className="hover:bg-slate-50/70 transition-colors group">
+                    
+                    {/* Template Title & Overview Column */}
+                    <td className="py-3.5 px-4 max-w-sm">
+                      <div className="flex items-start gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center font-bold shrink-0 mt-0.5">
+                          <Layers size={18} />
                         </div>
-                      ) : (
-                        <span className="text-slate-400 text-[11px] italic">General Academic Track</span>
-                      )}
-
-                      {template.specialtyName && (
-                        <div className="text-[11px] text-slate-500 font-medium">
-                          Specialty: <span className="text-slate-700 font-semibold">{template.specialtyName}</span>
+                        <div className="min-w-0">
+                          <div className="font-bold text-slate-900 text-sm line-clamp-1">{template.title}</div>
+                          <p className="text-slate-500 text-[11px] line-clamp-2 mt-0.5 leading-relaxed">
+                            {template.description || 'No detailed summary provided.'}
+                          </p>
                         </div>
-                      )}
-                    </div>
-                  </td>
+                      </div>
+                    </td>
 
-                  {/* Submission Date Column */}
-                  <td className="py-3.5 px-4 text-slate-600">
-                    <div className="flex items-center gap-1.5 text-xs">
-                      <Calendar size={13} className="text-slate-400" />
-                      <span>{template.createdAt ? new Date(template.createdAt).toLocaleDateString() : 'N/A'}</span>
-                    </div>
-                  </td>
+                    {/* Academic Alignment Column */}
+                    <td className="py-3.5 px-4">
+                      <div className="space-y-1">
+                        {template.majorName ? (
+                          <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-md">
+                            <GraduationCap size={12} />
+                            <span>{template.majorName}</span>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 text-[11px] italic">General Academic Track</span>
+                        )}
 
-                  {/* Action Buttons Column */}
-                  <td className="py-3.5 px-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setDetailModalTemplateId(template.id)}
-                        className="px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-slate-300 bg-white text-slate-700 hover:bg-slate-50 font-semibold text-xs transition-colors cursor-pointer flex items-center gap-1"
-                        title="Inspect structure, milestones, tasks, and skills"
-                      >
-                        <Eye size={14} className="text-slate-500" />
-                        <span>Inspect</span>
-                      </button>
+                        {template.specialtyName && (
+                          <div className="text-[11px] text-slate-500 font-medium">
+                            Specialty: <span className="text-slate-700 font-semibold">{template.specialtyName}</span>
+                          </div>
+                        )}
+                      </div>
+                    </td>
 
-                      <button
-                        type="button"
-                        onClick={() => handleOpenReview(template, true)}
-                        className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold text-xs transition-colors cursor-pointer flex items-center gap-1"
-                        title="Approve Project Template"
-                      >
-                        <Check size={14} />
-                        <span>Approve</span>
-                      </button>
+                    {/* Submission Date Column */}
+                    <td className="py-3.5 px-4 text-slate-600">
+                      <div className="flex items-center gap-1.5 text-xs">
+                        <Calendar size={13} className="text-slate-400" />
+                        <span>{submissionDate ? new Date(submissionDate).toLocaleDateString() : 'N/A'}</span>
+                      </div>
+                    </td>
 
-                      <button
-                        type="button"
-                        onClick={() => handleOpenReview(template, false)}
-                        className="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs transition-colors cursor-pointer flex items-center gap-1"
-                        title="Reject Project Template"
-                      >
-                        <X size={14} />
-                        <span>Reject</span>
-                      </button>
-                    </div>
-                  </td>
+                    {/* Action Buttons Column */}
+                    <td className="py-3.5 px-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setDetailModalTemplateId(template.id)}
+                          className="px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-slate-300 bg-white text-slate-700 hover:bg-slate-50 font-semibold text-xs transition-colors cursor-pointer flex items-center gap-1"
+                          title="Inspect structure, milestones, tasks, and skills"
+                        >
+                          <Eye size={14} className="text-slate-500" />
+                          <span>Inspect</span>
+                        </button>
 
-                </tr>
-              ))}
+                        <button
+                          type="button"
+                          onClick={() => handleOpenReview(template, true)}
+                          className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold text-xs transition-colors cursor-pointer flex items-center gap-1"
+                          title="Approve Project Template"
+                        >
+                          <Check size={14} />
+                          <span>Approve</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleOpenReview(template, false)}
+                          className="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs transition-colors cursor-pointer flex items-center gap-1"
+                          title="Reject Project Template"
+                        >
+                          <X size={14} />
+                          <span>Reject</span>
+                        </button>
+                      </div>
+                    </td>
+
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

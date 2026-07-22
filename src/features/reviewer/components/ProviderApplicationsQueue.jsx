@@ -121,96 +121,103 @@ export function ProviderApplicationsQueue() {
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200/80 text-slate-500 font-bold uppercase tracking-wider">
                 <th className="py-3 px-4">Provider / Organization</th>
-                <th className="py-3 px-4">Contact Person</th>
+                <th className="py-3 px-4">Contact Email</th>
                 <th className="py-3 px-4">Submission Date</th>
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
-              {applications.map((app) => (
-                <tr key={app.id} className="hover:bg-slate-50/70 transition-colors group">
-                  
-                  {/* Provider / Organization Column */}
-                  <td className="py-3.5 px-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold shrink-0">
-                        {app.companyName?.charAt(0) || <Building2 size={16} />}
-                      </div>
-                      <div>
-                        <div className="font-bold text-slate-900 text-sm">{app.companyName || 'Unspecified Entity'}</div>
-                        {app.websiteUrl && (
-                          <a
-                            href={app.websiteUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-[11px] text-primary hover:underline"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {app.websiteUrl.replace(/^https?:\/\//, '')}
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  </td>
+              {applications.map((app) => {
+                // Exact key mappings provided by backend team
+                const orgName = app.providerName || app.companyName || 'Unspecified Entity';
+                const submissionDate = app.submittedAt || app.createdAt;
 
-                  {/* Contact Info Column */}
-                  <td className="py-3.5 px-4">
-                    <div className="space-y-0.5">
-                      <div className="font-semibold text-slate-800">{app.contactPersonName || app.fullName || 'N/A'}</div>
-                      {app.contactEmail && (
-                        <div className="flex items-center gap-1 text-slate-500 text-[11px]">
-                          <Mail size={12} className="text-slate-400" />
-                          <span>{app.contactEmail}</span>
+                return (
+                  <tr key={app.id} className="hover:bg-slate-50/70 transition-colors group">
+                    
+                    {/* Provider / Organization Column */}
+                    <td className="py-3.5 px-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold shrink-0">
+                          {orgName.charAt(0) || <Building2 size={16} />}
                         </div>
+                        <div>
+                          <div className="font-bold text-slate-900 text-sm">{orgName}</div>
+                          {app.websiteUrl && (
+                            <a
+                              href={app.websiteUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[11px] text-primary hover:underline"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {app.websiteUrl.replace(/^https?:\/\//, '')}
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Contact Email Column */}
+                    <td className="py-3.5 px-4">
+                      {app.contactEmail ? (
+                        <div className="flex items-center gap-1.5 text-slate-700 font-medium">
+                          <Mail size={13} className="text-slate-400 shrink-0" />
+                          <a href={`mailto:${app.contactEmail}`} className="hover:underline text-slate-700">
+                            {app.contactEmail}
+                          </a>
+                        </div>
+                      ) : (
+                        <span className="text-slate-400 italic">N/A</span>
                       )}
-                    </div>
-                  </td>
+                    </td>
 
-                  {/* Submission Date Column */}
-                  <td className="py-3.5 px-4 text-slate-600">
-                    <div className="flex items-center gap-1.5 text-xs">
-                      <Calendar size={13} className="text-slate-400" />
-                      <span>{app.createdAt ? new Date(app.createdAt).toLocaleDateString() : 'N/A'}</span>
-                    </div>
-                  </td>
+                    {/* Submission Date Column */}
+                    <td className="py-3.5 px-4 text-slate-600">
+                      <div className="flex items-center gap-1.5 text-xs">
+                        <Calendar size={13} className="text-slate-400" />
+                        <span>{submissionDate ? new Date(submissionDate).toLocaleDateString() : 'N/A'}</span>
+                      </div>
+                    </td>
 
-                  {/* Action Buttons Column */}
-                  <td className="py-3.5 px-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setDetailModalAppId(app.id)}
-                        className="px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-slate-300 bg-white text-slate-700 hover:bg-slate-50 font-semibold text-xs transition-colors cursor-pointer flex items-center gap-1"
-                        title="Inspect full details and documents"
-                      >
-                        <Eye size={14} className="text-slate-500" />
-                        <span>Inspect</span>
-                      </button>
+                    {/* Action Buttons Column */}
+                    <td className="py-3.5 px-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setDetailModalAppId(app.id)}
+                          className="px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-slate-300 bg-white text-slate-700 hover:bg-slate-50 font-semibold text-xs transition-colors cursor-pointer flex items-center gap-1"
+                          title="Inspect full details and documents"
+                        >
+                          <Eye size={14} className="text-slate-500" />
+                          <span>Inspect</span>
+                        </button>
 
-                      <button
-                        type="button"
-                        onClick={() => handleOpenReview(app, true)}
-                        className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold text-xs transition-colors cursor-pointer flex items-center gap-1"
-                        title="Approve Application"
-                      >
-                        <Check size={14} />
-                        <span>Approve</span>
-                      </button>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenReview(app, true)}
+                          className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold text-xs transition-colors cursor-pointer flex items-center gap-1"
+                          title="Approve Application"
+                        >
+                          <Check size={14} />
+                          <span>Approve</span>
+                        </button>
 
-                      <button
-                        type="button"
-                        onClick={() => handleOpenReview(app, false)}
-                        className="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs transition-colors cursor-pointer flex items-center gap-1"
-                        title="Reject Application"
-                      >
-                        <X size={14} />
-                        <span>Reject</span>
-                      </button>
-                    </div>
-                  </td>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenReview(app, false)}
+                          className="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs transition-colors cursor-pointer flex items-center gap-1"
+                          title="Reject Application"
+                        >
+                          <X size={14} />
+                          <span>Reject</span>
+                        </button>
+                      </div>
+                    </td>
 
-                </tr>
-              ))}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -264,7 +271,7 @@ export function ProviderApplicationsQueue() {
         onClose={handleCloseReview}
         onSubmit={handleReviewSubmit}
         isApproved={reviewModalState.isApproved}
-        targetTitle={reviewModalState.app?.companyName || reviewModalState.app?.contactPersonName}
+        targetTitle={reviewModalState.app?.providerName || reviewModalState.app?.companyName}
         isSubmitting={reviewMutation.isPending}
         error={mutationError}
       />

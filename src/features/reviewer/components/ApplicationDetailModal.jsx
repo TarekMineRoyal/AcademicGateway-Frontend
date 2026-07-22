@@ -37,6 +37,10 @@ export function ApplicationDetailModal({
 
   if (!isOpen || !applicationId) return null;
 
+  // Key mappings per backend specification
+  const companyDisplayName = application?.companyName || application?.providerName || 'Unspecified Entity';
+  const submissionDate = application?.createdAt || application?.submittedAt;
+
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fadeIn">
       <div className="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -73,11 +77,11 @@ export function ApplicationDetailModal({
               {/* Header Info Block */}
               <div className="flex items-start gap-4 pb-5 border-b border-slate-100">
                 <div className="w-14 h-14 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-2xl shrink-0">
-                  {application.companyName?.charAt(0) || <Building2 size={28} />}
+                  {companyDisplayName.charAt(0) || <Building2 size={28} />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-xl font-bold text-slate-900 leading-tight mb-1">
-                    {application.companyName}
+                    {companyDisplayName}
                   </h3>
 
                   <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
@@ -92,10 +96,10 @@ export function ApplicationDetailModal({
                         {application.websiteUrl.replace(/^https?:\/\//, '')}
                       </a>
                     )}
-                    {application.createdAt && (
+                    {submissionDate && (
                       <span className="flex items-center gap-1 text-slate-400">
                         <Calendar size={13} />
-                        Submitted: {new Date(application.createdAt).toLocaleDateString()}
+                        Submitted: {new Date(submissionDate).toLocaleDateString()}
                       </span>
                     )}
                   </div>
@@ -114,11 +118,15 @@ export function ApplicationDetailModal({
                     <span className="font-bold text-slate-800">{application.contactPersonName || application.fullName || 'N/A'}</span>
                   </div>
 
+                  {/* Contact Email in ApplicationDetailModal.jsx */}
                   <div>
                     <span className="text-slate-400 block mb-0.5 font-medium">Contact Email</span>
-                    {application.contactEmail ? (
-                      <a href={`mailto:${application.contactEmail}`} className="font-semibold text-primary hover:underline flex items-center gap-1">
-                        <Mail size={12} /> {application.contactEmail}
+                    {(application.contactEmail || application.email || application.applicantEmail) ? (
+                      <a 
+                        href={`mailto:${application.contactEmail || application.email || application.applicantEmail}`} 
+                        className="font-semibold text-primary hover:underline flex items-center gap-1"
+                      >
+                        <Mail size={12} /> {application.contactEmail || application.email || application.applicantEmail}
                       </a>
                     ) : (
                       <span className="text-slate-500">N/A</span>
@@ -218,9 +226,9 @@ export function ApplicationDetailModal({
                         <div className="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-slate-300 ring-4 ring-white" />
                         <div className="font-bold text-slate-800">{event.action || event.status}</div>
                         {event.notes && <p className="text-slate-500 italic">{event.notes}</p>}
-                        {event.timestamp && (
+                        {(event.timestamp || event.submittedAt) && (
                           <span className="text-[11px] text-slate-400 block">
-                            {new Date(event.timestamp).toLocaleString()}
+                            {new Date(event.timestamp || event.submittedAt).toLocaleString()}
                           </span>
                         )}
                       </div>
