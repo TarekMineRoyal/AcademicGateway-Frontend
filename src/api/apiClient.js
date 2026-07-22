@@ -1,5 +1,18 @@
 import axios from 'axios';
 
+/**
+ * Standard Paginated Response Wrapper from Backend
+ * @template T
+ * @typedef {Object} PaginatedResult
+ * @property {T[]} items - List of items for the current page
+ * @property {number} pageNumber - Current page index (1-based)
+ * @property {number} pageSize - Number of items per page
+ * @property {number} totalPages - Total number of available pages
+ * @property {number} totalCount - Total count of records across all pages
+ * @property {boolean} hasPreviousPage - Flag indicating if a previous page exists
+ * @property {boolean} hasNextPage - Flag indicating if a next page exists
+ */
+
 // Helper: Deeply converts any incoming object keys from PascalCase/snake_case into strict camelCase
 const camelCaseKeys = (obj) => {
   if (Array.isArray(obj)) {

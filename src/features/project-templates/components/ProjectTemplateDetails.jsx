@@ -24,7 +24,9 @@ import {
   Zap,
   GraduationCap,
   Sparkles,
-  Eye
+  Eye,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 // Pure Presentation Component: Decoupled from session hooks and 100% testable
@@ -40,30 +42,33 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
   const [initiationMode, setInitiationMode] = useState(null); 
   const [professorSearchQuery, setProfessorSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [searchPage, setSearchPage] = useState(1);
   const [selectedProfessor, setSelectedProfessor] = useState(null);
   const [viewingProfessorId, setViewingProfessorId] = useState(null);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [modalError, setModalError] = useState('');
 
-  // Manage UI-only side effects locally
+  // Manage UI-only search debounce
   useEffect(() => {
     if (initiationMode !== 'supervised') return;
 
     const handler = setTimeout(() => {
       setDebouncedSearch(professorSearchQuery);
+      setSearchPage(1); // Reset to first page whenever query string changes
     }, 300); // 300ms debounce buffer
 
     return () => clearTimeout(handler);
   }, [professorSearchQuery, initiationMode]);
 
-  // Pure presentation layer server-state data consumption
+  // Pure presentation layer server-state data consumption with pagination support
   const { 
     template, 
     directoryResults, 
+    directoryPagination,
     isLoading, 
     isSearching, 
     error: hookError 
-  } = useProjectTemplateDetails(templateId, debouncedSearch);
+  } = useProjectTemplateDetails(templateId, debouncedSearch, searchPage);
 
   // AI Vector Recommendation Engine Integration for Faculty Advisors
   const { 
@@ -80,6 +85,7 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
     setInitiationMode(null);
     setProfessorSearchQuery('');
     setDebouncedSearch('');
+    setSearchPage(1);
     setSelectedProfessor(null);
     setViewingProfessorId(null);
     setModalError('');
@@ -446,11 +452,22 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
                       directoryResults.map(prof => {
                         const isChosen = selectedProfessor?.id === prof.id;
                         
-                        const currentCount = prof.currentProjectCount ?? prof.slots ?? 0;
-                        const maxCap = prof.maxSupervisionCapacity ?? 0;
-                        const isFull = prof.isAcceptingProjects === false || (maxCap > 0 && Number(currentCount) >= Number(maxCap));
-                        
-                        const profInterests = prof.researchInterests || prof.specialties || [];
+                        // Unpack exact schema properties matching GET /api/professors
+                        const {
+                          fullName,
+                          email,
+                          currentProjectCount = 0,
+                          maxSupervisionCapacity,
+                          isAcceptingProjects = true,
+                          researchInterests = [],
+                          specialties = []
+                        } = prof;
+
+                        // Only consider full if isAcceptingProjects is false OR if a positive capacity limit has been reached
+                        const hasLimit = maxSupervisionCapacity !== undefined && maxSupervisionCapacity !== null && Number(maxSupervisionCapacity) > 0;
+                        const isFull = !isAcceptingProjects || (hasLimit && Number(currentProjectCount) >= Number(maxSupervisionCapacity));
+
+                        const profInterests = researchInterests.length > 0 ? researchInterests : specialties;
                         const isDomainExpert = primaryDiscipline && profInterests.some(spec => {
                           const specStr = typeof spec === 'object' ? (spec.name || '') : String(spec);
                           return specStr.toLowerCase().includes(primaryDiscipline.toLowerCase()) || primaryDiscipline.toLowerCase().includes(specStr.toLowerCase());
@@ -470,17 +487,17 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
                               <User size={15} className={`mt-0.5 shrink-0 ${isChosen ? 'text-primary' : 'text-slate-500'}`} />
                               <div className="flex-1 min-w-0">
                                 <div className="text-xs font-bold text-slate-800 flex items-center gap-1.5 flex-wrap">
-                                  <span>{prof.fullName}</span>
+                                  <span>{fullName}</span>
                                   {isDomainExpert && (
                                     <span className="bg-amber-50 text-amber-700 border border-amber-200 text-[10px] px-1.5 py-0.5 rounded font-semibold shrink-0">
                                       ✨ Domain Expert
                                     </span>
                                   )}
                                 </div>
-                                <div className="text-[11px] text-slate-500 truncate">{prof.email}</div>
+                                <div className="text-[11px] text-slate-500 truncate">{email}</div>
                                 
                                 <div className="text-[11px] font-medium text-slate-500 mt-0.5">
-                                  <span>Available Slots: {currentCount}/{maxCap}</span>
+                                  <span>Available Slots: {currentProjectCount} / {maxSupervisionCapacity ?? 'N/A'}</span>
                                 </div>
 
                                 {profInterests.length > 0 && (
@@ -511,6 +528,33 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
                       })
                     )}
                   </div>
+
+                  {/* UI Controls for Directory Pagination */}
+                  {directoryPagination && directoryPagination.totalPages > 1 && (
+                    <div className="flex items-center justify-between mt-3 px-1 text-xs text-slate-500">
+                      <span>
+                        Page <strong>{directoryPagination.pageNumber}</strong> of <strong>{directoryPagination.totalPages}</strong>
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={!directoryPagination.hasPreviousPage || isSearching}
+                          onClick={() => setSearchPage(prev => Math.max(prev - 1, 1))}
+                          className="p-1 border rounded bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                        >
+                          <ChevronLeft size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          disabled={!directoryPagination.hasNextPage || isSearching}
+                          onClick={() => setSearchPage(prev => prev + 1)}
+                          className="p-1 border rounded bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                        >
+                          <ChevronRight size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   {selectedProfessor && (
                     <div className="mt-5 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2 animate-fadeIn">

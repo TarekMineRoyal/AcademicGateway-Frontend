@@ -13,19 +13,28 @@ import apiClient from '../../api/apiClient';
  */
 
 /**
- * Fetches all approved, publicly discoverable project blueprints.
+ * Fetches all approved, publicly discoverable project blueprints using pagination.
  * Mapped to GetApprovedTemplatesQuery on the backend.
- * @param {string} [skillId] - Optional GUID filter to restrict results by a specific prerequisite.
- * @returns {Promise<ProjectTemplateDto[]>}
+ * 
+ * @param {Object|string} [params] - Query parameters object OR legacy skillId string
+ * @param {number} [params.pageNumber=1] - Requested page number
+ * @param {number} [params.pageSize=10] - Number of records per page
+ * @param {string|null} [params.skillId] - Optional GUID filter to restrict results by a specific prerequisite
+ * @returns {Promise<import('../../api/apiClient').PaginatedResult<ProjectTemplateDto>>}
  */
-export const getApprovedTemplates = async (skillId = null) => {
-  const config = {};
-  if (skillId) {
-    config.params = { skillId };
+export const getApprovedTemplates = async (params = {}) => {
+  let queryParams = {};
+
+  if (typeof params === 'string') {
+    queryParams = { skillId: params };
+  } else if (typeof params === 'object' && params !== null) {
+    queryParams = params;
   }
-  
-  // Evaluates to: GET /api/project-templates/approved
-  const data = await apiClient.get('/project-templates/approved', config);
+
+  // Evaluates to: GET /api/project-templates/approved?pageNumber=X&pageSize=Y&skillId=Z
+  const data = await apiClient.get('/project-templates/approved', {
+    params: queryParams,
+  });
   return data;
 };
 

@@ -3,12 +3,15 @@ import React, { useState, useEffect, useRef } from 'react';
 /**
  * SearchableCombobox Component
  * A reusable, accessible multi-select or single-select combobox dropdown 
- * built with Tailwind CSS utility tokens.
+ * built with Tailwind CSS utility tokens. Safely handles both raw arrays and PaginatedResult objects.
  */
 function SearchableCombobox({ placeholder, options = [], selected, onChange, isMulti = false }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const containerRef = useRef(null);
+
+  // Safely normalize options to support both raw arrays and PaginatedResult<T> objects
+  const optionList = Array.isArray(options) ? options : (options?.items || []);
 
   // Handle clicking outside of the dropdown container to drop active visibility states
   useEffect(() => {
@@ -22,10 +25,13 @@ function SearchableCombobox({ placeholder, options = [], selected, onChange, isM
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Filter options down dynamically according to typing input
-  const filteredOptions = options.filter(option =>
-    (option.name || '').toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter options down dynamically according to typing input (checking name or fullName)
+  const filteredOptions = optionList.filter(option => {
+    const label = option.name || option.fullName || '';
+    return label.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+  const getOptionLabel = (option) => option?.name || option?.fullName || '';
 
   const handleSelectOption = (option) => {
     if (isMulti) {
@@ -71,7 +77,7 @@ function SearchableCombobox({ placeholder, options = [], selected, onChange, isM
               key={item.id} 
               className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs font-semibold px-2 py-0.5 rounded-md"
             >
-              {item.name}
+              {getOptionLabel(item)}
               <button 
                 type="button" 
                 onClick={(e) => handleDismissBadge(e, item)}
@@ -84,7 +90,7 @@ function SearchableCombobox({ placeholder, options = [], selected, onChange, isM
         ) : (
           selected && (
             <span className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs font-semibold px-2 py-0.5 rounded-md">
-              {selected.name}
+              {getOptionLabel(selected)}
               <button 
                 type="button" 
                 onClick={(e) => handleDismissBadge(e, selected)}
@@ -134,7 +140,7 @@ function SearchableCombobox({ placeholder, options = [], selected, onChange, isM
                       : 'hover:bg-slate-50 text-slate-700'
                   }`}
                 >
-                  {option.name}
+                  {getOptionLabel(option)}
                 </div>
               );
             })

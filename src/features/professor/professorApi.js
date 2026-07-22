@@ -1,14 +1,26 @@
 import apiClient from '../../api/apiClient';
 
 /**
- * Executes a case-insensitive directory search across authenticated faculty accounts.
+ * Executes a case-insensitive directory search across authenticated faculty accounts with pagination.
  * Maps to backend: GET /api/professors
- * @param {string} searchTerm - Query text filtering across names, emails, and usernames.
- * @returns {Promise<Array>} List of matching professor identities [{ id, fullName, email }]
+ * 
+ * @param {Object|string} [params=''] - Query parameters object OR legacy searchTerm string
+ * @param {string} [params.searchTerm] - Query text filtering across names, emails, and usernames
+ * @param {number} [params.pageNumber=1] - Requested page number
+ * @param {number} [params.pageSize=10] - Number of records per page
+ * @returns {Promise<import('../../api/apiClient').PaginatedResult<Object>>}
  */
-export const searchProfessors = async (searchTerm = '') => {
+export const searchProfessors = async (params = '') => {
+  let queryParams = {};
+
+  if (typeof params === 'string') {
+    queryParams = { searchTerm: params };
+  } else if (typeof params === 'object' && params !== null) {
+    queryParams = params;
+  }
+
   const data = await apiClient.get('/professors', {
-    params: { searchTerm }
+    params: queryParams,
   });
   return data;
 };

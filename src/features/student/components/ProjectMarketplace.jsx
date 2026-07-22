@@ -88,8 +88,8 @@ export default function ProjectMarketplace() {
   // Visual status evaluations
   const hasActiveFilters = selectedMajor || selectedSpecialty || selectedSkills.length > 0 || showUnverified;
   
-  // Flatten chunk nested pages array into single flat iterable mapping list
-  const displayedTemplates = data?.pages.flatMap((page) => page) || [];
+  // Unpack items array from each paginated result object in pages
+  const displayedTemplates = data?.pages.flatMap((page) => page?.items || []) || [];
 
   if (isLoading) {
     return (
