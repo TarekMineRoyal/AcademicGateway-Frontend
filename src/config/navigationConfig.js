@@ -23,6 +23,8 @@ export const navigationConfig = {
     { label: 'Vet Sponsors', path: '/dashboard/verify-providers', icon: 'Building' },
     { label: 'User Directory', path: '/dashboard/users', icon: 'User' },
   ],
-  [UserRole.REVIEWER]: [],
+  [UserRole.REVIEWER]: [
+    { label: 'Reviewer Dashboard', path: '/dashboard', icon: 'LayoutDashboard' },
+  ],
   [UserRole.TECH_SUPPORT]: [],
 };

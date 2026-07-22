@@ -9,6 +9,7 @@ import StudentDashboard from '../features/student/components/StudentDashboard';
 import ProjectMarketplace from '../features/student/components/ProjectMarketplace';
 import StudentProfile from '../features/student/components/StudentProfile';
 import ProjectTemplateDetails from '../features/project-templates/components/ProjectTemplateDetails';
+import ReviewerDashboard from '../features/reviewer/components/ReviewerDashboard';
 import { useUserSkills } from '../features/skills/hooks/useUserSkills';
 import { useAuth } from '../context/AuthContext';
 import { UserRole } from '../constants/enums';
@@ -111,9 +112,30 @@ export const router = createBrowserRouter([
     ]
   },
 
-  /* Institutional Faculty & Auditing Boundary */
+  /* Reviewer Vetting Boundary */
   {
-    element: <ProtectedRoute allowedRoles={[UserRole.PROFESSOR, UserRole.REVIEWER]} />, 
+    element: <ProtectedRoute allowedRoles={[UserRole.REVIEWER]} />, 
+    children: [
+      {
+        path: "/dashboard",
+        element: <WorkspaceLayout />,
+        children: [
+          {
+            index: true,
+            element: <ReviewerDashboard />
+          },
+          {
+            path: "reviewer",
+            element: <ReviewerDashboard />
+          }
+        ]
+      }
+    ]
+  },
+
+  /* Institutional Faculty Boundary */
+  {
+    element: <ProtectedRoute allowedRoles={[UserRole.PROFESSOR]} />, 
     children: [
       {
         path: "/dashboard",
