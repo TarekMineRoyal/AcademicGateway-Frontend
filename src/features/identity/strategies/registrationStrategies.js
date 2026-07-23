@@ -1,5 +1,8 @@
 import { UserRole } from '../../../shared/constants/enums';
 import { registerStudent, registerProfessor, registerProvider } from '../identityApi';
+import StudentRegisterForm from '../components/StudentRegisterForm';
+import ProfessorRegisterForm from '../components/ProfessorRegisterForm';
+import ProviderRegisterForm from '../components/ProviderRegisterForm';
 
 export const registrationStrategies = {
   [UserRole.STUDENT]: {
@@ -7,6 +10,11 @@ export const registrationStrategies = {
       title: 'Student Portal Enrolment',
       subtitle: 'Join as an applicant to browse and claim capstone project opportunities.',
     },
+    FormComponent: StudentRegisterForm,
+    getReviewItems: (formValues) => [
+      { label: 'Full Name', value: formValues.fullName },
+      { label: 'Target Graduation Year', value: formValues.graduationYear },
+    ],
     validate: (formValues) => {
       const isFullNameValid = formValues.fullName.trim().length > 0;
       const isAboutMeValid = !formValues.aboutMe || formValues.aboutMe.length <= 2000;
@@ -31,6 +39,12 @@ export const registrationStrategies = {
       title: 'Faculty Portal Onboarding',
       subtitle: 'Register your academic profile to supervise, track, and grade milestone projects.',
     },
+    FormComponent: ProfessorRegisterForm,
+    getReviewItems: (formValues) => [
+      { label: 'Faculty Identity', value: formValues.fullName },
+      { label: 'Academic Assignment Department', value: formValues.academicDepartment },
+      { label: 'Academic Rank Title', value: formValues.rank },
+    ],
     validate: (formValues) => {
       const isAboutMeValid = !formValues.aboutMe || formValues.aboutMe.length <= 2000;
       return (
@@ -58,6 +72,11 @@ export const registrationStrategies = {
       title: 'Research Partner Onboarding',
       subtitle: 'Register your lab unit or corporate structure to sponsor and propose project templates.',
     },
+    FormComponent: ProviderRegisterForm,
+    getReviewItems: (formValues) => [
+      { label: 'Institution / Corporate Title', value: formValues.companyName },
+      { label: 'Portal Verification Website URL', value: formValues.websiteUrl, isUrl: true },
+    ],
     validate: (formValues) => {
       return (
         formValues.companyName.trim().length > 0 &&

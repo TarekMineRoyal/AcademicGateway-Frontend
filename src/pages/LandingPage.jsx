@@ -1,6 +1,43 @@
 import { useNavigate } from 'react-router-dom';
 import { GraduationCap, Briefcase, Award, LogIn, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContextCore';
+import OnboardingCard from '../features/identity/components/OnboardingCard';
+
+const ONBOARDING_CARDS = [
+  {
+    id: 'student',
+    title: 'Students',
+    description:
+      'Launch your career. Discover, apply for, and claim high-impact graduation projects sourced directly from real research initiatives.',
+    buttonText: 'Find a Capstone',
+    buttonBgColor: 'bg-primary hover:bg-primary-hover',
+    icon: GraduationCap,
+    iconBgColor: 'bg-blue-50 text-blue-600',
+    path: '/register/student',
+  },
+  {
+    id: 'professor',
+    title: 'Professors',
+    description:
+      'Provide academic oversight. Manage mentorship assignments, evaluate research milestones, and guide student success.',
+    buttonText: 'Manage Mentorships',
+    buttonBgColor: 'bg-emerald-600 hover:bg-emerald-700',
+    icon: Award,
+    iconBgColor: 'bg-emerald-50 text-emerald-600',
+    path: '/register/professor',
+  },
+  {
+    id: 'provider',
+    title: 'Researchers',
+    description:
+      "Sponsor innovation. Propose project templates mapped to your lab's active requirements and collaborate with academic teams.",
+    buttonText: 'Sponsor Projects',
+    buttonBgColor: 'bg-amber-600 hover:bg-amber-700',
+    icon: Briefcase,
+    iconBgColor: 'bg-amber-50 text-amber-600',
+    path: '/register/provider',
+  },
+];
 
 function LandingPage() {
   const navigate = useNavigate();
@@ -51,58 +88,18 @@ function LandingPage() {
 
         {/* Intent-Driven Onboarding Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl px-4">
-          
-          {/* Path A: Students */}
-          <div className="bg-white p-8 rounded-card shadow-sm border border-slate-100 transition-all duration-300 hover:shadow-md hover:-translate-y-1 flex flex-col items-center text-center">
-            <div className="w-16 h-16 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-6">
-              <GraduationCap size={32} />
-            </div>
-            <h2 className="text-xl font-bold text-brand-dark mb-3">Students</h2>
-            <p className="text-slate-500 text-sm leading-relaxed flex-1 mb-6">
-              Launch your career. Discover, apply for, and claim high-impact graduation projects sourced directly from real research initiatives.
-            </p>
-            <button 
-              onClick={() => handleNavigation('/register/student')}
-              className="w-full py-3 bg-primary hover:bg-primary-hover text-white font-semibold rounded-btn transition-colors duration-200 cursor-pointer"
-            >
-              Find a Capstone
-            </button>
-          </div>
-
-          {/* Path B: Faculty Mentors */}
-          <div className="bg-white p-8 rounded-card shadow-sm border border-slate-100 transition-all duration-300 hover:shadow-md hover:-translate-y-1 flex flex-col items-center text-center">
-            <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-6">
-              <Award size={32} />
-            </div>
-            <h2 className="text-xl font-bold text-brand-dark mb-3">Professors</h2>
-            <p className="text-slate-500 text-sm leading-relaxed flex-1 mb-6">
-              Provide academic oversight. Manage mentorship assignments, evaluate research milestones, and guide student success.
-            </p>
-            <button 
-              onClick={() => handleNavigation('/register/professor')}
-              className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-btn transition-colors duration-200 cursor-pointer"
-            >
-              Manage Mentorships
-            </button>
-          </div>
-
-          {/* Path C: Researchers / Providers */}
-          <div className="bg-white p-8 rounded-card shadow-sm border border-slate-100 transition-all duration-300 hover:shadow-md hover:-translate-y-1 flex flex-col items-center text-center">
-            <div className="w-16 h-16 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mb-6">
-              <Briefcase size={32} />
-            </div>
-            <h2 className="text-xl font-bold text-brand-dark mb-3">Researchers</h2>
-            <p className="text-slate-500 text-sm leading-relaxed flex-1 mb-6">
-              Sponsor innovation. Propose project templates mapped to your lab's active requirements and collaborate with academic teams.
-            </p>
-            <button 
-              onClick={() => handleNavigation('/register/provider')}
-              className="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-btn transition-colors duration-200 cursor-pointer"
-            >
-              Sponsor Projects
-            </button>
-          </div>
-
+          {ONBOARDING_CARDS.map((card) => (
+            <OnboardingCard
+              key={card.id}
+              icon={card.icon}
+              iconBgColor={card.iconBgColor}
+              title={card.title}
+              description={card.description}
+              buttonText={card.buttonText}
+              buttonBgColor={card.buttonBgColor}
+              onButtonClick={() => handleNavigation(card.path)}
+            />
+          ))}
         </div>
       </main>
 

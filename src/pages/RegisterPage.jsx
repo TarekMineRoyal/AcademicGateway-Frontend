@@ -1,9 +1,10 @@
 import { useParams, Link, Navigate } from 'react-router-dom';
+import { UserRole } from '../shared/constants/enums';
 import { 
-  StudentRegisterForm, 
-  ProfessorRegisterForm, 
-  ProviderRegisterForm, 
-  useRegisterWizard 
+  useRegisterWizard, 
+  registrationStrategies,
+  RegisterStepCredentials,
+  RegisterStepReview
 } from '../features/identity';
 
 function RegisterPage() {
@@ -38,6 +39,16 @@ function RegisterPage() {
     handleKeyDownEnforcement,
     handleFinalSubmit
   } = wizard;
+
+  // Resolve strategy objects for dynamic form rendering and review display
+  const strategyKey = 
+    userRoleLabel === 'student' ? UserRole.STUDENT :
+    userRoleLabel === 'professor' ? UserRole.PROFESSOR :
+    userRoleLabel === 'provider' ? UserRole.PROVIDER : null;
+
+  const activeStrategy = registrationStrategies[strategyKey];
+  const FormComponent = activeStrategy?.FormComponent;
+  const reviewItems = activeStrategy?.getReviewItems ? activeStrategy.getReviewItems(formValues) : [];
 
   return (
     <div onKeyDown={handleKeyDownEnforcement} className="min-h-screen bg-brand-light py-12 px-4 flex flex-col justify-center items-center font-sans antialiased">
@@ -74,134 +85,30 @@ function RegisterPage() {
           </div>
         )}
 
-        {/* STEP 1: Core Credentials */}
+        {/* STEP 1: Core Credentials Sub-Module */}
         {step === 1 && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2">Core Identity Credentials</h3>
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">Institutional Email Address</label>
-              <input
-                type="email"
-                value={formValues.email}
-                onChange={(e) => handleFieldChange('email', e.target.value)}
-                placeholder="you@university.edu"
-                className="w-full px-3 py-2 border border-slate-200 rounded-btn focus:outline-none focus:border-primary text-sm bg-slate-50/50"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">Security Password</label>
-              <input
-                type="password"
-                value={formValues.password}
-                onChange={(e) => handleFieldChange('password', e.target.value)}
-                placeholder="••••••••"
-                className="w-full px-3 py-2 border border-slate-200 rounded-btn focus:outline-none focus:border-primary text-sm bg-slate-50/50"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">Confirm Security Password</label>
-              <input
-                type="password"
-                value={formValues.confirmPassword}
-                onChange={(e) => handleFieldChange('confirmPassword', e.target.value)}
-                placeholder="••••••••"
-                className="w-full px-3 py-2 border border-slate-200 rounded-btn focus:outline-none focus:border-primary text-sm bg-slate-50/50"
-                required
-              />
-              {formValues.password && formValues.confirmPassword && formValues.password !== formValues.confirmPassword && (
-                <p className="text-xs text-red-500 mt-1 font-medium">Passwords do not align.</p>
-              )}
-            </div>
-          </div>
+          <RegisterStepCredentials 
+            formValues={formValues} 
+            onFieldChange={handleFieldChange} 
+          />
         )}
 
-        {/* STEP 2: Role-Specific Conditional Branching Sub-Modules */}
-        {step === 2 && (
+        {/* STEP 2: Role-Specific Dynamic Strategy Form */}
+        {step === 2 && FormComponent && (
           <div className="space-y-1">
-            {userRoleLabel === 'student' && (
-              <StudentRegisterForm formValues={formValues} onFieldChange={handleFieldChange} />
-            )}
-            {userRoleLabel === 'professor' && (
-              <ProfessorRegisterForm formValues={formValues} onFieldChange={handleFieldChange} />
-            )}
-            {userRoleLabel === 'provider' && (
-              <ProviderRegisterForm formValues={formValues} onFieldChange={handleFieldChange} />
-            )}
+            <FormComponent formValues={formValues} onFieldChange={handleFieldChange} />
           </div>
         )}
 
         {/* STEP 3: Global Payload Review & Submission */}
         {step === 3 && (
-          <form onSubmit={handleFinalSubmit} className="space-y-5">
-            <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2">Review Account Details</h3>
-            
-            {/* Structured Read-Only Context Grid */}
-            <div className="bg-slate-50 border border-slate-100 p-4 rounded-card space-y-3 text-sm">
-              <div>
-                <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Credential Email</span>
-                <span className="text-slate-700 font-medium">{formValues.email}</span>
-              </div>
-
-              {userRoleLabel === 'student' && (
-                <>
-                  <div>
-                    <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Full Name</span>
-                    <span className="text-slate-700 font-medium">{formValues.fullName}</span>
-                  </div>
-                  <div>
-                    <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Target Graduation Year</span>
-                    <span className="text-slate-700 font-medium">{formValues.graduationYear}</span>
-                  </div>
-                </>
-              )}
-
-              {userRoleLabel === 'professor' && (
-                <>
-                  <div>
-                    <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Faculty Identity</span>
-                    <span className="text-slate-700 font-medium">{formValues.fullName}</span>
-                  </div>
-                  <div>
-                    <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Academic Assignment Department</span>
-                    <span className="text-slate-700 font-medium">{formValues.academicDepartment}</span>
-                  </div>
-                  <div>
-                    <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Academic Rank Title</span>
-                    <span className="text-slate-700 font-medium">{formValues.rank}</span>
-                  </div>
-                </>
-              )}
-
-              {userRoleLabel === 'provider' && (
-                <>
-                  <div>
-                    <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Institution / Corporate Title</span>
-                    <span className="text-slate-700 font-medium">{formValues.companyName}</span>
-                  </div>
-                  <div>
-                    <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Portal Verification Website URL</span>
-                    <span className="text-slate-700 font-medium break-all">{formValues.websiteUrl}</span>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Mandatory Action Agreement Control */}
-            <label className="flex items-start space-x-3 cursor-pointer select-none group">
-              <input
-                type="checkbox"
-                checked={acceptedTerms}
-                onChange={(e) => setAcceptedTerms(e.target.checked)}
-                className="mt-1 h-4 w-4 text-primary focus:ring-primary border-slate-300 rounded transition duration-150 ease-in-out"
-                required
-              />
-              <span className="text-xs text-slate-600 leading-tight group-hover:text-slate-800 transition-colors">
-                I accept the mandatory system Terms of Service, platform usage frameworks, and institutional Data Management Agreements.
-              </span>
-            </label>
-          </form>
+          <RegisterStepReview
+            formValues={formValues}
+            reviewItems={reviewItems}
+            acceptedTerms={acceptedTerms}
+            onAcceptedTermsChange={setAcceptedTerms}
+            onSubmit={handleFinalSubmit}
+          />
         )}
 
         {/* Step Footer Navigation Group */}
