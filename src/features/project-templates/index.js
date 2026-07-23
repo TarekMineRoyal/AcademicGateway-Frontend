@@ -8,6 +8,7 @@ export { default as ProjectTemplateDetails } from './components/ProjectTemplateD
 
 // Hooks
 export { useProjectTemplateDetails } from './hooks/useProjectTemplateDetails';
+export { useProjectInitiation } from './hooks/useProjectInitiation';
 
 // API Services
 export {
