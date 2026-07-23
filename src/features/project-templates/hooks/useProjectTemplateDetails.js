@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '../../../shared/api/apiClient';
-import { searchProfessors } from '../../professor/professorApi';
+import { searchProfessors } from '../../professor';
 
 /**
  * Custom hook for fetching template details and searching faculty advisors.

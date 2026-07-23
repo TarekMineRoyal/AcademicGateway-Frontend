@@ -1,9 +1,11 @@
 import React from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
-import StudentRegisterForm from '../features/identity/components/StudentRegisterForm';
-import ProfessorRegisterForm from '../features/identity/components/ProfessorRegisterForm';
-import ProviderRegisterForm from '../features/identity/components/ProviderRegisterForm';
-import { useRegisterWizard } from '../features/identity/hooks/useRegisterWizard';
+import { 
+  StudentRegisterForm, 
+  ProfessorRegisterForm, 
+  ProviderRegisterForm, 
+  useRegisterWizard 
+} from '../features/identity';
 
 function RegisterPage() {
   const { role } = useParams();

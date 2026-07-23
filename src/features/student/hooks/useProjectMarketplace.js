@@ -1,5 +1,5 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { getApprovedTemplates } from '../../project-templates/projectTemplatesApi';
+import { getApprovedTemplates } from '../../project-templates';
 
 /**
  * Custom repository hook managing marketplace project synchronization and caching.

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getMajorsWithSpecialties } from '../../curriculum/curriculumApi';
-import { getSkills } from '../../skills/skillsApi';
+import { getMajorsWithSpecialties } from '../../curriculum';
+import { getSkills } from '../../skills';
 
 const MAX_ABOUT_ME_LENGTH = 2000;
 

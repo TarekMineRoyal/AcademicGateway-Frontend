@@ -2,9 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useProjectMarketplace } from '../hooks/useProjectMarketplace';
-import { useRecommendedProjects } from '../../recommendations/hooks/useRecommendedProjects';
-import { getMajorsWithSpecialties } from '../../curriculum/curriculumApi';
-import { getSkills } from '../../skills/skillsApi';
+import { useRecommendedProjects } from '../../recommendations';
+import { getMajorsWithSpecialties } from '../../curriculum';
+import { getSkills } from '../../skills';
 import { Search, Building2, Code, ArrowUpRight, Inbox, SlidersHorizontal, GraduationCap, Sparkles } from 'lucide-react';
 import SearchableCombobox from '../../../shared/components/SearchableCombobox';
 

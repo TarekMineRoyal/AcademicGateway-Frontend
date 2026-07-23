@@ -4,9 +4,9 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../../context/AuthContext';
 import { useStudentDashboard } from '../hooks/useStudentDashboard';
 import { useUpdateStudentProfile } from '../hooks/useUpdateStudentProfile';
-import { useRecommendedSkills } from '../../recommendations/hooks/useRecommendedSkills';
-import { getMajorsWithSpecialties } from '../../curriculum/curriculumApi';
-import { getSkills } from '../../skills/skillsApi';
+import { useRecommendedSkills } from '../../recommendations';
+import { getMajorsWithSpecialties } from '../../curriculum';
+import { getSkills } from '../../skills';
 import SearchableCombobox from '../../../shared/components/SearchableCombobox';
 
 const MAX_ABOUT_ME_LENGTH = 2000;

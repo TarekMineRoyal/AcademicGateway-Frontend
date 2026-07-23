@@ -1,5 +1,5 @@
 import React from 'react';
-import LoginForm from '../features/identity/components/LoginForm';
+import { LoginForm } from '../features/identity';
 
 function LoginPage() {
   return (
