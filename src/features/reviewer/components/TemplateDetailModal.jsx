@@ -3,27 +3,11 @@ import { getProjectTemplateById } from '../reviewerApi';
 import { adaptMilestones } from '../../../shared/utils/milestoneAdapter';
 import MilestoneVisualizer from '../../../shared/components/milestone/MilestoneVisualizer';
 import { 
-  X, 
-  Layers, 
-  Building2, 
-  GraduationCap, 
-  GitMerge, 
-  Check, 
-  AlertCircle,
-  Clock,
-  Sparkles
+  X, Layers, Building2, GraduationCap, GitMerge, Check, AlertCircle, Clock, Sparkles 
 } from 'lucide-react';
 
 /**
  * Inspection modal for reviewing unapproved project template blueprints.
- * Displays milestones, tasks, dependencies, required skills, and academic alignment.
- * 
- * @param {Object} props
- * @param {string|null} props.templateId - GUID of project template to display
- * @param {boolean} props.isOpen - Controls modal visibility
- * @param {Function} props.onClose - Callback triggered to close modal
- * @param {Function} props.onApprove - Callback triggered to launch approval action
- * @param {Function} props.onReject - Callback triggered to launch rejection action
  */
 export function TemplateDetailModal({
   templateId,

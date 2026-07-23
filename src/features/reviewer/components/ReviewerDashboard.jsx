@@ -1,6 +1,4 @@
-import { useState } from 'react';
-import { usePendingApplications } from '../hooks/usePendingApplications';
-import { usePendingTemplates } from '../hooks/usePendingTemplates';
+import { useReviewerDashboard } from '../hooks/useReviewerDashboard';
 import { ProviderApplicationsQueue } from './ProviderApplicationsQueue';
 import { ProjectTemplatesQueue } from './ProjectTemplatesQueue';
 import { 
@@ -11,14 +9,13 @@ import {
 } from 'lucide-react';
 
 export default function ReviewerDashboard() {
-  const [activeTab, setActiveTab] = useState('applications'); // 'applications' | 'templates'
-
-  // Lightweight fetches to keep top badge metrics dynamically synchronized
-  const { paginatedResult: appResult } = usePendingApplications(1, 1);
-  const { paginatedResult: templateResult } = usePendingTemplates(1, 1);
-
-  const pendingAppsCount = appResult?.totalCount ?? 0;
-  const pendingTemplatesCount = templateResult?.totalCount ?? 0;
+  const {
+    activeTab,
+    showApplications,
+    showTemplates,
+    pendingAppsCount,
+    pendingTemplatesCount,
+  } = useReviewerDashboard();
 
   return (
     <div className="w-full max-w-6xl mx-auto space-y-8 animate-fadeIn">
@@ -43,7 +40,7 @@ export default function ReviewerDashboard() {
       {/* Overview Metric Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div 
-          onClick={() => setActiveTab('applications')}
+          onClick={showApplications}
           className={`p-5 rounded-card border transition-all duration-200 cursor-pointer flex items-center justify-between ${
             activeTab === 'applications'
               ? 'bg-white border-primary shadow-md ring-2 ring-primary/10'
@@ -66,7 +63,7 @@ export default function ReviewerDashboard() {
         </div>
 
         <div 
-          onClick={() => setActiveTab('templates')}
+          onClick={showTemplates}
           className={`p-5 rounded-card border transition-all duration-200 cursor-pointer flex items-center justify-between ${
             activeTab === 'templates'
               ? 'bg-white border-primary shadow-md ring-2 ring-primary/10'
@@ -92,7 +89,7 @@ export default function ReviewerDashboard() {
       {/* Tab Navigation Controls */}
       <div className="border-b border-slate-200 flex gap-2">
         <button
-          onClick={() => setActiveTab('applications')}
+          onClick={showApplications}
           className={`pb-3 px-4 font-bold text-sm border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
             activeTab === 'applications'
               ? 'border-primary text-primary'
@@ -111,7 +108,7 @@ export default function ReviewerDashboard() {
         </button>
 
         <button
-          onClick={() => setActiveTab('templates')}
+          onClick={showTemplates}
           className={`pb-3 px-4 font-bold text-sm border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
             activeTab === 'templates'
               ? 'border-primary text-primary'

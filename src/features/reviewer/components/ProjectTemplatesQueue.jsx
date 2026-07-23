@@ -4,29 +4,17 @@ import { useReviewProjectTemplate } from '../hooks/useReviewMutations';
 import { ReviewActionModal } from './ReviewActionModal';
 import { TemplateDetailModal } from './TemplateDetailModal';
 import { 
-  Layers, 
-  Calendar, 
-  Eye, 
-  Check, 
-  X, 
-  ChevronLeft, 
-  ChevronRight, 
-  AlertCircle,
-  Clock,
-  GraduationCap
+  Layers, Calendar, Eye, Check, X, 
+  ChevronLeft, ChevronRight, AlertCircle, Clock, GraduationCap 
 } from 'lucide-react';
 
 export function ProjectTemplatesQueue() {
   const [pageNumber, setPageNumber] = useState(1);
   const pageSize = 10;
 
-  // Data Query
   const { templates, paginatedResult, isLoading, error, refetch } = usePendingTemplates(pageNumber, pageSize);
-
-  // Review Mutation
   const reviewMutation = useReviewProjectTemplate();
 
-  // Modal States
   const [detailModalTemplateId, setDetailModalTemplateId] = useState(null);
   const [reviewModalState, setReviewModalState] = useState({
     isOpen: false,
@@ -35,19 +23,13 @@ export function ProjectTemplatesQueue() {
   });
   const [mutationError, setMutationError] = useState(null);
 
-  // Pagination bounds safety
   const totalPages = paginatedResult?.totalPages || 1;
   const hasPreviousPage = paginatedResult?.hasPreviousPage ?? pageNumber > 1;
   const hasNextPage = paginatedResult?.hasNextPage ?? pageNumber < totalPages;
 
-  // Trigger Review Modal
   const handleOpenReview = (template, isApproved) => {
     setMutationError(null);
-    setReviewModalState({
-      isOpen: true,
-      template,
-      isApproved,
-    });
+    setReviewModalState({ isOpen: true, template, isApproved });
   };
 
   const handleCloseReview = () => {
@@ -56,7 +38,6 @@ export function ProjectTemplatesQueue() {
     setMutationError(null);
   };
 
-  // Submit Decision
   const handleReviewSubmit = async ({ isApproved, rejectionReason }) => {
     if (!reviewModalState.template) return;
     setMutationError(null);
@@ -96,7 +77,6 @@ export function ProjectTemplatesQueue() {
 
   return (
     <div className="space-y-4">
-      {/* Table Subheader / Record Counter */}
       <div className="flex justify-between items-center text-xs text-slate-500 font-medium pb-2 border-b border-slate-100">
         <span>
           Showing <strong className="text-slate-800">{templates.length}</strong> of{' '}
@@ -107,7 +87,6 @@ export function ProjectTemplatesQueue() {
         </span>
       </div>
 
-      {/* Empty State */}
       {templates.length === 0 ? (
         <div className="p-12 border border-dashed border-slate-200 rounded-xl text-center text-slate-400 space-y-2">
           <Layers size={32} className="mx-auto text-slate-300" />
@@ -115,7 +94,6 @@ export function ProjectTemplatesQueue() {
           <p className="text-xs">There are no project template blueprints awaiting evaluation at this time.</p>
         </div>
       ) : (
-        /* Templates Table */
         <div className="overflow-x-auto rounded-lg border border-slate-200/80">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
@@ -128,13 +106,9 @@ export function ProjectTemplatesQueue() {
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
               {templates.map((template) => {
-                // Key mapping provided by backend team
                 const submissionDate = template.submittedAt || template.createdAt;
-
                 return (
                   <tr key={template.id} className="hover:bg-slate-50/70 transition-colors group">
-                    
-                    {/* Template Title & Overview Column */}
                     <td className="py-3.5 px-4 max-w-sm">
                       <div className="flex items-start gap-3">
                         <div className="w-9 h-9 rounded-lg bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center font-bold shrink-0 mt-0.5">
@@ -148,8 +122,6 @@ export function ProjectTemplatesQueue() {
                         </div>
                       </div>
                     </td>
-
-                    {/* Academic Alignment Column */}
                     <td className="py-3.5 px-4">
                       <div className="space-y-1">
                         {template.majorName ? (
@@ -160,7 +132,6 @@ export function ProjectTemplatesQueue() {
                         ) : (
                           <span className="text-slate-400 text-[11px] italic">General Academic Track</span>
                         )}
-
                         {template.specialtyName && (
                           <div className="text-[11px] text-slate-500 font-medium">
                             Specialty: <span className="text-slate-700 font-semibold">{template.specialtyName}</span>
@@ -168,16 +139,12 @@ export function ProjectTemplatesQueue() {
                         )}
                       </div>
                     </td>
-
-                    {/* Submission Date Column */}
                     <td className="py-3.5 px-4 text-slate-600">
                       <div className="flex items-center gap-1.5 text-xs">
                         <Calendar size={13} className="text-slate-400" />
                         <span>{submissionDate ? new Date(submissionDate).toLocaleDateString() : 'N/A'}</span>
                       </div>
                     </td>
-
-                    {/* Action Buttons Column */}
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
@@ -189,7 +156,6 @@ export function ProjectTemplatesQueue() {
                           <Eye size={14} className="text-slate-500" />
                           <span>Inspect</span>
                         </button>
-
                         <button
                           type="button"
                           onClick={() => handleOpenReview(template, true)}
@@ -199,7 +165,6 @@ export function ProjectTemplatesQueue() {
                           <Check size={14} />
                           <span>Approve</span>
                         </button>
-
                         <button
                           type="button"
                           onClick={() => handleOpenReview(template, false)}
@@ -211,7 +176,6 @@ export function ProjectTemplatesQueue() {
                         </button>
                       </div>
                     </td>
-
                   </tr>
                 );
               })}
@@ -220,7 +184,6 @@ export function ProjectTemplatesQueue() {
         </div>
       )}
 
-      {/* Pagination Bar */}
       {totalPages > 1 && (
         <div className="flex justify-between items-center pt-2">
           <span className="text-xs text-slate-500">
@@ -247,7 +210,6 @@ export function ProjectTemplatesQueue() {
         </div>
       )}
 
-      {/* Detail Inspector Modal */}
       <TemplateDetailModal
         templateId={detailModalTemplateId}
         isOpen={!!detailModalTemplateId}
@@ -262,7 +224,6 @@ export function ProjectTemplatesQueue() {
         }}
       />
 
-      {/* Decision Review Action Modal */}
       <ReviewActionModal
         isOpen={reviewModalState.isOpen}
         onClose={handleCloseReview}

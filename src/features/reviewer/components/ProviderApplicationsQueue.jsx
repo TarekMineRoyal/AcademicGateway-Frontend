@@ -4,29 +4,17 @@ import { useReviewProviderApplication } from '../hooks/useReviewMutations';
 import { ReviewActionModal } from './ReviewActionModal';
 import { ApplicationDetailModal } from './ApplicationDetailModal';
 import { 
-  Building2, 
-  Mail, 
-  Calendar, 
-  Eye, 
-  Check, 
-  X, 
-  ChevronLeft, 
-  ChevronRight, 
-  AlertCircle,
-  Clock
+  Building2, Mail, Calendar, Eye, Check, X, 
+  ChevronLeft, ChevronRight, AlertCircle, Clock 
 } from 'lucide-react';
 
 export function ProviderApplicationsQueue() {
   const [pageNumber, setPageNumber] = useState(1);
   const pageSize = 10;
 
-  // Data Query
   const { applications, paginatedResult, isLoading, error, refetch } = usePendingApplications(pageNumber, pageSize);
-
-  // Review Mutation
   const reviewMutation = useReviewProviderApplication();
 
-  // Modal States
   const [detailModalAppId, setDetailModalAppId] = useState(null);
   const [reviewModalState, setReviewModalState] = useState({
     isOpen: false,
@@ -35,19 +23,13 @@ export function ProviderApplicationsQueue() {
   });
   const [mutationError, setMutationError] = useState(null);
 
-  // Pagination bounds safety
   const totalPages = paginatedResult?.totalPages || 1;
   const hasPreviousPage = paginatedResult?.hasPreviousPage ?? pageNumber > 1;
   const hasNextPage = paginatedResult?.hasNextPage ?? pageNumber < totalPages;
 
-  // Trigger Review Modal
   const handleOpenReview = (app, isApproved) => {
     setMutationError(null);
-    setReviewModalState({
-      isOpen: true,
-      app,
-      isApproved,
-    });
+    setReviewModalState({ isOpen: true, app, isApproved });
   };
 
   const handleCloseReview = () => {
@@ -56,7 +38,6 @@ export function ProviderApplicationsQueue() {
     setMutationError(null);
   };
 
-  // Submit Decision
   const handleReviewSubmit = async ({ isApproved, rejectionReason }) => {
     if (!reviewModalState.app) return;
     setMutationError(null);
@@ -96,7 +77,6 @@ export function ProviderApplicationsQueue() {
 
   return (
     <div className="space-y-4">
-      {/* Table Subheader / Record Counter */}
       <div className="flex justify-between items-center text-xs text-slate-500 font-medium pb-2 border-b border-slate-100">
         <span>
           Showing <strong className="text-slate-800">{applications.length}</strong> of{' '}
@@ -107,7 +87,6 @@ export function ProviderApplicationsQueue() {
         </span>
       </div>
 
-      {/* Empty State */}
       {applications.length === 0 ? (
         <div className="p-12 border border-dashed border-slate-200 rounded-xl text-center text-slate-400 space-y-2">
           <Building2 size={32} className="mx-auto text-slate-300" />
@@ -115,7 +94,6 @@ export function ProviderApplicationsQueue() {
           <p className="text-xs">There are no provider application requests requiring inspection right now.</p>
         </div>
       ) : (
-        /* Applications Table */
         <div className="overflow-x-auto rounded-lg border border-slate-200/80">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
@@ -128,14 +106,11 @@ export function ProviderApplicationsQueue() {
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
               {applications.map((app) => {
-                // Exact key mappings provided by backend team
                 const orgName = app.providerName || app.companyName || 'Unspecified Entity';
                 const submissionDate = app.submittedAt || app.createdAt;
 
                 return (
                   <tr key={app.id} className="hover:bg-slate-50/70 transition-colors group">
-                    
-                    {/* Provider / Organization Column */}
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold shrink-0">
@@ -157,8 +132,6 @@ export function ProviderApplicationsQueue() {
                         </div>
                       </div>
                     </td>
-
-                    {/* Contact Email Column */}
                     <td className="py-3.5 px-4">
                       {app.contactEmail ? (
                         <div className="flex items-center gap-1.5 text-slate-700 font-medium">
@@ -171,16 +144,12 @@ export function ProviderApplicationsQueue() {
                         <span className="text-slate-400 italic">N/A</span>
                       )}
                     </td>
-
-                    {/* Submission Date Column */}
                     <td className="py-3.5 px-4 text-slate-600">
                       <div className="flex items-center gap-1.5 text-xs">
                         <Calendar size={13} className="text-slate-400" />
                         <span>{submissionDate ? new Date(submissionDate).toLocaleDateString() : 'N/A'}</span>
                       </div>
                     </td>
-
-                    {/* Action Buttons Column */}
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
@@ -192,7 +161,6 @@ export function ProviderApplicationsQueue() {
                           <Eye size={14} className="text-slate-500" />
                           <span>Inspect</span>
                         </button>
-
                         <button
                           type="button"
                           onClick={() => handleOpenReview(app, true)}
@@ -202,7 +170,6 @@ export function ProviderApplicationsQueue() {
                           <Check size={14} />
                           <span>Approve</span>
                         </button>
-
                         <button
                           type="button"
                           onClick={() => handleOpenReview(app, false)}
@@ -214,7 +181,6 @@ export function ProviderApplicationsQueue() {
                         </button>
                       </div>
                     </td>
-
                   </tr>
                 );
               })}
@@ -223,7 +189,6 @@ export function ProviderApplicationsQueue() {
         </div>
       )}
 
-      {/* Pagination Bar */}
       {totalPages > 1 && (
         <div className="flex justify-between items-center pt-2">
           <span className="text-xs text-slate-500">
@@ -250,7 +215,6 @@ export function ProviderApplicationsQueue() {
         </div>
       )}
 
-      {/* Detail Inspector Modal */}
       <ApplicationDetailModal
         applicationId={detailModalAppId}
         isOpen={!!detailModalAppId}
@@ -265,7 +229,6 @@ export function ProviderApplicationsQueue() {
         }}
       />
 
-      {/* Decision Review Action Modal */}
       <ReviewActionModal
         isOpen={reviewModalState.isOpen}
         onClose={handleCloseReview}

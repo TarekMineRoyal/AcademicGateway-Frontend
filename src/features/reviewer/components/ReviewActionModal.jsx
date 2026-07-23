@@ -3,18 +3,6 @@ import { X, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 
 /**
  * Reusable action modal for reviewing (approving or rejecting) items.
- * Enforces business rules:
- *  - Approval: Prompts simple confirmation.
- *  - Rejection: Mandates non-empty/non-whitespace rejectionReason text area.
- * 
- * @param {Object} props
- * @param {boolean} props.isOpen - Controls modal visibility.
- * @param {Function} props.onClose - Callback triggered to dismiss the modal.
- * @param {Function} props.onSubmit - Callback triggered with { isApproved, rejectionReason }.
- * @param {boolean} props.isApproved - True if approving, false if rejecting.
- * @param {string} [props.targetTitle] - Name/title of item being reviewed for context.
- * @param {boolean} [props.isSubmitting=false] - Loading indicator state during API call.
- * @param {string|null} [props.error=null] - Backend error message if review request fails.
  */
 export function ReviewActionModal({
   isOpen,
@@ -33,9 +21,7 @@ export function ReviewActionModal({
   if (isOpen !== prevIsOpen || isApproved !== prevIsApproved) {
     setPrevIsOpen(isOpen);
     setPrevIsApproved(isApproved);
-    if (isOpen) {
-      setRejectionReason('');
-    }
+    if (isOpen) setRejectionReason('');
   }
 
   if (!isOpen) return null;
@@ -85,14 +71,12 @@ export function ReviewActionModal({
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
           <div className="p-6 overflow-y-auto space-y-4">
             
-            {/* Context Item Title */}
             {targetTitle && (
               <p className="text-xs text-slate-500 font-medium">
                 Target: <span className="text-slate-800 font-semibold">{targetTitle}</span>
               </p>
             )}
 
-            {/* Error Display */}
             {error && (
               <div className="flex gap-2 items-start text-red-700 bg-red-50 border border-red-200 p-3 rounded-lg text-xs font-medium">
                 <AlertCircle size={16} className="shrink-0 mt-0.5 text-red-600" />
@@ -100,13 +84,11 @@ export function ReviewActionModal({
               </div>
             )}
 
-            {/* Approval Flow Confirmation Text */}
             {isApproved ? (
               <p className="text-slate-600 text-sm leading-relaxed">
                 Are you sure you want to approve this submission? Once approved, the submitter will be notified and granted access to the platform.
               </p>
             ) : (
-              /* Rejection Flow Text Area */
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                   Reason for Rejection <span className="text-rose-500">*</span>

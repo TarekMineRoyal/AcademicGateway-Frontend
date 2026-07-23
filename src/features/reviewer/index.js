@@ -13,6 +13,7 @@ export {
 // ==========================================
 // 2. Custom Hooks
 // ==========================================
+export { useReviewerDashboard } from './hooks/useReviewerDashboard';
 export { useApplicationDetails } from './hooks/useApplicationDetails';
 export { usePendingApplications } from './hooks/usePendingApplications';
 export { usePendingTemplates } from './hooks/usePendingTemplates';
