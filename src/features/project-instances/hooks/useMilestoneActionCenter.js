@@ -1,13 +1,15 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getMilestoneComments } from '../projectInstancesApi';
-import { useSubmitTaskDeliverable } from './useSubmitTaskDeliverable';
 import { usePostMilestoneComment } from './usePostMilestoneComment';
 import { LocalTaskStatus } from '../../../shared/constants/enums';
+import { useToast } from '../../../shared/hooks/useToast';
+import { useScrollToView } from '../../../shared/hooks/useScrollToView';
+import { useTaskSubmissions } from './useTaskSubmissions';
 
 /**
- * Custom hook to manage all local state, server mutations, DOM side-effects,
- * and helper strategies for the Milestone Action Center.
+ * Orchestration hook to coordinate local tab state, comments feed,
+ * and extracted task submission, toast notification, and scroll sub-hooks.
  *
  * @param {string} projectInstanceId - Unique GUID for the running project instance.
  * @param {Object} milestone - Current active milestone data object.
@@ -16,37 +18,38 @@ import { LocalTaskStatus } from '../../../shared/constants/enums';
 export function useMilestoneActionCenter({ projectInstanceId, milestone, project }) {
   const [activeTab, setActiveTab] = useState('tasks'); // 'tasks' or 'feed'
   const [commentInput, setCommentInput] = useState('');
-  const [submissionPayloads, setSubmissionPayloads] = useState({});
-  const [editingTasks, setEditingTasks] = useState({}); // Tracks active edit modes per task
-  const [toast, setToast] = useState(null);
-  const chatEndRef = useRef(null);
 
-  // 1. Declarative Server-State Isolation
+  // 1. Toast Notification Sub-Hook
+  const { toast, showToast } = useToast();
+
+  // 2. Task Submissions & Deliverables Sub-Hook
+  const {
+    submissionPayloads,
+    editingTasks,
+    handlePayloadChange,
+    handleStartEditTask,
+    handleCancelEditTask,
+    handleTaskSubmit,
+    isTaskSubmitting,
+  } = useTaskSubmissions({
+    projectInstanceId,
+    milestone,
+    showToast,
+  });
+
+  // 3. Comments Server-State Isolation
   const { data: comments = [], isLoading: loadingComments } = useQuery({
     queryKey: ['milestoneComments', projectInstanceId, milestone?.id],
     queryFn: () => getMilestoneComments(projectInstanceId, milestone.id),
     enabled: !!milestone?.id && activeTab === 'feed',
   });
 
-  const submitTaskMutation = useSubmitTaskDeliverable(projectInstanceId);
   const postCommentMutation = usePostMilestoneComment(projectInstanceId);
 
-  // Auto-dismiss toast notification after 4 seconds
-  useEffect(() => {
-    if (toast) {
-      const timer = setTimeout(() => setToast(null), 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [toast]);
+  // 4. DOM Side-Effect Abstraction (Scroll to chat feed end)
+  const chatEndRef = useScrollToView([comments, activeTab], activeTab === 'feed');
 
-  // Smooth scroll to the latest chat feed message
-  useEffect(() => {
-    if (activeTab === 'feed' && chatEndRef.current) {
-      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [comments, activeTab]);
-
-  // Strict Contracts: Helper strategies
+  // Helper Strategies
   const getAuthorName = (comment) => {
     if (!project) return comment.authorIdentitySnapshot;
     if (comment.authorId === project.studentId) {
@@ -92,52 +95,6 @@ export function useMilestoneActionCenter({ projectInstanceId, milestone, project
     }
   };
 
-  const isTaskSubmitting = (taskId) => 
-    submitTaskMutation.isPending && submitTaskMutation.variables?.taskId === taskId;
-
-  // Task Deliverable Actions
-  const handlePayloadChange = (taskId, value) => {
-    setSubmissionPayloads((prev) => ({
-      ...prev,
-      [taskId]: value,
-    }));
-  };
-
-  const handleStartEditTask = (task) => {
-    setEditingTasks((prev) => ({ ...prev, [task.id]: true }));
-    setSubmissionPayloads((prev) => ({ ...prev, [task.id]: task.submittedUrl || '' }));
-  };
-
-  const handleCancelEditTask = (taskId) => {
-    setEditingTasks((prev) => ({ ...prev, [taskId]: false }));
-  };
-
-  const handleTaskSubmit = (taskId) => {
-    const textValue = (submissionPayloads[taskId] || '').trim();
-    if (!textValue) {
-      setToast({ type: 'error', text: 'Please provide a valid submission URL.' });
-      return;
-    }
-    submitTaskMutation.mutate({
-      milestoneId: milestone.id,
-      taskId,
-      submissionPayload: textValue
-    }, {
-      onSuccess: () => {
-        setToast({ type: 'success', text: 'Task submitted successfully! Roadmaps updated.' });
-        setSubmissionPayloads((prev) => {
-          const next = { ...prev };
-          delete next[taskId];
-          return next;
-        });
-        setEditingTasks((prev) => ({ ...prev, [taskId]: false }));
-      },
-      onError: () => {
-        setToast({ type: 'error', text: 'Failed to submit deliverable. Please try again.' });
-      }
-    });
-  };
-
   // Discussion Feed Actions
   const handleSendMessage = (e) => {
     if (e && e.preventDefault) e.preventDefault();
@@ -150,7 +107,7 @@ export function useMilestoneActionCenter({ projectInstanceId, milestone, project
         setCommentInput('');
       },
       onError: () => {
-        setToast({ type: 'error', text: 'Message failed to send. Please check your connection.' });
+        showToast({ type: 'error', text: 'Message failed to send. Please check your connection.' });
       }
     });
   };
