@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import { getMilestoneSequenceInfo } from './utils/milestoneUtils';
 
 /**
  * KanbanMilestoneCard
@@ -39,18 +40,15 @@ export function KanbanMilestoneCard({ milestone, isSelected, isLocked, onClick, 
       {isLocked && milestone.prerequisiteIds && milestone.prerequisiteIds.length > 0 && (
         <div className="mt-3 pt-2.5 border-t border-dashed border-slate-100 flex flex-wrap items-center gap-1.5">
           {milestone.prerequisiteIds.map((predId) => {
-            // Match prerequisite ID against the master milestones array to discover 1-indexed sequential positions and titles
-            const masterIndex = allMilestones.findIndex(m => m.id === predId);
-            const milestoneSequenceNum = masterIndex !== -1 ? masterIndex + 1 : '?';
-            const blockerTitle = masterIndex !== -1 ? allMilestones[masterIndex].title : 'Unknown Milestone';
+            const { sequenceNum, title } = getMilestoneSequenceInfo(allMilestones, predId);
 
             return (
               <span
                 key={predId}
                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-bold uppercase"
-                title={`Blocked by: ${blockerTitle}`}
+                title={`Blocked by: ${title}`}
               >
-                🔒 Awaits M{milestoneSequenceNum}: {blockerTitle}
+                🔒 Awaits M{sequenceNum}: {title}
               </span>
             );
           })}
