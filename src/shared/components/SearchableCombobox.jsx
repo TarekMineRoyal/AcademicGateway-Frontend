@@ -1,4 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
+import useOnClickOutside from '../hooks/useOnClickOutside';
+import useKeyDown from '../hooks/useKeyDown';
+import ComboboxBadge from './ComboboxBadge';
 
 /**
  * SearchableCombobox Component
@@ -13,17 +16,19 @@ function SearchableCombobox({ placeholder, options = [], selected, onChange, isM
   // Safely normalize options to support both raw arrays and PaginatedResult<T> objects
   const optionList = Array.isArray(options) ? options : (options?.items || []);
 
-  // Handle clicking outside of the dropdown container to drop active visibility states
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (containerRef.current && !containerRef.current.contains(event.target)) {
-        setIsOpen(false);
-        setSearchQuery('');
-      }
+  // Handle clicking outside of the dropdown container
+  useOnClickOutside(containerRef, () => {
+    setIsOpen(false);
+    setSearchQuery('');
+  });
+
+  // Handle pressing Escape key to close dropdown menu
+  useKeyDown('Escape', () => {
+    if (isOpen) {
+      setIsOpen(false);
+      setSearchQuery('');
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  });
 
   // Filter options down dynamically according to typing input (checking name or fullName)
   const filteredOptions = optionList.filter(option => {
@@ -73,32 +78,18 @@ function SearchableCombobox({ placeholder, options = [], selected, onChange, isM
       >
         {isMulti ? (
           (selected || []).map(item => (
-            <span 
-              key={item.id} 
-              className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs font-semibold px-2 py-0.5 rounded-md"
-            >
-              {getOptionLabel(item)}
-              <button 
-                type="button" 
-                onClick={(e) => handleDismissBadge(e, item)}
-                className="hover:text-primary-hover font-bold ml-0.5 transition-colors cursor-pointer"
-              >
-                ×
-              </button>
-            </span>
+            <ComboboxBadge
+              key={item.id}
+              label={getOptionLabel(item)}
+              onRemove={(e) => handleDismissBadge(e, item)}
+            />
           ))
         ) : (
           selected && (
-            <span className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs font-semibold px-2 py-0.5 rounded-md">
-              {getOptionLabel(selected)}
-              <button 
-                type="button" 
-                onClick={(e) => handleDismissBadge(e, selected)}
-                className="hover:text-primary-hover font-bold ml-0.5 transition-colors cursor-pointer"
-              >
-                ×
-              </button>
-            </span>
+            <ComboboxBadge
+              label={getOptionLabel(selected)}
+              onRemove={(e) => handleDismissBadge(e, selected)}
+            />
           )
         )}
 
