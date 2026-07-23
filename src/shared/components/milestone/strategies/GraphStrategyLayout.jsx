@@ -1,8 +1,11 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
+import PropTypes from 'prop-types';
 import dagre from '@dagrejs/dagre';
 import { ReactFlow, Background, Controls, Handle, Position } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { DependencyType } from '../../../constants/enums';
+import { useKeyDown } from '../../../hooks/useKeyDown';
+import { MilestoneDetailsDrawer } from '../MilestoneDetailsDrawer';
 
 /**
  * CustomMilestoneNode
@@ -37,6 +40,13 @@ function CustomMilestoneNode({ data }) {
     </div>
   );
 }
+
+CustomMilestoneNode.propTypes = {
+  data: PropTypes.shape({
+    title: PropTypes.string,
+    expectedHours: PropTypes.number,
+  }).isRequired,
+};
 
 /**
  * Calculates dynamic coordinate geometries deterministically using Dagre engine.
@@ -151,33 +161,20 @@ export function GraphStrategyLayout({
   // 2. React Flow selection payload adapter
   const handleNodeSelection = (nodeData) => {
     if (isWorkspace) {
-      // Tunnel click directly back to root tracking state[cite: 1]
+      // Tunnel click directly back to root tracking state[cite: 1, 3]
       onSelectMilestone(nodeData.id);
     } else {
-      // Fallback to static descriptive drawer panels solely for model templates preview
+      // Fallback to static descriptive drawer panels solely for model templates preview[cite: 3]
       setActiveMilestoneDetails(nodeData);
     }
   };
 
-  // 3. Document keyboard interception to support safe Escape key dismissals
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.key === 'Escape') {
-        setActiveMilestoneDetails(null);
-      }
-    };
-
+  // 3. Handle keyboard shortcuts using useKeyDown hook[cite: 4]
+  useKeyDown('Escape', () => {
     if (activeMilestoneDetails) {
-      window.addEventListener('keydown', handleKeyDown);
+      setActiveMilestoneDetails(null);
     }
-    
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [activeMilestoneDetails]);
-
-  // 4. Safely resolve backend payload array casing variances for underlying work matrices
-  const associatedTasks = activeMilestoneDetails?.tasks || activeMilestoneDetails?.Tasks || [];
+  });
 
   return (
     <div className="w-full h-[500px] border border-slate-200/60 bg-slate-50/50 rounded-card overflow-hidden relative">
@@ -185,110 +182,28 @@ export function GraphStrategyLayout({
         nodes={visualNodes}
         edges={edges}
         nodeTypes={{ customMilestone: CustomMilestoneNode }}
-        onNodeClick={(event, node) => handleNodeSelection(node.data)} // Native Event binding configuration
-        fitView // Automatically center-zooms to fit the computed DAG matrix neatly on initialization
+        onNodeClick={(event, node) => handleNodeSelection(node.data)} // Native Event binding configuration[cite: 3]
+        fitView // Automatically center-zooms to fit the computed DAG matrix neatly on initialization[cite: 3]
         proOptions={{ hideAttribution: true }}
       >
         <Background color="#cbd5e1" gap={16} size={1} />
         <Controls showInteractive={false} className="shadow-xs border border-slate-200 rounded" />
       </ReactFlow>
 
-      {/* 5. Stateful Slide-Out Premium Floating Card Overlay Container (Template Mode Exclusively) */}
-      {!isWorkspace && activeMilestoneDetails && (
-        <div 
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex justify-end animate-fade-in"
-          onClick={() => setActiveMilestoneDetails(null)} // Seamless background vector backdrop tap dismissal
-        >
-          <div 
-            className="bg-white h-full w-full max-w-md p-6 shadow-2xl border-l border-slate-200 animate-in slide-in-from-right duration-200 flex flex-col"
-            onClick={(e) => e.stopPropagation()} // Stop bubble events from closing drawer unexpectedly on interior interaction
-          >
-            {/* Drawer Section Scroll Container Area */}
-            <div className="overflow-y-auto flex-1 pr-1 space-y-6">
-              
-              {/* Header Context Action Container */}
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-lg font-black text-brand-dark mb-2">
-                    {activeMilestoneDetails.title}
-                  </h3>
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    {activeMilestoneDetails.description || "No supplemental descriptions attached to this blueprint checkpoint blueprint."}
-                  </p>
-                </div>
-                
-                {/* Close Drawer Button */}
-                <button
-                  type="button"
-                  onClick={() => setActiveMilestoneDetails(null)}
-                  className="text-slate-400 hover:text-slate-600 transition-colors duration-150 p-1 rounded-md cursor-pointer ml-4"
-                  aria-label="Dismiss details"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Scope & Effort Analytics Matrix */}
-              <div className="grid grid-cols-2 gap-3.5 border-t border-b border-slate-100 py-4">
-                <div className="bg-slate-50 p-3 border border-slate-100 rounded-lg">
-                  <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
-                    Expected Effort
-                  </span>
-                  <span className="text-xs font-semibold text-slate-700 block">
-                    ⏱️ {activeMilestoneDetails.expectedHours || 0} hrs allocated
-                  </span>
-                </div>
-                
-                <div className="bg-slate-50 p-3 border border-slate-100 rounded-lg">
-                  <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
-                    Deliverable Type
-                  </span>
-                  <span className="text-xs font-semibold text-slate-700 block">
-                    📦 Required: {activeMilestoneDetails.deliverableType || 'None'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Scope Checklist Stack Section */}
-              <div>
-                <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">
-                  Granular Checklist Breakdown
-                </h4>
-                
-                {associatedTasks.length > 0 ? (
-                  <div className="space-y-2">
-                    {associatedTasks.map((task, index) => {
-                      const taskLabel = typeof task === 'string' ? task : (task.title || task.Name || 'Untitled Objective');
-                      return (
-                        <div 
-                          key={task.id || index}
-                          className="flex items-start gap-2.5 p-3 bg-slate-50 border border-slate-100 rounded-lg text-xs font-medium text-slate-600"
-                        >
-                          <input 
-                            type="checkbox" 
-                            disabled 
-                            readOnly
-                            checked={false} 
-                            className="mt-0.5 rounded border-slate-300 text-brand-dark focus:ring-0 opacity-60 pointer-events-none"
-                          />
-                          <span className="leading-tight flex-1">{taskLabel}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  /* Informational Empty Notice State Handle Target */
-                  <div className="p-4 bg-slate-50 border border-slate-100 text-slate-400 rounded-lg text-xs font-medium italic text-center">
-                    No granular tasks attached to this checkpoint blueprint.
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* 4. Stateful Slide-Out Floating Card Overlay Drawer Container (Template Mode Exclusively)[cite: 3] */}
+      {!isWorkspace && (
+        <MilestoneDetailsDrawer
+          milestone={activeMilestoneDetails}
+          onClose={() => setActiveMilestoneDetails(null)}
+        />
       )}
     </div>
   );
 }
+
+GraphStrategyLayout.propTypes = {
+  milestones: PropTypes.array,
+  isWorkspace: PropTypes.bool,
+  selectedMilestoneId: PropTypes.string,
+  onSelectMilestone: PropTypes.func,
+};
