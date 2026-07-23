@@ -2,8 +2,6 @@
  * Helper to safely extract a professor's research interests or specialties array.
  * 
  * @param {Object} professor
- * @param {Array} [professor.researchInterests]
- * @param {Array} [professor.specialties]
  * @returns {Array}
  */
 export function getProfessorInterests(professor = {}) {
@@ -15,9 +13,6 @@ export function getProfessorInterests(professor = {}) {
  * Determines if a professor has reached their supervision capacity or is not accepting projects.
  * 
  * @param {Object} professor
- * @param {number} [professor.currentProjectCount=0]
- * @param {number|null} [professor.maxSupervisionCapacity]
- * @param {boolean} [professor.isAcceptingProjects=true]
  * @returns {boolean}
  */
 export function isProfessorFull(professor = {}) {
@@ -27,16 +22,12 @@ export function isProfessorFull(professor = {}) {
     isAcceptingProjects = true,
   } = professor;
 
-  if (!isAcceptingProjects) {
-    return true;
-  }
-
   const hasLimit =
     maxSupervisionCapacity !== undefined &&
     maxSupervisionCapacity !== null &&
     Number(maxSupervisionCapacity) > 0;
 
-  return hasLimit && Number(currentProjectCount) >= Number(maxSupervisionCapacity);
+  return !isAcceptingProjects || (hasLimit && Number(currentProjectCount) >= Number(maxSupervisionCapacity));
 }
 
 /**
@@ -46,19 +37,16 @@ export function isProfessorFull(professor = {}) {
  * @param {string|null} primaryDiscipline
  * @returns {boolean}
  */
-export function isDomainExpert(professor = {}, primaryDiscipline = '') {
+export function isDomainExpert(professor = {}, primaryDiscipline) {
   if (!primaryDiscipline) return false;
 
-  const interests = getProfessorInterests(professor);
-  const targetDiscipline = primaryDiscipline.toLowerCase();
+  const profInterests = getProfessorInterests(professor);
 
-  return interests.some((spec) => {
-    const specStr = typeof spec === 'object' ? spec.name || '' : String(spec);
-    if (!specStr) return false;
-    const normalizedSpec = specStr.toLowerCase();
+  return profInterests.some((spec) => {
+    const specStr = typeof spec === 'object' ? (spec.name || '') : String(spec);
     return (
-      normalizedSpec.includes(targetDiscipline) ||
-      targetDiscipline.includes(normalizedSpec)
+      specStr.toLowerCase().includes(primaryDiscipline.toLowerCase()) ||
+      primaryDiscipline.toLowerCase().includes(specStr.toLowerCase())
     );
   });
 }
