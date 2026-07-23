@@ -44,72 +44,124 @@ export const router = createBrowserRouter([
         path: "/dashboard",
         element: <WorkspaceLayout />,
         children: [
-          /* Dynamic Index Route: Renders role-specific dashboard */
+          /* Dynamic Index Route: Renders role-specific dashboard for any authenticated user */
           {
             index: true,
             element: <RoleDashboardIndex />
           },
-          {
-            path: "profile",
-            element: <StudentProfile />
-          },
 
           /* Student Specific Sub-routes */
           {
+            path: "profile",
+            element: (
+              <ProtectedRoute allowedRoles={[UserRole.STUDENT]}>
+                <StudentProfile />
+              </ProtectedRoute>
+            )
+          },
+          {
             path: "marketplace",
-            element: <ProjectMarketplace />
+            element: (
+              <ProtectedRoute allowedRoles={[UserRole.STUDENT]}>
+                <ProjectMarketplace />
+              </ProtectedRoute>
+            )
           },
           {
             path: "marketplace/:templateId",
-            element: <ProjectTemplateDetailsPage />
+            element: (
+              <ProtectedRoute allowedRoles={[UserRole.STUDENT]}>
+                <ProjectTemplateDetailsPage />
+              </ProtectedRoute>
+            )
           },
 
           /* Reviewer Specific Sub-routes */
           {
             path: "reviewer",
-            element: <ReviewerDashboardPage />
+            element: (
+              <ProtectedRoute allowedRoles={[UserRole.REVIEWER, UserRole.ADMINISTRATOR]}>
+                <ReviewerDashboardPage />
+              </ProtectedRoute>
+            )
           },
 
           /* Professor Specific Sub-routes */
           {
             path: "supervision-requests",
-            element: <PlaceholderView title="Incoming Supervision Vetting Board" />
+            element: (
+              <ProtectedRoute allowedRoles={[UserRole.PROFESSOR]}>
+                <PlaceholderView title="Incoming Supervision Vetting Board" />
+              </ProtectedRoute>
+            )
           },
           {
             path: "active-projects",
-            element: <PlaceholderView title="Faculty Mentorship Supervision Console" />
+            element: (
+              <ProtectedRoute allowedRoles={[UserRole.PROFESSOR]}>
+                <PlaceholderView title="Faculty Mentorship Supervision Console" />
+              </ProtectedRoute>
+            )
           },
           {
             path: "capacity",
-            element: <PlaceholderView title="Threshold Allocation & Capacity Management" />
+            element: (
+              <ProtectedRoute allowedRoles={[UserRole.PROFESSOR]}>
+                <PlaceholderView title="Threshold Allocation & Capacity Management" />
+              </ProtectedRoute>
+            )
           },
 
           /* Provider Specific Sub-routes */
           {
             path: "propose-template",
-            element: <PlaceholderView title="R&D Capability Template Proposer Form" />
+            element: (
+              <ProtectedRoute allowedRoles={[UserRole.PROVIDER]}>
+                <PlaceholderView title="R&D Capability Template Proposer Form" />
+              </ProtectedRoute>
+            )
           },
           {
             path: "my-templates",
-            element: <PlaceholderView title="Sponsor Blueprint Proposal Inventory" />
+            element: (
+              <ProtectedRoute allowedRoles={[UserRole.PROVIDER]}>
+                <PlaceholderView title="Sponsor Blueprint Proposal Inventory" />
+              </ProtectedRoute>
+            )
           },
           {
             path: "lab-groups",
-            element: <PlaceholderView title="Active Co-Managed Experimental Lab Channels" />
+            element: (
+              <ProtectedRoute allowedRoles={[UserRole.PROVIDER]}>
+                <PlaceholderView title="Active Co-Managed Experimental Lab Channels" />
+              </ProtectedRoute>
+            )
           },
 
           /* Administrator Specific Sub-routes */
           {
             path: "approve-templates",
-            element: <PlaceholderView title="Global Project Verification Board" />
+            element: (
+              <ProtectedRoute allowedRoles={[UserRole.ADMINISTRATOR]}>
+                <PlaceholderView title="Global Project Verification Board" />
+              </ProtectedRoute>
+            )
           },
           {
             path: "verify-providers",
-            element: <PlaceholderView title="External Institutional Sponsor Vetting Board" />
+            element: (
+              <ProtectedRoute allowedRoles={[UserRole.ADMINISTRATOR]}>
+                <PlaceholderView title="External Institutional Sponsor Vetting Board" />
+              </ProtectedRoute>
+            )
           },
           {
             path: "users",
-            element: <PlaceholderView title="Global User Core Account Directory" />
+            element: (
+              <ProtectedRoute allowedRoles={[UserRole.ADMINISTRATOR]}>
+                <PlaceholderView title="Global User Core Account Directory" />
+              </ProtectedRoute>
+            )
           }
         ]
       },
@@ -118,7 +170,11 @@ export const router = createBrowserRouter([
         children: [
           {
             path: "/workspace/projects/:projectInstanceId",
-            element: <ProjectWorkspacePage />
+            element: (
+              <ProtectedRoute allowedRoles={[UserRole.STUDENT, UserRole.PROFESSOR]}>
+                <ProjectWorkspacePage />
+              </ProtectedRoute>
+            )
           }
         ]
       }

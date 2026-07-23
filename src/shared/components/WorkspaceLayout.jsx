@@ -1,6 +1,6 @@
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContextCore';
-import { navigationConfig } from '../config/navigationConfig';
+import { getNavigationForRole } from '../config/navigationConfig';
 import { 
   LayoutDashboard, 
   BookOpen, 
@@ -13,7 +13,8 @@ import {
   PlusCircle,
   CheckCircle,
   User,
-  LogOut 
+  LogOut,
+  Building
 } from 'lucide-react';
 
 // Maps configuration string tokens cleanly back to imported Lucide component constructors
@@ -28,7 +29,8 @@ const IconComponents = {
   Zap,
   PlusCircle,
   CheckCircle,
-  User
+  User,
+  Building
 };
 
 function WorkspaceLayout() {
@@ -40,8 +42,8 @@ function WorkspaceLayout() {
     navigate('/login');
   };
 
-  // Resolve active navigation array implicitly via the metadata registry mapping matrix
-  const links = navigationConfig[user?.role] || [];
+  // Resolve active navigation array cleanly via central getNavigationForRole getter function
+  const links = getNavigationForRole(user?.role);
 
   return (
     <div className="h-screen w-screen flex overflow-hidden bg-brand-light font-sans">

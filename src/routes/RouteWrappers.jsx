@@ -15,21 +15,22 @@ export const PlaceholderView = ({ title }) => (
 /**
  * Smart Role-Based Index Switcher
  * Resolves the primary dashboard view dynamically for the authenticated user's role.
+ * Employs case-insensitive role token evaluation for bulletproof RBAC resolution.
  */
 export const RoleDashboardIndex = () => {
   const { user } = useAuth();
-  const userRole = user?.role;
+  const normalizedRole = String(user?.role || '').toLowerCase();
 
-  switch (userRole) {
-    case UserRole.STUDENT:
+  switch (normalizedRole) {
+    case UserRole.STUDENT.toLowerCase():
       return <StudentDashboardPage />;
-    case UserRole.REVIEWER:
+    case UserRole.REVIEWER.toLowerCase():
       return <ReviewerDashboardPage />;
-    case UserRole.PROFESSOR:
+    case UserRole.PROFESSOR.toLowerCase():
       return <PlaceholderView title="Faculty Supervision Console" />;
-    case UserRole.PROVIDER:
+    case UserRole.PROVIDER.toLowerCase():
       return <PlaceholderView title="Sponsor Blueprint Proposal Inventory" />;
-    case UserRole.ADMINISTRATOR:
+    case UserRole.ADMINISTRATOR.toLowerCase():
       return <PlaceholderView title="Global Project Verification Board" />;
     default:
       return <Navigate to="/" replace />;

@@ -3,16 +3,17 @@ import { useAuth } from '../context/AuthContextCore';
 
 /**
  * Route guard component to secure endpoints based on session validity and JWT claims.
- * Refactored to act as a native layout component via <Outlet /> per Ticket-06 architecture.
- * 
+ * Supports both nested route layout rendering (<Outlet />) and direct component wrapping (children).
+ *
  * @param {Object} props
- * @param {string[]} props.allowedRoles - Collection of roles authorized to pass this route guard.
+ * @param {string[]} [props.allowedRoles] - Collection of roles authorized to pass this route guard.
+ * @param {React.ReactNode} [props.children] - Optional child elements to render when authorized.
  */
-export default function ProtectedRoute({ allowedRoles }) {
+export default function ProtectedRoute({ allowedRoles, children }) {
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  // Guard 1: Prevent route evaluation flashes while the global context is parsing the local storage token
+  // Guard 1: Prevent route evaluation flashes while global auth context is parsing token
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f8f9fa' }}>
@@ -23,23 +24,24 @@ export default function ProtectedRoute({ allowedRoles }) {
     );
   }
 
-  // Guard 2: If no valid identity session token exists, bounce the browser to the unified login page
-  // Preserves the user's deep-link destination location state so they can return post-authentication
+  // Guard 2: If no valid identity session token exists, redirect to login page
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Guard 3: If explicit role boundaries are provided, verify the user's claim matches
+  // Guard 3: Validate role authorization against allowedRoles array
   if (allowedRoles && allowedRoles.length > 0) {
-    const userRole = user.role?.toLowerCase();
-    const isAuthorized = allowedRoles.map(role => role.toLowerCase()).includes(userRole);
+    const userRole = String(user.role || '').toLowerCase();
+    const isAuthorized = allowedRoles.some(
+      (role) => String(role).toLowerCase() === userRole
+    );
 
-    // If an authenticated user attempts to access a resource outside their domain, block access
+    // If authenticated user attempts to access an unauthorized route, redirect immediately to /dashboard
     if (!isAuthorized) {
-      return <Navigate to="/" replace />;
+      return <Navigate to="/dashboard" replace />;
     }
   }
 
-  // Render the nested child routes cleanly via React Router layout rendering
-  return <Outlet />;
+  // Render direct children if provided, otherwise render nested routes via Outlet
+  return children ? children : <Outlet />;
 }
