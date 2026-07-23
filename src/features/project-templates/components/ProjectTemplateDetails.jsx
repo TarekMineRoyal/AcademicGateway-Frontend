@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useProjectTemplateDetails } from '../hooks/useProjectTemplateDetails';
 import { useProjectInitiation } from '../hooks/useProjectInitiation';
 import TemplateHeader from './TemplateHeader';
@@ -9,8 +9,7 @@ import { adaptMilestones } from '../../../shared/utils/milestoneAdapter';
 import { ProjectTemplateStatus } from '../../../shared/constants/enums';
 import { ArrowLeft, GitMerge, AlertCircle } from 'lucide-react';
 
-function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoading = false }) {
-  const { templateId } = useParams();
+function ProjectTemplateDetails({ templateId, userSkills = [], isStudent = false, skillsLoading = false }) {
   const navigate = useNavigate();
   
   const initiation = useProjectInitiation(templateId);

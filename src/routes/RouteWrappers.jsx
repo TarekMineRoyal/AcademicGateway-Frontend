@@ -1,8 +1,6 @@
 import { Navigate } from 'react-router-dom';
-import { StudentDashboard } from '../features/student';
-import { ProjectTemplateDetails } from '../features/project-templates';
-import { ReviewerDashboard } from '../features/reviewer';
-import { useUserSkills } from '../features/skills';
+import StudentDashboardPage from '../pages/StudentDashboardPage';
+import ReviewerDashboardPage from '../pages/ReviewerDashboardPage';
 import { useAuth } from '../context/AuthContextCore';
 import { UserRole } from '../shared/constants/enums';
 
@@ -15,27 +13,6 @@ export const PlaceholderView = ({ title }) => (
 );
 
 /**
- * Intermediary Route Wrapper to enforce true Inversion of Control (IoC).
- * Consumes normalized session identity state and hooks data cleanly down the pipe.
- */
-export const ProjectTemplateDetailsRouteWrapper = () => {
-  const { user } = useAuth();
-  const userId = user?.id;
-  const isStudent = user?.role === UserRole.STUDENT;
-  
-  // Call our refactored, role-agnostic query engine
-  const { data: userSkills = [], isLoading } = useUserSkills(userId);
-  
-  return (
-    <ProjectTemplateDetails 
-      userSkills={userSkills}
-      isStudent={isStudent}
-      skillsLoading={isLoading}
-    />
-  );
-};
-
-/**
  * Smart Role-Based Index Switcher
  * Resolves the primary dashboard view dynamically for the authenticated user's role.
  */
@@ -45,9 +22,9 @@ export const RoleDashboardIndex = () => {
 
   switch (userRole) {
     case UserRole.STUDENT:
-      return <StudentDashboard />;
+      return <StudentDashboardPage />;
     case UserRole.REVIEWER:
-      return <ReviewerDashboard />;
+      return <ReviewerDashboardPage />;
     case UserRole.PROFESSOR:
       return <PlaceholderView title="Faculty Supervision Console" />;
     case UserRole.PROVIDER:

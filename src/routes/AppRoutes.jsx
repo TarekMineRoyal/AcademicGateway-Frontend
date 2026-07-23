@@ -2,13 +2,14 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import LandingPage from '../pages/LandingPage';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
+import ReviewerDashboardPage from '../pages/ReviewerDashboardPage';
+import ProjectTemplateDetailsPage from '../pages/ProjectTemplateDetailsPage';
+import ProjectWorkspacePage from '../pages/ProjectWorkspacePage';
 import ProtectedRoute from './ProtectedRoute';
 import WorkspaceLayout from '../shared/components/WorkspaceLayout';
 import { StudentProfile, ProjectMarketplace } from '../features/student';
-import { ReviewerDashboard } from '../features/reviewer';
 import { UserRole } from '../shared/constants/enums';
-import { ProjectWorkspace } from '../features/project-instances';
-import { PlaceholderView, ProjectTemplateDetailsRouteWrapper, RoleDashboardIndex } from './RouteWrappers';
+import { PlaceholderView, RoleDashboardIndex } from './RouteWrappers';
 
 // Static Router Export allowing network interceptors to control routing outside standard React hooks
 export const router = createBrowserRouter([
@@ -60,13 +61,13 @@ export const router = createBrowserRouter([
           },
           {
             path: "marketplace/:templateId",
-            element: <ProjectTemplateDetailsRouteWrapper />
+            element: <ProjectTemplateDetailsPage />
           },
 
           /* Reviewer Specific Sub-routes */
           {
             path: "reviewer",
-            element: <ReviewerDashboard />
+            element: <ReviewerDashboardPage />
           },
 
           /* Professor Specific Sub-routes */
@@ -117,7 +118,7 @@ export const router = createBrowserRouter([
         children: [
           {
             path: "/workspace/projects/:projectInstanceId",
-            element: <ProjectWorkspace />
+            element: <ProjectWorkspacePage />
           }
         ]
       }

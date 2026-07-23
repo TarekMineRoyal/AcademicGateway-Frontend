@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react';
+import { useNavigate } from 'react';
 import { useProjectWorkspace } from '../hooks/useProjectWorkspace';
 import MilestoneActionCenter from './MilestoneActionCenter';
 import MilestoneVisualizer from '../../../shared/components/milestone/MilestoneVisualizer';
@@ -14,8 +14,7 @@ import {
   CheckCircle
 } from 'lucide-react'; 
 
-export default function ProjectWorkspace() {
-  const { projectInstanceId } = useParams(); 
+export default function ProjectWorkspace({ projectInstanceId }) {
   const navigate = useNavigate(); 
 
   // Consume our encapsulated workspace state & logic hook
