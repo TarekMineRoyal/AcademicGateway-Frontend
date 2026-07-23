@@ -2,12 +2,17 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import LandingPage from '../pages/LandingPage';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
+import StudentProfilePage from '../pages/StudentProfilePage';
+import ProjectMarketplacePage from '../pages/ProjectMarketplacePage';
 import ReviewerDashboardPage from '../pages/ReviewerDashboardPage';
+import AdministratorDashboardPage from '../pages/AdministratorDashboardPage';
+import ProviderDashboardPage from '../pages/ProviderDashboardPage';
+import ProfessorDashboardPage from '../pages/ProfessorDashboardPage';
+import TechSupportDashboardPage from '../pages/TechSupportDashboardPage';
 import ProjectTemplateDetailsPage from '../pages/ProjectTemplateDetailsPage';
 import ProjectWorkspacePage from '../pages/ProjectWorkspacePage';
 import ProtectedRoute from './ProtectedRoute';
 import WorkspaceLayout from '../shared/components/WorkspaceLayout';
-import { StudentProfile, ProjectMarketplace } from '../features/student';
 import { UserRole } from '../shared/constants/enums';
 import { PlaceholderView, RoleDashboardIndex } from './RouteWrappers';
 
@@ -35,7 +40,8 @@ export const router = createBrowserRouter([
           UserRole.PROFESSOR, 
           UserRole.PROVIDER, 
           UserRole.ADMINISTRATOR, 
-          UserRole.REVIEWER
+          UserRole.REVIEWER,
+          UserRole.TECH_SUPPORT
         ]} 
       />
     ), 
@@ -55,7 +61,7 @@ export const router = createBrowserRouter([
             path: "profile",
             element: (
               <ProtectedRoute allowedRoles={[UserRole.STUDENT]}>
-                <StudentProfile />
+                <StudentProfilePage />
               </ProtectedRoute>
             )
           },
@@ -63,7 +69,7 @@ export const router = createBrowserRouter([
             path: "marketplace",
             element: (
               <ProtectedRoute allowedRoles={[UserRole.STUDENT]}>
-                <ProjectMarketplace />
+                <ProjectMarketplacePage />
               </ProtectedRoute>
             )
           },
@@ -87,6 +93,14 @@ export const router = createBrowserRouter([
           },
 
           /* Professor Specific Sub-routes */
+          {
+            path: "professor",
+            element: (
+              <ProtectedRoute allowedRoles={[UserRole.PROFESSOR]}>
+                <ProfessorDashboardPage />
+              </ProtectedRoute>
+            )
+          },
           {
             path: "supervision-requests",
             element: (
@@ -114,6 +128,14 @@ export const router = createBrowserRouter([
 
           /* Provider Specific Sub-routes */
           {
+            path: "provider",
+            element: (
+              <ProtectedRoute allowedRoles={[UserRole.PROVIDER]}>
+                <ProviderDashboardPage />
+              </ProtectedRoute>
+            )
+          },
+          {
             path: "propose-template",
             element: (
               <ProtectedRoute allowedRoles={[UserRole.PROVIDER]}>
@@ -140,6 +162,14 @@ export const router = createBrowserRouter([
 
           /* Administrator Specific Sub-routes */
           {
+            path: "administrator",
+            element: (
+              <ProtectedRoute allowedRoles={[UserRole.ADMINISTRATOR]}>
+                <AdministratorDashboardPage />
+              </ProtectedRoute>
+            )
+          },
+          {
             path: "approve-templates",
             element: (
               <ProtectedRoute allowedRoles={[UserRole.ADMINISTRATOR]}>
@@ -160,6 +190,16 @@ export const router = createBrowserRouter([
             element: (
               <ProtectedRoute allowedRoles={[UserRole.ADMINISTRATOR]}>
                 <PlaceholderView title="Global User Core Account Directory" />
+              </ProtectedRoute>
+            )
+          },
+
+          /* Tech Support Specific Sub-routes */
+          {
+            path: "tech-support",
+            element: (
+              <ProtectedRoute allowedRoles={[UserRole.TECH_SUPPORT]}>
+                <TechSupportDashboardPage />
               </ProtectedRoute>
             )
           }

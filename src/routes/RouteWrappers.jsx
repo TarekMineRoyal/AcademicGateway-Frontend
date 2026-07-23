@@ -1,6 +1,10 @@
 import { Navigate } from 'react-router-dom';
 import StudentDashboardPage from '../pages/StudentDashboardPage';
 import ReviewerDashboardPage from '../pages/ReviewerDashboardPage';
+import AdministratorDashboardPage from '../pages/AdministratorDashboardPage';
+import ProviderDashboardPage from '../pages/ProviderDashboardPage';
+import ProfessorDashboardPage from '../pages/ProfessorDashboardPage';
+import TechSupportDashboardPage from '../pages/TechSupportDashboardPage';
 import { useAuth } from '../context/AuthContextCore';
 import { UserRole } from '../shared/constants/enums';
 
@@ -27,11 +31,13 @@ export const RoleDashboardIndex = () => {
     case UserRole.REVIEWER.toLowerCase():
       return <ReviewerDashboardPage />;
     case UserRole.PROFESSOR.toLowerCase():
-      return <PlaceholderView title="Faculty Supervision Console" />;
+      return <ProfessorDashboardPage />;
     case UserRole.PROVIDER.toLowerCase():
-      return <PlaceholderView title="Sponsor Blueprint Proposal Inventory" />;
+      return <ProviderDashboardPage />;
     case UserRole.ADMINISTRATOR.toLowerCase():
-      return <PlaceholderView title="Global Project Verification Board" />;
+      return <AdministratorDashboardPage />;
+    case UserRole.TECH_SUPPORT.toLowerCase():
+      return <TechSupportDashboardPage />;
     default:
       return <Navigate to="/" replace />;
   }

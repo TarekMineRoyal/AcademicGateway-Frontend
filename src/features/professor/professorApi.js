@@ -56,3 +56,14 @@ export const getProfessorById = async (professorId) => {
   const data = await apiClient.get(`/v1/professors/${professorId}`);
   return data;
 };
+
+/**
+ * Fetches professor dashboard overview data.
+ * GET /api/professors/dashboard
+ * 
+ * @returns {Promise<Object>}
+ */
+export const getProfessorDashboardData = async () => {
+  const data = await apiClient.get('/professors/dashboard');
+  return data;
+};
