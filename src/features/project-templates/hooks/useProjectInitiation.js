@@ -3,96 +3,121 @@ import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../../context/AuthContextCore';
 import { initializeProjectInstance } from '../../project-instances';
+import { useDebounce } from '../../../shared/hooks/useDebounce';
+
+const INITIAL_MODAL_STATE = {
+  isOpen: false,
+  mode: null,
+  searchQuery: '',
+  searchPage: 1,
+  selectedProfessor: null,
+  viewingProfessorId: null,
+  submitLoading: false,
+  error: '',
+};
 
 export function useProjectInitiation(templateId) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Workflow Modal States
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [initiationMode, setInitiationMode] = useState(null); 
-  const [professorSearchQuery, setProfessorSearchQuery] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [searchPage, setSearchPage] = useState(1);
-  const [selectedProfessor, setSelectedProfessor] = useState(null);
-  const [viewingProfessorId, setViewingProfessorId] = useState(null);
-  const [submitLoading, setSubmitLoading] = useState(false);
-  const [modalError, setModalError] = useState('');
+  const [modalState, setModalState] = useState(INITIAL_MODAL_STATE);
 
-  // Manage UI-only search debounce
+  // Extract debounced search query using the shared useDebounce hook
+  const debouncedSearch = useDebounce(
+    modalState.mode === 'supervised' ? modalState.searchQuery : '',
+    300
+  );
+
+  // Reset search page index when the debounced search term changes
   useEffect(() => {
-    if (initiationMode !== 'supervised') return;
-
-    const handler = setTimeout(() => {
-      setDebouncedSearch(professorSearchQuery);
-      setSearchPage(1); // Reset to first page whenever query string changes
-    }, 300); // 300ms debounce buffer
-
-    return () => clearTimeout(handler);
-  }, [professorSearchQuery, initiationMode]);
+    setModalState((prev) => ({ ...prev, searchPage: 1 }));
+  }, [debouncedSearch]);
 
   const handleOpenInitiationModal = () => {
-    setIsModalOpen(true);
-    setInitiationMode(null);
-    setProfessorSearchQuery('');
-    setDebouncedSearch('');
-    setSearchPage(1);
-    setSelectedProfessor(null);
-    setViewingProfessorId(null);
-    setModalError('');
+    setModalState({
+      ...INITIAL_MODAL_STATE,
+      isOpen: true,
+    });
   };
 
   const handleCloseInitiationModal = () => {
-    if (submitLoading) return;
-    setIsModalOpen(false);
+    if (modalState.submitLoading) return;
+    setModalState((prev) => ({ ...prev, isOpen: false }));
+  };
+
+  const setInitiationMode = (mode) => {
+    setModalState((prev) => ({ ...prev, mode }));
+  };
+
+  const setProfessorSearchQuery = (searchQuery) => {
+    setModalState((prev) => ({ ...prev, searchQuery }));
+  };
+
+  const setSearchPage = (searchPage) => {
+    setModalState((prev) => ({
+      ...prev,
+      searchPage: typeof searchPage === 'function' ? searchPage(prev.searchPage) : searchPage,
+    }));
+  };
+
+  const setSelectedProfessor = (selectedProfessor) => {
+    setModalState((prev) => ({ ...prev, selectedProfessor }));
+  };
+
+  const setViewingProfessorId = (viewingProfessorId) => {
+    setModalState((prev) => ({ ...prev, viewingProfessorId }));
   };
 
   const handleFinalizePipelineInstantiation = async () => {
-    if (initiationMode === 'supervised' && !selectedProfessor) {
-      setModalError('Please explicitly select a target supervisor to deploy the request.');
+    if (modalState.mode === 'supervised' && !modalState.selectedProfessor) {
+      setModalState((prev) => ({
+        ...prev,
+        error: 'Please explicitly select a target supervisor to deploy the request.',
+      }));
       return;
     }
 
     try {
-      setSubmitLoading(true);
-      setModalError('');
-      
+      setModalState((prev) => ({ ...prev, submitLoading: true, error: '' }));
+
       await initializeProjectInstance(
-        templateId, 
-        initiationMode === 'supervised' ? selectedProfessor.id : null
+        templateId,
+        modalState.mode === 'supervised' ? modalState.selectedProfessor.id : null
       );
 
       if (user?.id) {
         queryClient.invalidateQueries({ queryKey: ['studentDashboard', user.id] });
       }
 
-      setIsModalOpen(false);
+      setModalState((prev) => ({ ...prev, isOpen: false, submitLoading: false }));
       navigate('/dashboard');
     } catch (err) {
-      setModalError(err.response?.data?.message || 'Failed to dispatch allocation request commands to server.');
-    } finally {
-      setSubmitLoading(false);
+      setModalState((prev) => ({
+        ...prev,
+        submitLoading: false,
+        error: err.response?.data?.message || 'Failed to dispatch allocation request commands to server.',
+      }));
     }
   };
 
   return {
-    isModalOpen,
-    initiationMode,
+    isModalOpen: modalState.isOpen,
+    initiationMode: modalState.mode,
     setInitiationMode,
-    professorSearchQuery,
+    professorSearchQuery: modalState.searchQuery,
     setProfessorSearchQuery,
     debouncedSearch,
-    searchPage,
+    searchPage: modalState.searchPage,
     setSearchPage,
-    selectedProfessor,
+    selectedProfessor: modalState.selectedProfessor,
     setSelectedProfessor,
-    viewingProfessorId,
+    viewingProfessorId: modalState.viewingProfessorId,
     setViewingProfessorId,
-    submitLoading,
-    modalError,
+    submitLoading: modalState.submitLoading,
+    modalError: modalState.error,
     handleOpenInitiationModal,
     handleCloseInitiationModal,
-    handleFinalizePipelineInstantiation
+    handleFinalizePipelineInstantiation,
   };
 }

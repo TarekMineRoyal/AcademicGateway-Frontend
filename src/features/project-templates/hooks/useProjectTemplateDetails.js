@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import apiClient from '../../../shared/api/apiClient';
+import { getProjectTemplateById } from '../projectTemplatesApi';
 import { searchProfessors } from '../../professor';
 
 /**
@@ -13,7 +13,7 @@ export function useProjectTemplateDetails(templateId, professorSearchQuery, sear
   // Query 1: Base Template Data Fetch
   const templateQuery = useQuery({
     queryKey: ['projectTemplate', templateId],
-    queryFn: () => apiClient.get(`/project-templates/${templateId}`),
+    queryFn: () => getProjectTemplateById(templateId),
     enabled: !!templateId,
   });
 
