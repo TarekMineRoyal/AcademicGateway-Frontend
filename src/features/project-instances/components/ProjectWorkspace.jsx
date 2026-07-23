@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react';
 import { useProjectWorkspace } from '../hooks/useProjectWorkspace';
 import MilestoneActionCenter from './MilestoneActionCenter';
 import MilestoneVisualizer from '../../../shared/components/milestone/MilestoneVisualizer';
@@ -18,21 +17,19 @@ import {
 export default function ProjectWorkspace() {
   const { projectInstanceId } = useParams(); 
   const navigate = useNavigate(); 
-  const [selectedMilestoneId, setSelectedMilestoneId] = useState(null); 
 
-  // Consume our decoupled server-state layer
-  const { project, milestones = [], isLoading, error } = useProjectWorkspace(projectInstanceId);
+  // Consume our encapsulated workspace state & logic hook
+  const { 
+    project, 
+    milestones, 
+    selectedMilestone, 
+    selectedMilestoneId, 
+    setSelectedMilestoneId, 
+    isLoading, 
+    error 
+  } = useProjectWorkspace(projectInstanceId);
 
-  // Derive active milestone selection dynamically without triggering cascading useEffect renders
-  const defaultMilestoneId = milestones.length > 0
-    ? (milestones.find(m => m.status === 'InProgress')?.id 
-      || milestones.find(m => m.status !== 'Completed')?.id 
-      || milestones[0]?.id)
-    : null;
-
-  const activeSelectedMilestoneId = selectedMilestoneId ?? defaultMilestoneId;
-
-  // Status-badge configuration mapper using standard Tailwind utility classes
+  // Status-badge configuration mapper
   const getStatusConfig = (statusValue) => {
     switch (statusValue) {
       case ProjectInstanceStatus.AWAITING_SUPERVISION:
@@ -120,7 +117,7 @@ export default function ProjectWorkspace() {
     );
   } 
 
-  // Zero-Defensive Contract Mapping (Strict camelCase Destructuring)
+  // Destructure project metadata
   const { 
     titleSnapshot, 
     descriptionSnapshot, 
@@ -134,7 +131,6 @@ export default function ProjectWorkspace() {
   } = project;
 
   const statusBadge = getStatusConfig(status); 
-  const selectedMilestone = milestones.find(m => m.id === activeSelectedMilestoneId);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8 font-sans">
@@ -235,7 +231,7 @@ export default function ProjectWorkspace() {
           <MilestoneVisualizer 
             milestones={milestones} 
             isWorkspace={true} 
-            selectedMilestoneId={activeSelectedMilestoneId}
+            selectedMilestoneId={selectedMilestoneId}
             onSelectMilestone={setSelectedMilestoneId}
           />
         </div>

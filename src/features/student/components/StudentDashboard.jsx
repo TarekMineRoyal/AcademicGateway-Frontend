@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContextCore';
 import { useStudentDashboard } from '../hooks/useStudentDashboard';
-import { transitionToSolo } from '../../project-instances';
 import { ProjectInstanceStatus } from '../../../shared/constants/enums';
 import { 
   PlusCircle, 
@@ -21,25 +20,29 @@ export default function StudentDashboard() {
   const navigate = useNavigate();
   const targetId = user?.id; // Normalized at boundary layer
 
-  // Consume server-state hook for zero-boilerplate cache synchronization
-  const { dashboardData, isLoading, error, refetch } = useStudentDashboard(targetId);
+  // Consume server-state hook for zero-boilerplate cache synchronization & categorized datasets
+  const { 
+    profile, 
+    activeWorkspaces, 
+    pipelineApplications, 
+    historicWorkspaces, 
+    isLoading, 
+    error,
+    startSolo,
+    isStartingSolo
+  } = useStudentDashboard(targetId);
 
-  // Modal local operation states remain as interactive UI lifecycle layers
+  // Modal local operation state for interactive UI overlay tracking
   const [soloModalProject, setSoloModalProject] = useState(null);
-  const [soloSubmitting, setSoloSubmitting] = useState(false);
 
-  // Action Handler to commit project transition to backend registry state flags
+  // Action Handler to commit project transition
   const handleStartSolo = async () => {
     if (!soloModalProject) return;
     try {
-      setSoloSubmitting(true);
-      await transitionToSolo(soloModalProject.id);
+      await startSolo(soloModalProject.id);
       setSoloModalProject(null);
-      await refetch();
     } catch {
       alert('Failed to transition project channel to solo tracking mode. Please try again.');
-    } finally {
-      setSoloSubmitting(false);
     }
   };
 
@@ -80,17 +83,6 @@ export default function StudentDashboard() {
   if (error) {
     return <div className="text-red-600 font-semibold p-6 bg-red-50 border border-red-200 rounded-lg">{error?.message || 'Failed to sync workspace details.'}</div>;
   }
-
-  // Zero-Defensive Contract Destructuring (assumes clean camelCase payload delivery)
-  const { profile = {}, projects = [] } = dashboardData || {};
-
-  // Clean Enum-Only Evaluation Pipelines
-  const activeWorkspaces = projects.filter(p => p.status === ProjectInstanceStatus.ACTIVE); 
-  const pipelineApplications = projects.filter(p => p.status === ProjectInstanceStatus.AWAITING_SUPERVISION);
-  const historicWorkspaces = projects.filter(p => 
-    p.status === ProjectInstanceStatus.CONCLUDED || 
-    p.status === ProjectInstanceStatus.CANCELED
-  );
 
   const studentFullName = profile.fullName || user?.name || 'Academic Scholar';
 
@@ -322,18 +314,18 @@ export default function StudentDashboard() {
 
             <div className="flex justify-end gap-3">
               <button 
-                disabled={soloSubmitting}
+                disabled={isStartingSolo}
                 onClick={() => setSoloModalProject(null)}
                 className="px-4 py-2 border border-slate-200 rounded-btn bg-white hover:bg-slate-50 text-slate-600 font-semibold text-xs cursor-pointer transition-colors"
               >
                 Cancel
               </button>
               <button 
-                disabled={soloSubmitting}
+                disabled={isStartingSolo}
                 onClick={handleStartSolo}
                 className="px-4 py-2 rounded-btn bg-primary hover:bg-primary-hover text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer disabled:opacity-50"
               >
-                {soloSubmitting ? 'Activating Workspace...' : 'Confirm & Start Solo'}
+                {isStartingSolo ? 'Activating Workspace...' : 'Confirm & Start Solo'}
               </button>
             </div>
           </div>

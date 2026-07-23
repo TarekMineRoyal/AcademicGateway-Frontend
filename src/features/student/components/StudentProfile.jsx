@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Edit3, Sparkles, Plus } from 'lucide-react';
+import { Edit3, Sparkles } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../../context/AuthContextCore';
 import { useStudentDashboard } from '../hooks/useStudentDashboard';
@@ -7,9 +7,11 @@ import { useUpdateStudentProfile } from '../hooks/useUpdateStudentProfile';
 import { useRecommendedSkills } from '../../recommendations';
 import { getMajorsWithSpecialties } from '../../curriculum';
 import { getSkills } from '../../skills';
-import SearchableCombobox from '../../../shared/components/SearchableCombobox';
 
-const MAX_ABOUT_ME_LENGTH = 2000;
+// Extracted Presentational Sub-Components
+import StudentPersonalInfoForm from './profile/StudentPersonalInfoForm';
+import StudentAcademicInfoForm from './profile/StudentAcademicInfoForm';
+import StudentSkillsSection from './profile/StudentSkillsSection';
 
 function StudentProfile() {
   const { user } = useAuth();
@@ -91,13 +93,6 @@ function StudentProfile() {
     setIsEditing(false);
   };
 
-  const handleAboutMeChange = (e) => {
-    const val = e.target.value;
-    if (val.length <= MAX_ABOUT_ME_LENGTH) {
-      setAboutMe(val);
-    }
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
     
@@ -168,7 +163,7 @@ function StudentProfile() {
 
           {/* Non-Clickable Metadata Tags Presentation Block Tree */}
           <div className="space-y-6">
-            {/* About Me / Biography Display with Fallback State */}
+            {/* About Me / Biography Display */}
             <div>
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
                 About Me / Biography
@@ -288,124 +283,33 @@ function StudentProfile() {
             <p className="text-slate-500 text-xs mt-0.5">Modify profile attributes and multi-select filters using searchable lookups.</p>
           </div>
 
-          {/* Row 1: Demographics Input Controls */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
-                Full Legal Name
-              </label>
-              <input 
-                type="text" 
-                value={fullName} 
-                onChange={(e) => setFullName(e.target.value)} 
-                required 
-                className="w-full text-sm bg-white border border-slate-300 text-brand-dark rounded-lg px-3 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-200"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
-                Graduation Year
-              </label>
-              <input 
-                type="number" 
-                value={graduationYear} 
-                onChange={(e) => setGraduationYear(e.target.value)} 
-                placeholder="e.g. 2027"
-                className="w-full text-sm bg-white border border-slate-300 text-brand-dark rounded-lg px-3 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-200"
-              />
-            </div>
-          </div>
+          {/* Sub-Component 1: Personal Info & Bio */}
+          <StudentPersonalInfoForm
+            fullName={fullName}
+            setFullName={setFullName}
+            graduationYear={graduationYear}
+            setGraduationYear={setGraduationYear}
+            aboutMe={aboutMe}
+            setAboutMe={setAboutMe}
+          />
 
-          {/* About Me / Biography Textarea Input Field */}
-          <div>
-            <div className="flex justify-between items-center mb-1.5">
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide">
-                About Me / Biography
-              </label>
-              <span className={`text-xs font-medium ${aboutMe.length > MAX_ABOUT_ME_LENGTH ? 'text-red-500 font-bold' : 'text-slate-400'}`}>
-                {aboutMe.length} / {MAX_ABOUT_ME_LENGTH}
-              </span>
-            </div>
-            <textarea
-              rows={4}
-              value={aboutMe}
-              onChange={handleAboutMeChange}
-              placeholder="Tell us a little bit about yourself, your research interests, project goals, or work style..."
-              className="w-full text-sm bg-white border border-slate-300 text-brand-dark rounded-lg px-3 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-200"
-            />
-          </div>
+          {/* Sub-Component 2: Academic Majors & Specialties */}
+          <StudentAcademicInfoForm
+            majorsData={majorsData}
+            selectedMajorIds={selectedMajorIds}
+            handleMajorsChange={handleMajorsChange}
+            availableSpecialties={availableSpecialties}
+            selectedSpecialtyIds={selectedSpecialtyIds}
+            setSelectedSpecialtyIds={setSelectedSpecialtyIds}
+          />
 
-          {/* Combobox Matrix Section 2: Majors */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
-              Academic Majors
-            </label>
-            <SearchableCombobox
-              placeholder="Type to search and append majors..."
-              options={majorsData}
-              selected={majorsData.filter(m => selectedMajorIds.includes(m.id))}
-              onChange={handleMajorsChange}
-              isMulti={true}
-            />
-          </div>
-
-          {/* Combobox Matrix Section 3: Specialties */}
-          {selectedMajorIds.length > 0 && (
-            <div className="animate-fadeIn">
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
-                Sub-Track Focus Areas
-              </label>
-              <SearchableCombobox
-                placeholder="Type to search focus areas..."
-                options={availableSpecialties}
-                selected={availableSpecialties.filter(s => selectedSpecialtyIds.includes(s.id))}
-                onChange={(items) => setSelectedSpecialtyIds(items.map(i => i.id))}
-                isMulti={true}
-              />
-            </div>
-          )}
-
-          {/* Combobox Matrix Section 4: Skills */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
-              Technical Core Competencies
-            </label>
-            <SearchableCombobox
-              placeholder="Type to search system core competencies..."
-              options={skillsData}
-              selected={skillsData.filter(sk => selectedSkillIds.includes(sk.id))}
-              onChange={(items) => setSelectedSkillIds(items.map(i => i.id))}
-              isMulti={true}
-            />
-
-            {/* AI Suggested Skills Quick-Add */}
-            {recommendedSkills.length > 0 && (
-              <div className="mt-3 p-3 bg-indigo-50/50 border border-indigo-100 rounded-lg">
-                <div className="flex items-center gap-1.5 text-xs font-extrabold text-indigo-700 uppercase tracking-wider mb-2">
-                  <Sparkles size={13} className="text-indigo-600" />
-                  AI Suggested Skills to Add
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {recommendedSkills
-                    .filter((sk) => !selectedSkillIds.includes(sk.id))
-                    .map((sk) => (
-                      <button
-                        key={sk.id}
-                        type="button"
-                        onClick={() => setSelectedSkillIds((prev) => [...prev, sk.id])}
-                        className="inline-flex items-center gap-1 text-xs bg-white text-indigo-700 border border-indigo-200 hover:bg-indigo-50 font-semibold px-2.5 py-1 rounded-md transition-colors cursor-pointer"
-                      >
-                        <Plus size={12} />
-                        {sk.name}
-                      </button>
-                    ))}
-                  {recommendedSkills.filter((sk) => !selectedSkillIds.includes(sk.id)).length === 0 && (
-                    <span className="text-xs text-indigo-500 italic">All suggested skills have been added!</span>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
+          {/* Sub-Component 3: Technical Skills & AI Suggestions */}
+          <StudentSkillsSection
+            skillsData={skillsData}
+            selectedSkillIds={selectedSkillIds}
+            setSelectedSkillIds={setSelectedSkillIds}
+            recommendedSkills={recommendedSkills}
+          />
 
           {/* Form Command Action Segments Footer Bar */}
           <div className="flex justify-end gap-3 pt-5 border-t border-slate-100">
