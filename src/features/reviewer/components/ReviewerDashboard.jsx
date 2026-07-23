@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { usePendingApplications } from '../hooks/usePendingApplications';
 import { usePendingTemplates } from '../hooks/usePendingTemplates';
 import { ProviderApplicationsQueue } from './ProviderApplicationsQueue';

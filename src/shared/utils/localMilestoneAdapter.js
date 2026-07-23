@@ -1,4 +1,3 @@
-import { DependencyType } from '../constants/enums';
 
 /**
  * Normalizes live backend runtime project instance milestones (LocalMilestones) 

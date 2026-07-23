@@ -1,4 +1,3 @@
-import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getProjectTemplateById } from '../reviewerApi';
 import { adaptMilestones } from '../../../shared/utils/milestoneAdapter';

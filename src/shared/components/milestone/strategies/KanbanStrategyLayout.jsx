@@ -1,4 +1,3 @@
-import React from 'react';
 import { DependencyType } from '../../../constants/enums';
 
 /**

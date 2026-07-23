@@ -1,4 +1,3 @@
-import React from 'react';
 import { LoginForm } from '../features/identity';
 
 function LoginPage() {

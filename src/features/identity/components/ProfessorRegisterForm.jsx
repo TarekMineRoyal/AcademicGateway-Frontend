@@ -1,4 +1,3 @@
-import React from 'react';
 
 const MAX_ABOUT_ME_LENGTH = 2000;
 

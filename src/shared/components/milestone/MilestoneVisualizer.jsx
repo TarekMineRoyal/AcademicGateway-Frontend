@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { KanbanStrategyLayout } from './strategies/KanbanStrategyLayout';
 import { GraphStrategyLayout } from './strategies/GraphStrategyLayout';
 

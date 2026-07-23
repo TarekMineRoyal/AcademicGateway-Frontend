@@ -1,4 +1,3 @@
-import React from 'react';
 import { useApplicationDetails } from '../hooks/useApplicationDetails';
 import { 
   X, 

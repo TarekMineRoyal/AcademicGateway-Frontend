@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { usePendingTemplates } from '../hooks/usePendingTemplates';
 import { useReviewProjectTemplate } from '../hooks/useReviewMutations';
 import { ReviewActionModal } from './ReviewActionModal';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { useProfessorProfile } from '../hooks/useProfessorProfile';
 import { 
   X, 

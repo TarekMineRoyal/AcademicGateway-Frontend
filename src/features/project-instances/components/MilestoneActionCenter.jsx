@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getMilestoneComments } from '../projectInstancesApi';
 import { useSubmitTaskDeliverable } from '../hooks/useSubmitTaskDeliverable';
