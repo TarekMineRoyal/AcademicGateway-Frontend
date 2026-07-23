@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useProjectWorkspace } from '../hooks/useProjectWorkspace';
 import MilestoneActionCenter from './MilestoneActionCenter';
@@ -21,48 +21,44 @@ export default function ProjectWorkspace() {
   const [selectedMilestoneId, setSelectedMilestoneId] = useState(null); 
 
   // Consume our decoupled server-state layer
-  const { project, milestones, isLoading, error } = useProjectWorkspace(projectInstanceId);
+  const { project, milestones = [], isLoading, error } = useProjectWorkspace(projectInstanceId);
 
-  // Clean local UI focus synchronization entirely separate from data fetching
-  useEffect(() => {
-    if (milestones.length > 0 && !selectedMilestoneId) {
-      const activeItem = milestones.find(m => m.status === 'InProgress') 
-        || milestones.find(m => m.status !== 'Completed') 
-        || milestones[0];
-        
-      if (activeItem) {
-        setSelectedMilestoneId(activeItem.id);
-      }
-    }
-  }, [milestones, selectedMilestoneId]);
+  // Derive active milestone selection dynamically without triggering cascading useEffect renders
+  const defaultMilestoneId = milestones.length > 0
+    ? (milestones.find(m => m.status === 'InProgress')?.id 
+      || milestones.find(m => m.status !== 'Completed')?.id 
+      || milestones[0]?.id)
+    : null;
 
-  // Status-badge configuration mapper using beautiful Tailwind utility classes
+  const activeSelectedMilestoneId = selectedMilestoneId ?? defaultMilestoneId;
+
+  // Status-badge configuration mapper using standard Tailwind utility classes
   const getStatusConfig = (statusValue) => {
-  switch (statusValue) {
-    case ProjectInstanceStatus.AWAITING_SUPERVISION:
-      return {
-        text: 'Awaiting Supervision',
-        className: 'bg-amber-50 text-amber-700 border-amber-200',
-        icon: <Clock size={14} />
-      };
-    case ProjectInstanceStatus.ACTIVE:
-      return {
-        text: 'Active Workspace',
-        className: 'bg-green-50 text-green-800 border-green-200',
-        icon: <CheckCircle size={14} />
-      };
-    case ProjectInstanceStatus.CONCLUDED:
-      return {
-        text: 'Concluded',
-        className: 'bg-blue-50 text-blue-700 border-blue-200',
-        icon: <Award size={14} />
-      };
-    default:
-      return {
-        text: 'Canceled',
-        className: 'bg-gray-50 text-gray-600 border-gray-200',
-        icon: <ShieldAlert size={14} />
-      };
+    switch (statusValue) {
+      case ProjectInstanceStatus.AWAITING_SUPERVISION:
+        return {
+          text: 'Awaiting Supervision',
+          className: 'bg-amber-50 text-amber-700 border-amber-200',
+          icon: <Clock size={14} />
+        };
+      case ProjectInstanceStatus.ACTIVE:
+        return {
+          text: 'Active Workspace',
+          className: 'bg-green-50 text-green-800 border-green-200',
+          icon: <CheckCircle size={14} />
+        };
+      case ProjectInstanceStatus.CONCLUDED:
+        return {
+          text: 'Concluded',
+          className: 'bg-blue-50 text-blue-700 border-blue-200',
+          icon: <Award size={14} />
+        };
+      default:
+        return {
+          text: 'Canceled',
+          className: 'bg-gray-50 text-gray-600 border-gray-200',
+          icon: <ShieldAlert size={14} />
+        };
     }
   };
 
@@ -75,7 +71,7 @@ export default function ProjectWorkspace() {
         month: 'long', 
         day: 'numeric' 
       });
-    } catch (e) {
+    } catch {
       return dateStr;
     }
   }; 
@@ -138,7 +134,7 @@ export default function ProjectWorkspace() {
   } = project;
 
   const statusBadge = getStatusConfig(status); 
-  const selectedMilestone = milestones.find(m => m.id === selectedMilestoneId);
+  const selectedMilestone = milestones.find(m => m.id === activeSelectedMilestoneId);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8 font-sans">
@@ -239,7 +235,7 @@ export default function ProjectWorkspace() {
           <MilestoneVisualizer 
             milestones={milestones} 
             isWorkspace={true} 
-            selectedMilestoneId={selectedMilestoneId}
+            selectedMilestoneId={activeSelectedMilestoneId}
             onSelectMilestone={setSelectedMilestoneId}
           />
         </div>

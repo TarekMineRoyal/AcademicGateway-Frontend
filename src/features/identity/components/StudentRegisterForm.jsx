@@ -24,7 +24,7 @@ function StudentRegisterForm({ formValues, onFieldChange }) {
         ]);
         setMajorsData(majors);
         setSkillsData(skills);
-      } catch (err) {
+      } catch {
         setError('Failed to load curriculum configuration or technical competency lookups.');
       } finally {
         setLoadingLookups(false);

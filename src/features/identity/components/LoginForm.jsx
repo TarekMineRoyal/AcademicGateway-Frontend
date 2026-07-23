@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { loginUser } from '../identityApi';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth } from '../../../context/AuthContextCore';
 
 function LoginForm() {
   const [email, setEmail] = useState('');

@@ -29,7 +29,6 @@ export function AdvisorCard({
   if (!professor) return null;
 
   const {
-    id,
     fullName,
     email,
     department,

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth } from '../../../context/AuthContextCore';
 import { useQueryClient } from '@tanstack/react-query';
 import { useProjectTemplateDetails } from '../hooks/useProjectTemplateDetails';
 import { AdvisorCard, useRecommendedProfessors } from '../../recommendations';
@@ -34,7 +34,6 @@ function ProjectTemplateDetails({ userSkills = [], isStudent = false, skillsLoad
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const userRole = user?.role; // Utilizing clean string token from normalized auth boundary
   
   // Workflow Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { X, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 
 /**
@@ -26,13 +26,17 @@ export function ReviewActionModal({
   error = null,
 }) {
   const [rejectionReason, setRejectionReason] = useState('');
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  const [prevIsApproved, setPrevIsApproved] = useState(isApproved);
 
-  // Reset local state when modal opens or review action changes
-  useEffect(() => {
+  // Sync/reset local state during render when modal opens or review action mode switches
+  if (isOpen !== prevIsOpen || isApproved !== prevIsApproved) {
+    setPrevIsOpen(isOpen);
+    setPrevIsApproved(isApproved);
     if (isOpen) {
       setRejectionReason('');
     }
-  }, [isOpen, isApproved]);
+  }
 
   if (!isOpen) return null;
 

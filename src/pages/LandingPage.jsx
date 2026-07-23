@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { GraduationCap, Briefcase, Award, LogIn, ArrowRight } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContextCore';
 
 function LandingPage() {
   const navigate = useNavigate();

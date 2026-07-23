@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContextCore';
 import { navigationConfig } from '../config/navigationConfig';
 import { 
   LayoutDashboard, 

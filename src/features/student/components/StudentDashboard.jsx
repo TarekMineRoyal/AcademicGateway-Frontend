@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth } from '../../../context/AuthContextCore';
 import { useStudentDashboard } from '../hooks/useStudentDashboard';
 import { transitionToSolo } from '../../project-instances';
 import { ProjectInstanceStatus } from '../../../shared/constants/enums';
@@ -36,7 +36,7 @@ export default function StudentDashboard() {
       await transitionToSolo(soloModalProject.id);
       setSoloModalProject(null);
       await refetch();
-    } catch (err) {
+    } catch {
       alert('Failed to transition project channel to solo tracking mode. Please try again.');
     } finally {
       setSoloSubmitting(false);

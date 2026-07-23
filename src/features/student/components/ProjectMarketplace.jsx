@@ -20,12 +20,13 @@ export default function ProjectMarketplace() {
   const [showUnverified, setShowUnverified] = useState(false);
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
 
-  // Reset specialty focus if the parent major selection is cleared
-  useEffect(() => {
-    if (!selectedMajor) {
+  // Event handler to update major selection and reset specialty when major changes/clears
+  const handleMajorChange = (newMajor) => {
+    setSelectedMajor(newMajor);
+    if (!newMajor || newMajor.id !== selectedMajor?.id) {
       setSelectedSpecialty(null);
     }
-  }, [selectedMajor]);
+  };
 
   // 2. Declarative Lookup Data Fetching
   const { data: majorsCatalog = [] } = useQuery({
@@ -255,7 +256,7 @@ export default function ProjectMarketplace() {
               placeholder="Search & Select Major"
               options={majorsCatalog}
               selected={selectedMajor}
-              onChange={setSelectedMajor}
+              onChange={handleMajorChange}
               isMulti={false}
             />
 

@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Edit3, Sparkles, Plus } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth } from '../../../context/AuthContextCore';
 import { useStudentDashboard } from '../hooks/useStudentDashboard';
 import { useUpdateStudentProfile } from '../hooks/useUpdateStudentProfile';
 import { useRecommendedSkills } from '../../recommendations';
@@ -45,20 +45,20 @@ function StudentProfile() {
   const [selectedSpecialtyIds, setSelectedSpecialtyIds] = useState([]);
   const [selectedSkillIds, setSelectedSkillIds] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
+  const [prevProfile, setPrevProfile] = useState(null);
 
   const profile = dashboardData?.profile;
 
-  // Track and synchronize local presentation state whenever the server cache updates
-  useEffect(() => {
-    if (profile) {
-      setFullName(profile.fullName || '');
-      setGraduationYear(profile.graduationYear || '');
-      setAboutMe(profile.aboutMe || '');
-      setSelectedMajorIds(profile.majors?.map(m => m.id) || []);
-      setSelectedSpecialtyIds(profile.specialties?.map(s => s.id) || []);
-      setSelectedSkillIds(profile.skills?.map(sk => sk.id) || []);
-    }
-  }, [profile]);
+  // Synchronize local state during render whenever server cache updates
+  if (profile && profile !== prevProfile) {
+    setPrevProfile(profile);
+    setFullName(profile.fullName || '');
+    setGraduationYear(profile.graduationYear || '');
+    setAboutMe(profile.aboutMe || '');
+    setSelectedMajorIds(profile.majors?.map(m => m.id) || []);
+    setSelectedSpecialtyIds(profile.specialties?.map(s => s.id) || []);
+    setSelectedSkillIds(profile.skills?.map(sk => sk.id) || []);
+  }
 
   // Compute allowed child tracks dynamically according to active parent nodes exclusively
   const availableSpecialties = majorsData
