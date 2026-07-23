@@ -4,7 +4,7 @@ import LandingPage from '../pages/LandingPage';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import ProtectedRoute from './ProtectedRoute';
-import WorkspaceLayout from '../components/WorkspaceLayout';
+import WorkspaceLayout from '../shared/components/WorkspaceLayout';
 import StudentDashboard from '../features/student/components/StudentDashboard';
 import ProjectMarketplace from '../features/student/components/ProjectMarketplace';
 import StudentProfile from '../features/student/components/StudentProfile';
@@ -12,7 +12,7 @@ import ProjectTemplateDetails from '../features/project-templates/components/Pro
 import ReviewerDashboard from '../features/reviewer/components/ReviewerDashboard';
 import { useUserSkills } from '../features/skills/hooks/useUserSkills';
 import { useAuth } from '../context/AuthContext';
-import { UserRole } from '../constants/enums';
+import { UserRole } from '../shared/constants/enums';
 
 // Import the high-fidelity Phase 3 Project Workspace component
 import ProjectWorkspace from '../features/project-instances/components/ProjectWorkspace';

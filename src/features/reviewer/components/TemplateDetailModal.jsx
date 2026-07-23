@@ -1,8 +1,8 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getProjectTemplateById } from '../reviewerApi';
-import { adaptMilestones } from '../../../utils/milestoneAdapter';
-import MilestoneVisualizer from '../../../components/milestone/MilestoneVisualizer';
+import { adaptMilestones } from '../../../shared/utils/milestoneAdapter';
+import MilestoneVisualizer from '../../../shared/components/milestone/MilestoneVisualizer';
 import { 
   X, 
   Layers, 

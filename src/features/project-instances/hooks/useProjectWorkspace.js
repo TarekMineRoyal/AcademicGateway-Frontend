@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { getProjectDetails, getProjectMilestones } from '../projectInstancesApi';
-import { adaptLocalMilestones } from '../../../utils/localMilestoneAdapter';
+import { adaptLocalMilestones } from '../../../shared/utils/localMilestoneAdapter';
 
 export function useProjectWorkspace(projectInstanceId) {
   const projectQuery = useQuery({

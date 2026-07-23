@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
-import { UserRole } from '../../../constants/enums';
+import { UserRole } from '../../../shared/constants/enums';
 import { registrationStrategies } from '../strategies/registrationStrategies';
 
 /**

@@ -1,4 +1,4 @@
-import apiClient from '../../api/apiClient';
+import apiClient from '../../shared/api/apiClient';
 
 /**
  * Command to instantiate a live running project workspace from a static template blueprint.

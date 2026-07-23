@@ -7,9 +7,9 @@ import { useRecommendedProfessors } from '../../recommendations/hooks/useRecomme
 import { AdvisorCard } from '../../recommendations/components/AdvisorCard';
 import { ProfessorProfileModal } from '../../professor/components/ProfessorProfileModal';
 import { initializeProjectInstance } from '../../project-instances/projectInstancesApi';
-import { adaptMilestones } from '../../../utils/milestoneAdapter'; 
-import MilestoneVisualizer from '../../../components/milestone/MilestoneVisualizer'; 
-import { ProjectTemplateStatus } from '../../../constants/enums';
+import { adaptMilestones } from '../../../shared/utils/milestoneAdapter'; 
+import MilestoneVisualizer from '../../../shared/components/milestone/MilestoneVisualizer'; 
+import { ProjectTemplateStatus } from '../../../shared/constants/enums';
 import { 
   ArrowLeft, 
   Building2, 

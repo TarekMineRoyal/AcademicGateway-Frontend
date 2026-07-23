@@ -1,4 +1,4 @@
-import apiClient from '../../api/apiClient';
+import apiClient from '../../shared/api/apiClient';
 
 /**
  * Fetches all active technical capability and professional competency records.

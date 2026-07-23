@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import apiClient from '../../../api/apiClient';
+import apiClient from '../../../shared/api/apiClient';
 import { searchProfessors } from '../../professor/professorApi';
 
 /**

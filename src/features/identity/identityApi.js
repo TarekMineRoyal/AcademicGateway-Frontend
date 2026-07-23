@@ -1,4 +1,4 @@
-import apiClient from '../../api/apiClient';
+import apiClient from '../../shared/api/apiClient';
 
 /**
  * Sends authentication credentials to the MediatR backend handler.

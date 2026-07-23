@@ -1,5 +1,5 @@
 import React from 'react';
-import { LocalMilestoneStatus } from '../../../constants/enums';
+import { LocalMilestoneStatus } from '../../../shared/constants/enums';
 
 // Simple presentation utility—no inline try/catch blocks needed as dates are guaranteed valid ISO strings
 const formatDate = (isoString) => {

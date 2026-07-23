@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useProjectWorkspace } from '../hooks/useProjectWorkspace';
 import MilestoneActionCenter from './MilestoneActionCenter';
-import MilestoneVisualizer from '../../../components/milestone/MilestoneVisualizer';
-import { ProjectInstanceStatus } from '../../../constants/enums';
+import MilestoneVisualizer from '../../../shared/components/milestone/MilestoneVisualizer';
+import { ProjectInstanceStatus } from '../../../shared/constants/enums';
 import { 
   ArrowLeft, 
   Clock, 

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { useStudentDashboard } from '../hooks/useStudentDashboard';
 import { transitionToSolo } from '../../project-instances/projectInstancesApi'; 
-import { ProjectInstanceStatus } from '../../../constants/enums';
+import { ProjectInstanceStatus } from '../../../shared/constants/enums';
 import { 
   PlusCircle, 
   Folder, 

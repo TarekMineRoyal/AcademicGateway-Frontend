@@ -1,4 +1,4 @@
-import apiClient from '../../api/apiClient';
+import apiClient from '../../shared/api/apiClient';
 
 /**
  * Executes a case-insensitive directory search across authenticated faculty accounts with pagination.
@@ -8,7 +8,7 @@ import apiClient from '../../api/apiClient';
  * @param {string} [params.searchTerm] - Query text filtering across names, emails, and usernames
  * @param {number} [params.pageNumber=1] - Requested page number
  * @param {number} [params.pageSize=10] - Number of records per page
- * @returns {Promise<import('../../api/apiClient').PaginatedResult<Object>>}
+ * @returns {Promise<import('../../shared/api/apiClient').PaginatedResult<Object>>}
  */
 export const searchProfessors = async (params = '') => {
   let queryParams = {};

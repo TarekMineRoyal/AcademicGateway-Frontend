@@ -6,7 +6,7 @@ import { useRecommendedProjects } from '../../recommendations/hooks/useRecommend
 import { getMajorsWithSpecialties } from '../../curriculum/curriculumApi';
 import { getSkills } from '../../skills/skillsApi';
 import { Search, Building2, Code, ArrowUpRight, Inbox, SlidersHorizontal, GraduationCap, Sparkles } from 'lucide-react';
-import SearchableCombobox from '../../../components/SearchableCombobox';
+import SearchableCombobox from '../../../shared/components/SearchableCombobox';
 
 export default function ProjectMarketplace() {
   const navigate = useNavigate();

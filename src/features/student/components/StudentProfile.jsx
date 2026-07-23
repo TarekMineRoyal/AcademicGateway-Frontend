@@ -7,7 +7,7 @@ import { useUpdateStudentProfile } from '../hooks/useUpdateStudentProfile';
 import { useRecommendedSkills } from '../../recommendations/hooks/useRecommendedSkills';
 import { getMajorsWithSpecialties } from '../../curriculum/curriculumApi';
 import { getSkills } from '../../skills/skillsApi';
-import SearchableCombobox from '../../../components/SearchableCombobox';
+import SearchableCombobox from '../../../shared/components/SearchableCombobox';
 
 const MAX_ABOUT_ME_LENGTH = 2000;
 

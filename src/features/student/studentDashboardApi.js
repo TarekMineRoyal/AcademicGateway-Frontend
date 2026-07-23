@@ -1,4 +1,4 @@
-import apiClient from '../../api/apiClient';
+import apiClient from '../../shared/api/apiClient';
 
 /**
  * Fetches the comprehensive academic profile for the authenticated student.

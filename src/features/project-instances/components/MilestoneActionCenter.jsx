@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getMilestoneComments } from '../projectInstancesApi';
 import { useSubmitTaskDeliverable } from '../hooks/useSubmitTaskDeliverable';
 import { usePostMilestoneComment } from '../hooks/usePostMilestoneComment';
-import { LocalTaskStatus } from '../../../constants/enums';
+import { LocalTaskStatus } from '../../../shared/constants/enums';
 import { 
   Send, 
   ExternalLink, 

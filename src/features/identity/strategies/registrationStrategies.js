@@ -1,4 +1,4 @@
-import { UserRole } from '../../../constants/enums';
+import { UserRole } from '../../../shared/constants/enums';
 import { registerStudent, registerProfessor, registerProvider } from '../identityApi';
 
 export const registrationStrategies = {
