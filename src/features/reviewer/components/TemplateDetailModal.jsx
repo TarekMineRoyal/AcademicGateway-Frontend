@@ -3,8 +3,10 @@ import { getProjectTemplateById } from '../reviewerApi';
 import { adaptMilestones } from '../../../shared/utils/milestoneAdapter';
 import MilestoneVisualizer from '../../../shared/components/milestone/MilestoneVisualizer';
 import { 
-  X, Layers, Building2, GraduationCap, GitMerge, Check, AlertCircle, Clock, Sparkles 
+  X, Layers, Building2, GitMerge, Check, AlertCircle, Clock 
 } from 'lucide-react';
+import { TemplateAcademicAlignment } from './TemplateAcademicAlignment';
+import { TemplateSkillsList } from './TemplateSkillsList';
 
 /**
  * Inspection modal for reviewing unapproved project template blueprints.
@@ -100,52 +102,10 @@ export function TemplateDetailModal({
               </div>
 
               {/* Academic Alignment */}
-              <div>
-                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                  <GraduationCap size={14} className="text-primary" />
-                  Academic Alignment
-                </div>
-                <div className="flex flex-wrap gap-2 items-center">
-                  {template.majorName || template.specialtyName ? (
-                    <>
-                      {template.majorName && (
-                        <span className="text-xs bg-indigo-50 text-indigo-700 border border-indigo-200/70 font-bold px-3 py-1 rounded-md">
-                          Major: {template.majorName}
-                        </span>
-                      )}
-                      {template.specialtyName && (
-                        <span className="text-xs bg-purple-50 text-purple-700 border border-purple-200/70 font-bold px-3 py-1 rounded-md">
-                          Specialty: {template.specialtyName}
-                        </span>
-                      )}
-                    </>
-                  ) : (
-                    <span className="text-xs bg-slate-100 text-slate-600 border border-slate-200 font-semibold px-3 py-1 rounded-md italic">
-                      All Majors / General Alignment
-                    </span>
-                  )}
-                </div>
-              </div>
+              <TemplateAcademicAlignment template={template} />
 
               {/* Required Capabilities / Skills */}
-              {requiredSkills.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                    <Sparkles size={14} className="text-primary" />
-                    Required Skills & Capabilities
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {requiredSkills.map((sk, idx) => (
-                      <span
-                        key={sk.id || idx}
-                        className="text-xs bg-slate-100 text-slate-700 font-semibold px-2.5 py-1 rounded-md border border-slate-200"
-                      >
-                        {typeof sk === 'object' ? sk.name : sk}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <TemplateSkillsList skills={requiredSkills} template={template} />
 
               {/* Milestone Graph Visualizer Component */}
               <div className="border-t border-slate-200 pt-4">

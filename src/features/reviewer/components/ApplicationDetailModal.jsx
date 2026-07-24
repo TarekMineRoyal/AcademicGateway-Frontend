@@ -1,8 +1,10 @@
 import { useApplicationDetails } from '../hooks/useApplicationDetails';
 import { 
-  X, Building2, Mail, Globe, FileText, History, 
-  Check, AlertCircle, Calendar, User, ExternalLink, Phone, MapPin 
+  X, Building2, Globe, Calendar, AlertCircle, Check 
 } from 'lucide-react';
+import { ApplicationContactDetails } from './ApplicationContactDetails';
+import { ApplicationDocumentsList } from './ApplicationDocumentsList';
+import { ApplicationAuditHistory } from './ApplicationAuditHistory';
 
 /**
  * Inspection drawer/modal for detailed provider application reviews.
@@ -19,8 +21,6 @@ export function ApplicationDetailModal({
   if (!isOpen || !applicationId) return null;
 
   const companyName = application?.companyName || application?.providerName || 'Unspecified Entity';
-  const contactEmail = application?.contactEmail;
-  const contactPerson = application?.contactPersonName || application?.fullName;
   const submissionDate = application?.createdAt || application?.submittedAt;
 
   return (
@@ -56,7 +56,7 @@ export function ApplicationDetailModal({
             </div>
           ) : application ? (
             <>
-              {/* Header Info Block */}
+              {/* Header Info / Company Overview */}
               <div className="flex items-start gap-4 pb-5 border-b border-slate-100">
                 <div className="w-14 h-14 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-2xl shrink-0">
                   {companyName.charAt(0) || <Building2 size={28} />}
@@ -79,50 +79,8 @@ export function ApplicationDetailModal({
                 </div>
               </div>
 
-              {/* Primary Contact & Credentials Summary */}
-              <div>
-                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
-                  <User size={14} className="text-primary" /> Primary Contact & Organizational Details
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100 text-xs">
-                  <div className="sm:col-span-2 bg-white p-3 rounded-lg border border-slate-200/80 flex items-center justify-between">
-                    <div>
-                      <span className="text-slate-400 block text-[11px] font-semibold uppercase tracking-wider">Primary Contact Email</span>
-                      {contactEmail ? (
-                        <a href={`mailto:${contactEmail}`} className="text-sm font-bold text-primary hover:underline flex items-center gap-1.5 mt-0.5">
-                          <Mail size={15} /><span>{contactEmail}</span>
-                        </a>
-                      ) : (
-                        <span className="text-slate-400 italic">No contact email on record</span>
-                      )}
-                    </div>
-                  </div>
-                  {contactPerson && (
-                    <div>
-                      <span className="text-slate-400 block mb-0.5 font-medium">Contact Person</span>
-                      <span className="font-bold text-slate-800">{contactPerson}</span>
-                    </div>
-                  )}
-                  {application.phoneNumber && (
-                    <div>
-                      <span className="text-slate-400 block mb-0.5 font-medium">Phone Number</span>
-                      <span className="font-semibold text-slate-700 flex items-center gap-1"><Phone size={12} /> {application.phoneNumber}</span>
-                    </div>
-                  )}
-                  {application.address && (
-                    <div>
-                      <span className="text-slate-400 block mb-0.5 font-medium">Address</span>
-                      <span className="font-semibold text-slate-700 flex items-center gap-1"><MapPin size={12} /> {application.address}</span>
-                    </div>
-                  )}
-                  {application.taxRegistrationNumber && (
-                    <div>
-                      <span className="text-slate-400 block mb-0.5 font-medium">Tax Registration / ID</span>
-                      <span className="font-mono font-semibold text-slate-800">{application.taxRegistrationNumber}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
+              {/* Primary Contact & Credentials */}
+              <ApplicationContactDetails application={application} />
 
               {/* Organization Bio / Description */}
               {application.description && (
@@ -137,53 +95,10 @@ export function ApplicationDetailModal({
               )}
 
               {/* Verified Documents Links */}
-              <div>
-                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
-                  <FileText size={14} className="text-primary" /> Submitted Verification Documents
-                </div>
-                {application.documents && application.documents.length > 0 ? (
-                  <div className="space-y-2">
-                    {application.documents.map((doc, idx) => (
-                      <div key={idx} className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-lg text-xs hover:border-slate-300 transition-colors">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <FileText size={16} className="text-primary shrink-0" />
-                          <span className="font-semibold text-slate-800 truncate">{doc.title || doc.fileName || `Document #${idx + 1}`}</span>
-                        </div>
-                        {doc.url && (
-                          <a href={doc.url} target="_blank" rel="noopener noreferrer" className="px-3 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold rounded-md flex items-center gap-1 transition-colors cursor-pointer shrink-0">
-                            <span>View</span><ExternalLink size={12} />
-                          </a>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-xs text-slate-400 italic bg-slate-50 p-3 rounded-lg border border-slate-100">
-                    No attachment documents provided for this application.
-                  </p>
-                )}
-              </div>
+              <ApplicationDocumentsList documents={application.documents} application={application} />
 
               {/* Application Lifecycle History */}
-              {application.history && application.history.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
-                    <History size={14} className="text-primary" /> Audit & Submission History
-                  </div>
-                  <div className="space-y-2 border-l-2 border-slate-200 ml-2 pl-4 text-xs">
-                    {application.history.map((event, idx) => (
-                      <div key={idx} className="relative space-y-0.5">
-                        <div className="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-slate-300 ring-4 ring-white" />
-                        <div className="font-bold text-slate-800">{event.action || event.status}</div>
-                        {event.notes && <p className="text-slate-500 italic">{event.notes}</p>}
-                        {(event.timestamp || event.submittedAt) && (
-                          <span className="text-[11px] text-slate-400 block">{new Date(event.timestamp || event.submittedAt).toLocaleString()}</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <ApplicationAuditHistory history={application.history} application={application} />
             </>
           ) : null}
         </div>
