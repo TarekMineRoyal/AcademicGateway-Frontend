@@ -12,3 +12,4 @@ export { useRecommendedSkills } from './hooks/useRecommendedSkills';
 
 // Components
 export { AdvisorCard } from './components/AdvisorCard';
+export { default as RecommendedSkillsGroup } from './components/RecommendedSkillsGroup';
