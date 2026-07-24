@@ -1,5 +1,5 @@
 // API Functions
-export { getSkills } from './skillsApi';
+export { getSkills, getUserSkills } from './skillsApi';
 
 // Hooks
 export { useUserSkills } from './hooks/useUserSkills';

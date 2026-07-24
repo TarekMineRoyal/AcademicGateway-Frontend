@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import apiClient from '../../../shared/api/apiClient';
+import { getUserSkills } from '../skillsApi';
 
 /**
  * Custom hook managing multi-tenancy core competency records.
@@ -10,9 +10,7 @@ import apiClient from '../../../shared/api/apiClient';
 export function useUserSkills(userId) {
   return useQuery({
     queryKey: ['userSkills', userId],
-    queryFn: async () => {
-      return await apiClient.get(`/skills/user/${userId}`);
-    },
+    queryFn: () => getUserSkills(userId),
     enabled: !!userId, // Safely gates execution until identifier state is accessible
   });
 }
