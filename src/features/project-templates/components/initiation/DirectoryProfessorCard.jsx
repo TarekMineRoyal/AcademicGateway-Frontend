@@ -1,4 +1,3 @@
-import React from 'react';
 import { User, Eye, Check } from 'lucide-react';
 import { 
   isProfessorFull, 

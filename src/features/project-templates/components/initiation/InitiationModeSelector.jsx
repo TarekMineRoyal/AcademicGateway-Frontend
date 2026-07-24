@@ -1,4 +1,3 @@
-import React from 'react';
 import { Zap, UserCheck } from 'lucide-react';
 
 const INITIATION_OPTIONS = [

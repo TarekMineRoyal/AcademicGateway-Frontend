@@ -1,4 +1,3 @@
-import React from 'react';
 import { X, AlertCircle } from 'lucide-react';
 import { ProfessorProfileModal } from '../../../professor';
 import InitiationModeSelector from './InitiationModeSelector';
