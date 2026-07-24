@@ -1,5 +1,6 @@
 import { Sparkles, Plus } from 'lucide-react';
 import SearchableCombobox from '../../../../shared/components/SearchableCombobox';
+import { useStudentSkills } from '../../hooks/useStudentSkills';
 
 export default function StudentSkillsSection({
   skillsData = [],
@@ -7,6 +8,19 @@ export default function StudentSkillsSection({
   setSelectedSkillIds,
   recommendedSkills = [],
 }) {
+  const {
+    selectedSkills,
+    unaddedRecommendedSkills,
+    hasUnaddedRecommendations,
+    handleSkillsChange,
+    handleAddRecommendedSkill,
+  } = useStudentSkills({
+    skillsData,
+    selectedSkillIds,
+    setSelectedSkillIds,
+    recommendedSkills,
+  });
+
   return (
     <div>
       <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
@@ -15,8 +29,8 @@ export default function StudentSkillsSection({
       <SearchableCombobox
         placeholder="Type to search system core competencies..."
         options={skillsData}
-        selected={skillsData.filter((sk) => selectedSkillIds.includes(sk.id))}
-        onChange={(items) => setSelectedSkillIds(items.map((i) => i.id))}
+        selected={selectedSkills}
+        onChange={handleSkillsChange}
         isMulti={true}
       />
 
@@ -28,21 +42,21 @@ export default function StudentSkillsSection({
             AI Suggested Skills to Add
           </div>
           <div className="flex flex-wrap gap-1.5">
-            {recommendedSkills
-              .filter((sk) => !selectedSkillIds.includes(sk.id))
-              .map((sk) => (
-                <button
-                  key={sk.id}
-                  type="button"
-                  onClick={() => setSelectedSkillIds((prev) => [...prev, sk.id])}
-                  className="inline-flex items-center gap-1 text-xs bg-white text-indigo-700 border border-indigo-200 hover:bg-indigo-50 font-semibold px-2.5 py-1 rounded-md transition-colors cursor-pointer"
-                >
-                  <Plus size={12} />
-                  {sk.name}
-                </button>
-              ))}
-            {recommendedSkills.filter((sk) => !selectedSkillIds.includes(sk.id)).length === 0 && (
-              <span className="text-xs text-indigo-500 italic">All suggested skills have been added!</span>
+            {unaddedRecommendedSkills.map((sk) => (
+              <button
+                key={sk.id}
+                type="button"
+                onClick={() => handleAddRecommendedSkill(sk.id)}
+                className="inline-flex items-center gap-1 text-xs bg-white text-indigo-700 border border-indigo-200 hover:bg-indigo-50 font-semibold px-2.5 py-1 rounded-md transition-colors cursor-pointer"
+              >
+                <Plus size={12} />
+                {sk.name}
+              </button>
+            ))}
+            {!hasUnaddedRecommendations && (
+              <span className="text-xs text-indigo-500 italic">
+                All suggested skills have been added!
+              </span>
             )}
           </div>
         </div>
