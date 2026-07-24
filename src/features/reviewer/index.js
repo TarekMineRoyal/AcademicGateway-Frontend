@@ -21,6 +21,7 @@ export {
   useReviewProviderApplication,
   useReviewProjectTemplate,
 } from './hooks/useReviewMutations';
+export { useQueueReviewState } from './hooks/useQueueReviewState';
 
 // ==========================================
 // 3. Components
@@ -31,3 +32,5 @@ export { ProjectTemplatesQueue } from './components/ProjectTemplatesQueue';
 export { ProviderApplicationsQueue } from './components/ProviderApplicationsQueue';
 export { ReviewActionModal } from './components/ReviewActionModal';
 export { TemplateDetailModal } from './components/TemplateDetailModal';
+export { QueuePagination } from './components/QueuePagination';
+export { ReviewQueueTable, ReviewQueueActionGroup } from './components/ReviewQueueTable';
