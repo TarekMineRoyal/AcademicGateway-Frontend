@@ -1,14 +1,22 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
-import LandingPage from '@/pages/LandingPage';
-import LoginPage from '@/pages/LoginPage';
-import RegisterPage from '@/pages/RegisterPage';
 import ProtectedRoute from './ProtectedRoute';
 import GuestRoute from './GuestRoute';
 import { UserRole } from '@/config/roles';
+import { lazy } from 'react';
+
+// Public pages loaded eagerly
+import LandingPage from '@/pages/LandingPage';
+import LoginPage from '@/pages/LoginPage';
+import RegisterPage from '@/pages/RegisterPage';
+
+// Protected pages loaded lazily (only evaluated when navigating to that route)
+const StudentDashboardPage = lazy(() => import('@/pages/StudentDashboardPage'));
+const StudentProfilePage = lazy(() => import('@/pages/StudentProfilePage'));
+const WorkspaceLayout = lazy(() => import('@/layouts/WorkspaceLayout'));
 
 export const router = createBrowserRouter([
   /* -------------------------------------------------------------------------- */
-  /* Public Unauthenticated Routes                                              */
+  /* Public Unauthenticated Routes                                             */
   /* -------------------------------------------------------------------------- */
   {
     path: '/',
@@ -16,7 +24,7 @@ export const router = createBrowserRouter([
   },
 
   /* -------------------------------------------------------------------------- */
-  /* Guest-Only Routes (Redirects to /dashboard if authenticated)              */
+  /* Guest-Only Routes (Redirects to /dashboard if authenticated)             */
   /* -------------------------------------------------------------------------- */
   {
     element: <GuestRoute />,
@@ -51,18 +59,31 @@ export const router = createBrowserRouter([
     children: [
       {
         path: '/dashboard',
-        element: (
-          <div className="min-h-screen bg-brand-light flex items-center justify-center p-8">
-            <div className="bg-white p-8 rounded-card shadow-md text-center max-w-md">
-              <h2 className="text-xl font-bold text-slate-800 mb-2">Authenticated Workspace</h2>
-              <p className="text-slate-500 text-sm">
-                Dashboard modules are currently scheduled for migration. Authentication & registration flows are 100% active!
-              </p>
-            </div>
-          </div>
-        )
+        element: <WorkspaceLayout />,
+        children: [
+          /* Student Dashboard (Default / Index Route) */
+          {
+            index: true,
+            element: (
+              <ProtectedRoute allowedRoles={[UserRole.STUDENT]}>
+                <StudentDashboardPage />
+              </ProtectedRoute>
+            )
+          },
+
+          /* Student Profile Route */
+          {
+            path: 'profile',
+            element: (
+              <ProtectedRoute allowedRoles={[UserRole.STUDENT]}>
+                <StudentProfilePage />
+              </ProtectedRoute>
+            )
+          }
+
+          /* Future domain sub-routes (professor, provider, admin, marketplace) will plug in here */
+        ]
       }
-      /* Future feature routes (marketplace, profile, supervision, etc.) will be plugged back in here as they are migrated */
     ]
   },
 

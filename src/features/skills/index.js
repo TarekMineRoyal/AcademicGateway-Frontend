@@ -13,3 +13,4 @@ export { useRecommendedSkills } from './hooks/useRecommendedSkills';
 
 // Components
 export { default as RecommendedSkillsGroup } from './components/RecommendedSkillsGroup';
+export { default as SkillPickerSection } from './components/SkillPickerSection';
