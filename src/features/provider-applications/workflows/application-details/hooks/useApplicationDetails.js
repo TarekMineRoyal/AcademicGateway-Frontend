@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getProviderApplicationById } from '../reviewerApi';
+import { getProviderApplicationById } from "@/features/provider-applications/providerApplicationsApi";
 
 /**
  * Custom query hook for fetching comprehensive details for a single provider application.

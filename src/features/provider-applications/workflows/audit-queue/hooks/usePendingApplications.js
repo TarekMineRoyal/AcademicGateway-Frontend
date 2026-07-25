@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getPendingProviderApplications } from '../reviewerApi';
+import { getPendingProviderApplications } from "@/features/provider-applications/providerApplicationsApi";
 
 /**
  * Custom query hook for fetching paginated pending provider applications.

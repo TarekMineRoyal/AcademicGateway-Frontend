@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { usePendingApplications } from './usePendingApplications';
+import { usePendingApplications } from "@/features/provider-applications";
 import { usePendingTemplates } from './usePendingTemplates';
 
 /**

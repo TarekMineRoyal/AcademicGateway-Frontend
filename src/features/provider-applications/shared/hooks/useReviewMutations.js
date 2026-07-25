@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { reviewProviderApplication, reviewProjectTemplate } from '../reviewerApi';
+import { reviewProviderApplication } from "@/features/provider-applications/providerApplicationsApi";
+import { reviewProjectTemplate } from "@/features/reviewer/reviewerApi";
 
 /**
  * Mutation hook for reviewing (approving or rejecting) a Provider Application.

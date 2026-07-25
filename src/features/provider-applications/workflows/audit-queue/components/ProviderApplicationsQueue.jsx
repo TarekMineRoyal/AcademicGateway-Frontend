@@ -1,10 +1,10 @@
-import { usePendingApplications } from '../hooks/usePendingApplications';
-import { useReviewProviderApplication } from '../hooks/useReviewMutations';
-import { useQueueReviewState } from '../hooks/useQueueReviewState';
-import { ReviewQueueTable, ReviewQueueActionGroup } from './ReviewQueueTable';
-import { QueuePagination } from './QueuePagination';
-import { ReviewActionModal } from './ReviewActionModal';
-import { ApplicationDetailModal } from './ApplicationDetailModal';
+import { useReviewProviderApplication } from '../../../shared/hooks/useReviewMutations';
+import { useQueueReviewState } from '../../../shared/hooks/useQueueReviewState';
+import { ReviewQueueTable, ReviewQueueActionGroup } from '../../../shared/components/ReviewQueueTable';
+import { QueuePagination } from '../../../shared/components/QueuePagination';
+import { ReviewActionModal } from '../../application-details/components/ReviewActionModal';
+import { usePendingApplications } from "@/features/provider-applications/workflows/audit-queue/hooks/usePendingApplications";
+import { ApplicationDetailModal } from "@/features/provider-applications/workflows/application-details/components/ApplicationDetailModal";
 import { Building2, Mail, Calendar, AlertCircle, Clock } from 'lucide-react';
 
 export function ProviderApplicationsQueue() {

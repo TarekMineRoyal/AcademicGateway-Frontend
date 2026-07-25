@@ -1,9 +1,11 @@
 import { usePendingTemplates } from '../hooks/usePendingTemplates';
-import { useReviewProjectTemplate } from '../hooks/useReviewMutations';
-import { useQueueReviewState } from '../hooks/useQueueReviewState';
-import { ReviewQueueTable, ReviewQueueActionGroup } from './ReviewQueueTable';
-import { QueuePagination } from './QueuePagination';
-import { ReviewActionModal } from './ReviewActionModal';
+import {
+  QueuePagination,
+  ReviewActionModal,
+  ReviewQueueTable,
+  useQueueReviewState,
+  useReviewProjectTemplate,
+} from "@/features/provider-applications";
 import { TemplateDetailModal } from './TemplateDetailModal';
 import { Layers, Calendar, AlertCircle, Clock, GraduationCap } from 'lucide-react';
 
