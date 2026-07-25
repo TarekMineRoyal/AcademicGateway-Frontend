@@ -14,7 +14,9 @@ export function useStudentRegisterLookups(formValues = {}) {
   const [loadingLookups, setLoadingLookups] = useState(true);
   const [error, setError] = useState('');
 
-  // Local UI state for skills searching
+  // Local UI state for majors, specialties, and skills searching
+  const [majorSearch, setMajorSearch] = useState('');
+  const [specialtySearch, setSpecialtySearch] = useState('');
   const [skillSearch, setSkillSearch] = useState('');
 
   // Fetch lookups on mount
@@ -36,10 +38,20 @@ export function useStudentRegisterLookups(formValues = {}) {
     fetchLookupData();
   }, []);
 
+  // Filter majors based on search term
+  const filteredMajors = majorsData.filter((major) =>
+    major.name.toLowerCase().includes(majorSearch.toLowerCase())
+  );
+
   // Filter sub-specialties to show options belonging to checked parent majors
   const availableSpecialties = majorsData
     .filter((major) => (formValues.majorIds || []).includes(major.id))
     .flatMap((major) => major.specialties || []);
+
+  // Filter available specialties based on search term
+  const filteredSpecialties = availableSpecialties.filter((specialty) =>
+    specialty.name.toLowerCase().includes(specialtySearch.toLowerCase())
+  );
 
   // Filter skills based on search term
   const filteredSkills = skillsData.filter((skill) =>
@@ -56,9 +68,15 @@ export function useStudentRegisterLookups(formValues = {}) {
     skillsData,
     loadingLookups,
     error,
+    majorSearch,
+    setMajorSearch,
+    filteredMajors,
+    specialtySearch,
+    setSpecialtySearch,
+    availableSpecialties,
+    filteredSpecialties,
     skillSearch,
     setSkillSearch,
-    availableSpecialties,
     filteredSkills,
     selectedSkills
   };

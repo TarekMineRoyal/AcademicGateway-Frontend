@@ -3,23 +3,33 @@ import LandingPage from '@/pages/LandingPage';
 import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
 import ProtectedRoute from './ProtectedRoute';
+import GuestRoute from './GuestRoute';
 import { UserRole } from '@/config/roles';
 
 export const router = createBrowserRouter([
   /* -------------------------------------------------------------------------- */
-  /* Public Unauthenticated Routes                                             */
+  /* Public Unauthenticated Routes                                              */
   /* -------------------------------------------------------------------------- */
   {
     path: '/',
     element: <LandingPage />
   },
+
+  /* -------------------------------------------------------------------------- */
+  /* Guest-Only Routes (Redirects to /dashboard if authenticated)              */
+  /* -------------------------------------------------------------------------- */
   {
-    path: '/login',
-    element: <LoginPage />
-  },
-  {
-    path: '/register/:role',
-    element: <RegisterPage />
+    element: <GuestRoute />,
+    children: [
+      {
+        path: '/login',
+        element: <LoginPage />
+      },
+      {
+        path: '/register/:role',
+        element: <RegisterPage />
+      }
+    ]
   },
 
   /* -------------------------------------------------------------------------- */

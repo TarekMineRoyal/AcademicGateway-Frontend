@@ -1,4 +1,3 @@
-
 const MAX_ABOUT_ME_LENGTH = 2000;
 
 function ProfessorRegisterForm({ formValues, onFieldChange }) {
@@ -73,9 +72,21 @@ function ProfessorRegisterForm({ formValues, onFieldChange }) {
         </div>
         
         <div>
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">
-            Max Capacity *
-          </label>
+          <div className="flex items-center space-x-1.5 mb-1">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide">
+              Max Capacity *
+            </label>
+            {/* Max Capacity Info Icon with Tooltip */}
+            <div className="relative group flex items-center">
+              <span className="w-4 h-4 rounded-full bg-slate-100 text-slate-500 hover:bg-primary/10 hover:text-primary transition-colors flex items-center justify-center text-[10px] font-bold cursor-help">
+                i
+              </span>
+              <div className="absolute right-0 bottom-full mb-2 hidden group-hover:block w-60 p-2 bg-slate-800 text-white text-xs rounded shadow-lg z-20 text-center pointer-events-none">
+                The maximum amount of live projects you feel comfortable supervising at the same time. Once reached, students cannot send supervision requests until an active project ends.
+                <div className="absolute top-full right-3 border-4 border-transparent border-t-slate-800"></div>
+              </div>
+            </div>
+          </div>
           <input
             type="number"
             min="1"
@@ -95,13 +106,13 @@ function ProfessorRegisterForm({ formValues, onFieldChange }) {
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide">
               About Me / Biography <span className="text-slate-400 font-normal lowercase">(optional)</span>
             </label>
-            {/* Info Icon with CSS Tooltip */}
+            {/* Refined Research Focus Info Icon with CSS Tooltip */}
             <div className="relative group flex items-center">
               <span className="w-4 h-4 rounded-full bg-slate-100 text-slate-500 hover:bg-primary/10 hover:text-primary transition-colors flex items-center justify-center text-[10px] font-bold cursor-help">
                 i
               </span>
               <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block w-64 p-2 bg-slate-800 text-white text-xs rounded shadow-lg z-20 text-center pointer-events-none">
-                This bio helps our AI Matchmaking Engine suggest suitable student projects and advisor matchings tailored to your research focus.
+                Helps students starting projects related to your research interests connect with you.
                 <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
               </div>
             </div>

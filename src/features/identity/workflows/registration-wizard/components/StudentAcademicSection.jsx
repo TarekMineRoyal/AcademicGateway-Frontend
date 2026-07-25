@@ -6,8 +6,13 @@ function StudentAcademicSection({
   formValues = {},
   onFieldChange,
   onCollectionToggle,
-  majorsData = [],
-  availableSpecialties = []
+  filteredMajors = [],
+  majorSearch = '',
+  setMajorSearch,
+  availableSpecialties = [],
+  filteredSpecialties = [],
+  specialtySearch = '',
+  setSpecialtySearch
 }) {
   return (
     <div className="space-y-4">
@@ -42,11 +47,21 @@ function StudentAcademicSection({
 
       {/* Academic Majors Selection Layout */}
       <div>
-        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">
+        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">
           Select Your Academic Majors
         </label>
-        <div className="flex flex-wrap gap-2">
-          {majorsData.map((major) => {
+
+        {/* Search filter input for academic majors */}
+        <input
+          type="text"
+          value={majorSearch}
+          onChange={(e) => setMajorSearch(e.target.value)}
+          placeholder="Type to filter academic majors..."
+          className="w-full px-3 py-2 border border-slate-200 rounded-btn focus:outline-none focus:border-primary text-sm bg-white mb-2"
+        />
+
+        <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto p-1.5 border border-slate-100 rounded-btn bg-slate-50/50">
+          {filteredMajors.map((major) => {
             const isSelected = (formValues.majorIds || []).includes(major.id);
             return (
               <button
@@ -63,6 +78,11 @@ function StudentAcademicSection({
               </button>
             );
           })}
+          {filteredMajors.length === 0 && (
+            <div className="w-full text-center text-slate-400 py-3 text-xs italic">
+              No matching academic majors found.
+            </div>
+          )}
         </div>
       </div>
 
@@ -72,8 +92,18 @@ function StudentAcademicSection({
           <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1">
             Select Your Sub-Track Focus Areas
           </label>
-          <div className="flex flex-wrap gap-2">
-            {availableSpecialties.map((specialty) => {
+
+          {/* Search filter input for sub-track focus areas */}
+          <input
+            type="text"
+            value={specialtySearch}
+            onChange={(e) => setSpecialtySearch(e.target.value)}
+            placeholder="Type to filter sub-track focus areas..."
+            className="w-full px-3 py-2 border border-slate-200 rounded-btn focus:outline-none focus:border-primary text-sm bg-white mb-2"
+          />
+
+          <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto p-1.5 border border-slate-100 rounded-btn bg-white">
+            {filteredSpecialties.map((specialty) => {
               const isSelected = (formValues.specialtyIds || []).includes(specialty.id);
               return (
                 <button
@@ -90,6 +120,11 @@ function StudentAcademicSection({
                 </button>
               );
             })}
+            {filteredSpecialties.length === 0 && (
+              <div className="w-full text-center text-slate-400 py-3 text-xs italic">
+                No matching focus areas found.
+              </div>
+            )}
           </div>
         </div>
       )}

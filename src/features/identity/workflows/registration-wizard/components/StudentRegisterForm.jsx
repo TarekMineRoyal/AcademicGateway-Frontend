@@ -9,12 +9,17 @@ import StudentBioSection from './StudentBioSection';
  */
 function StudentRegisterForm({ formValues, onFieldChange }) {
   const {
-    majorsData,
     loadingLookups,
     error,
+    majorSearch,
+    setMajorSearch,
+    filteredMajors,
+    specialtySearch,
+    setSpecialtySearch,
+    availableSpecialties,
+    filteredSpecialties,
     skillSearch,
     setSkillSearch,
-    availableSpecialties,
     filteredSkills,
     selectedSkills
   } = useStudentRegisterLookups(formValues);
@@ -60,8 +65,13 @@ function StudentRegisterForm({ formValues, onFieldChange }) {
         formValues={formValues}
         onFieldChange={onFieldChange}
         onCollectionToggle={handleCollectionToggle}
-        majorsData={majorsData}
+        filteredMajors={filteredMajors}
+        majorSearch={majorSearch}
+        setMajorSearch={setMajorSearch}
         availableSpecialties={availableSpecialties}
+        filteredSpecialties={filteredSpecialties}
+        specialtySearch={specialtySearch}
+        setSpecialtySearch={setSpecialtySearch}
       />
 
       {/* Core Skills & Competencies Section */}
