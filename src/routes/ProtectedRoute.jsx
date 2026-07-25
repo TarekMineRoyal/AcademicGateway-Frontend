@@ -38,7 +38,7 @@ export default function ProtectedRoute({ allowedRoles, children }) {
 
     // If authenticated user attempts to access an unauthorized route, redirect immediately to /dashboard
     if (!isAuthorized) {
-      return <Navigate to="/" replace />;
+      return <Navigate to="/dashboard" replace />;
     }
   }
 
