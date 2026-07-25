@@ -35,7 +35,7 @@ export const NAV_ITEMS = [
  * @returns {Array} Array of allowed navigation item objects.
  */
 export function getNavigationForRole(userRole) {
-  if (!userRole) return [];
+  if (typeof userRole !== 'string' || !userRole) return [];
   const normalizedUserRole = String(userRole).toLowerCase();
 
   return NAV_ITEMS.filter((item) =>

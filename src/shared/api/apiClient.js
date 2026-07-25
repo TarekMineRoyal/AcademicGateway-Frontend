@@ -14,10 +14,11 @@ import axios from 'axios';
  */
 
 // Helper: Deeply converts any incoming object keys from PascalCase/snake_case into strict camelCase
+// Helper: Deeply converts any incoming object keys from PascalCase/snake_case into strict camelCase
 const camelCaseKeys = (obj) => {
   if (Array.isArray(obj)) {
     return obj.map(v => camelCaseKeys(v));
-  } else if (obj !== null && obj.constructor === Object) {
+  } else if (obj && typeof obj === 'object' && obj.constructor === Object) {
     return Object.keys(obj).reduce((result, key) => {
       // Robustly handles both PascalCase and snake_case transformations safely
       const camelKey = key
