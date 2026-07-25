@@ -22,7 +22,7 @@ function StudentBioSection({ formValues = {}, onFieldChange }) {
     <div className="border-t border-slate-100 pt-4">
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center space-x-1.5">
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide">
+          <label htmlFor="aboutMe" className="block text-xs font-bold text-slate-700 uppercase tracking-wide">
             About Me / Biography <span className="text-slate-400 font-normal lowercase">(optional)</span>
           </label>
           {/* Info Icon with CSS Tooltip */}
@@ -50,6 +50,7 @@ function StudentBioSection({ formValues = {}, onFieldChange }) {
       </div>
 
       <textarea
+        id="aboutMe"
         rows={4}
         value={aboutMeText}
         onChange={handleAboutMeChange}
