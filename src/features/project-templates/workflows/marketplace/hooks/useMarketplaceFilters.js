@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useDebounce } from '../../../shared/hooks/useDebounce';
+import { useDebounce } from "@/shared/hooks/useDebounce";
 
 /**
  * Custom hook to manage and encapsulate local filter and search states

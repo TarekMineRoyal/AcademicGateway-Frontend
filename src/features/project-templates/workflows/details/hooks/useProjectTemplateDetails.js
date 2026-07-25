@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { getProjectTemplateById } from '../projectTemplatesApi';
-import { searchProfessors } from '../../professor';
+import { getProjectTemplateById } from "@/features/project-templates/projectTemplatesApi";
+import { searchProfessors } from "@/features/professor";
 
 /**
  * Custom hook for fetching template details and searching faculty advisors.

@@ -1,9 +1,5 @@
 import { User, Eye, Check } from 'lucide-react';
-import { 
-  isProfessorFull, 
-  isDomainExpert, 
-  getProfessorInterests 
-} from '../../utils/professorMatching';
+import { isProfessorFull, isDomainExpert, getProfessorInterests } from "@/features/project-templates/workflows/initiation/utils/professorMatching";
 
 export function DirectoryProfessorCard({
   professor,

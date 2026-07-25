@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getPendingProjectTemplates } from '../reviewerApi';
+import { getPendingProjectTemplates } from '../../../../reviewer/reviewerApi';
 
 /**
  * Custom query hook for fetching paginated pending project templates.

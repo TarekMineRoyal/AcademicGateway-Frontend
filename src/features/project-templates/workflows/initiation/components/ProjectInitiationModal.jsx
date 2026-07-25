@@ -1,5 +1,5 @@
 import { X, AlertCircle } from 'lucide-react';
-import { ProfessorProfileModal } from '../../../professor';
+import { ProfessorProfileModal } from "@/features/professor";
 import InitiationModeSelector from './InitiationModeSelector';
 import SupervisedInitiationView from './SupervisedInitiationView';
 

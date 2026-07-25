@@ -31,7 +31,6 @@ export const getApprovedTemplates = async (params = {}) => {
     queryParams = params;
   }
 
-  // Evaluates to: GET /api/project-templates/approved?pageNumber=X&pageSize=Y&skillId=Z
   const data = await apiClient.get('/project-templates/approved', {
     params: queryParams,
   });
@@ -41,23 +40,23 @@ export const getApprovedTemplates = async (params = {}) => {
 /**
  * Fetches pending project templates awaiting approval.
  * Mapped to GetPendingProjectTemplatesQuery on the backend.
+ * 
+ * @param {Object} [params] - Query parameters
  * @returns {Promise<ProjectTemplateDto[]>}
  */
-export const getPendingProjectTemplates = async () => {
-  // Evaluates to: GET /api/project-templates/pending
-  const data = await apiClient.get('/project-templates/pending');
+export const getPendingProjectTemplates = async (params = {}) => {
+  const data = await apiClient.get('/project-templates/pending', { params });
   return data;
 };
 
 /**
  * Fetches the comprehensive aggregate structure for a single project template.
  * Maps to GetProjectTemplateController -> GET /api/project-templates/{projectTemplateId}
- * Note: Returns nested milestones, dependencies, required capability definitions, and academic alignment fields.
+ * 
  * @param {string} projectTemplateId - The unique template identity GUID string.
  * @returns {Promise<ProjectTemplateDto>}
  */
 export const getProjectTemplateById = async (projectTemplateId) => {
-  // Evaluates to: GET /api/project-templates/${projectTemplateId}
   const data = await apiClient.get(`/project-templates/${projectTemplateId}`);
   return data;
 };
@@ -65,16 +64,24 @@ export const getProjectTemplateById = async (projectTemplateId) => {
 /**
  * Submits a new project template with optional academic alignment fields.
  * Maps to POST /api/project-templates
+ * 
  * @param {Object} payload
- * @param {string} payload.title
- * @param {string} payload.description
- * @param {string[]} payload.skillIds
- * @param {string|null} [payload.majorId]
- * @param {string|null} [payload.specialtyId]
  * @returns {Promise<ProjectTemplateDto>}
  */
 export const createProjectTemplate = async (payload) => {
-  // Evaluates to: POST /api/project-templates
   const data = await apiClient.post('/project-templates', payload);
+  return data;
+};
+
+/**
+ * Submits approval or rejection decision for a project template.
+ * Maps to POST /api/project-templates/{templateId}/review
+ * 
+ * @param {string} templateId - Project template GUID
+ * @param {{ isApproved: boolean, rejectionReason: string|null }} payload - Review decision payload
+ * @returns {Promise<Object>}
+ */
+export const reviewProjectTemplate = async (templateId, payload) => {
+  const data = await apiClient.post(`/project-templates/${templateId}/review`, payload);
   return data;
 };

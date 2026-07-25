@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import { Inbox } from 'lucide-react';
-import { useProjectMarketplace } from '../hooks/useProjectMarketplace';
+import { useProjectMarketplace } from "@/features/project-templates";
 import { ProjectCard } from './ProjectCard';
 import { MarketplaceFilterPanel } from './MarketplaceFilterPanel';
-import { RecommendedProjectsSection } from './RecommendedProjectsSection';
+import { RecommendedProjectsSection } from '../../../../student/components/RecommendedProjectsSection';
 
 /**
  * Orchestrator component for the Project Marketplace page.

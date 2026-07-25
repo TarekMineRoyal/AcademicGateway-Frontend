@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { usePendingApplications } from "@/features/provider-applications";
-import { usePendingTemplates } from './usePendingTemplates';
+import { usePendingTemplates } from "@/features/project-templates";
 
 /**
  * Custom hook encapsulating reviewer dashboard state, tab switching,

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { getProjectTemplateById } from '../reviewerApi';
-import { adaptMilestones } from '../../../shared/utils/milestoneAdapter';
-import MilestoneVisualizer from '../../../shared/components/milestone/MilestoneVisualizer';
+import { getProjectTemplateById } from '../../../../reviewer/reviewerApi';
+import { adaptMilestones } from '../../../../../shared/utils/milestoneAdapter';
+import MilestoneVisualizer from '../../../../../shared/components/milestone/MilestoneVisualizer';
 import { 
   X, Layers, Building2, GitMerge, Check, AlertCircle, Clock 
 } from 'lucide-react';

@@ -1,5 +1,5 @@
 import { Sparkles } from 'lucide-react';
-import { ProjectCard } from './ProjectCard';
+import ProjectCard from "@/features/project-templates/workflows/marketplace/components/ProjectCard";
 
 /**
  * Component isolating the AI-Matched Recommendations section.

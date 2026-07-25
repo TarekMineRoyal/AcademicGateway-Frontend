@@ -1,6 +1,6 @@
 import { useReviewerDashboard } from '../hooks/useReviewerDashboard';
 import { ProviderApplicationsQueue } from "@/features/provider-applications";
-import { ProjectTemplatesQueue } from './ProjectTemplatesQueue';
+import { ProjectTemplatesQueue } from "@/features/project-templates";
 import { 
   ShieldCheck, 
   Building2, 

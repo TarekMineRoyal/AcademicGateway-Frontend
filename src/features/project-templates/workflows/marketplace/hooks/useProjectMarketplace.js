@@ -1,11 +1,11 @@
 import { useRef, useMemo } from 'react';
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { useMarketplaceFilters } from './useMarketplaceFilters';
-import { useIntersectionObserver } from '../../../shared/hooks/useIntersectionObserver';
-import { useRecommendedProjects } from '../../recommendations';
-import { getMajorsWithSpecialties } from '../../curriculum';
-import { getSkills } from '../../skills';
-import { getApprovedTemplates } from '../../project-templates';
+import { useIntersectionObserver } from "@/shared/hooks/useIntersectionObserver";
+import { useRecommendedProjects } from "@/features/recommendations";
+import { getMajorsWithSpecialties } from "@/features/curriculum";
+import { getSkills } from "@/features/skills";
+import { getApprovedTemplates } from "@/features/project-templates";
 
 /**
  * Custom hook encapsulating server queries, catalog data lookups,

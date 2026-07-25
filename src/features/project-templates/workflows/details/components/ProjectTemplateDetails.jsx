@@ -1,12 +1,12 @@
 import { useNavigate } from 'react-router-dom';
-import { useProjectTemplateDetails } from '../hooks/useProjectTemplateDetails';
-import { useProjectInitiation } from '../hooks/useProjectInitiation';
-import TemplateHeader from './TemplateHeader';
+import { useProjectTemplateDetails } from "@/features/project-templates/workflows/details/hooks/useProjectTemplateDetails";
+import { useProjectInitiation } from "@/features/project-templates/workflows/initiation/hooks/useProjectInitiation";
+import TemplateHeader from "@/features/project-templates/shared/components/TemplateHeader";
 import SkillMatchPrerequisites from './SkillMatchPrerequisites';
-import ProjectInitiationModal from './initiation/ProjectInitiationModal';
-import MilestoneVisualizer from '../../../shared/components/milestone/MilestoneVisualizer'; 
-import { adaptMilestones } from '../../../shared/utils/milestoneAdapter'; 
-import { ProjectTemplateStatus } from '../../../shared/constants/enums';
+import ProjectInitiationModal from "@/features/project-templates/workflows/initiation/components/ProjectInitiationModal";
+import MilestoneVisualizer from '@/shared/components/milestone/MilestoneVisualizer'; 
+import { adaptMilestones } from '@/shared/utils/milestoneAdapter'; 
+import { ProjectTemplateStatus } from '@/shared/constants/enums';
 import { ArrowLeft, GitMerge, AlertCircle } from 'lucide-react';
 
 function ProjectTemplateDetails({ templateId, userSkills = [], isStudent = false, skillsLoading = false }) {

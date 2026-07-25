@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '../../../context/AuthContextCore';
-import { initializeProjectInstance } from '../../project-instances';
-import { useDebounce } from '../../../shared/hooks/useDebounce';
+import { useAuth } from "@/context/AuthContextCore";
+import { initializeProjectInstance } from "@/features/project-instances";
+import { useDebounce } from "@/shared/hooks/useDebounce";
 
 const INITIAL_MODAL_STATE = {
   isOpen: false,

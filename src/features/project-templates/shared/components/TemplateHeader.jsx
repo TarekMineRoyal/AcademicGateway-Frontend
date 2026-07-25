@@ -1,5 +1,5 @@
 import { Building2, GraduationCap } from 'lucide-react';
-import { ProjectTemplateStatus } from '../../../shared/constants/enums';
+import { ProjectTemplateStatus } from "@/shared/constants/enums";
 
 const getStatusBadgeConfig = (statusToken) => {
   switch (statusToken) {

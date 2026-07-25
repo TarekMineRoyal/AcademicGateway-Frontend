@@ -1,5 +1,5 @@
 import { Search, SlidersHorizontal } from 'lucide-react';
-import SearchableCombobox from '../../../shared/components/SearchableCombobox';
+import SearchableCombobox from '../../../../../shared/components/SearchableCombobox';
 
 /**
  * Filter Control Station UI component for managing search inputs,

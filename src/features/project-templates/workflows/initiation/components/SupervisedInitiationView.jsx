@@ -5,7 +5,7 @@ import {
   ChevronRight, 
   Activity 
 } from 'lucide-react';
-import { AdvisorCard, useRecommendedProfessors } from '../../../recommendations';
+import { AdvisorCard, useRecommendedProfessors } from "@/features/recommendations";
 import DirectoryProfessorCard from './DirectoryProfessorCard';
 
 export function SupervisedInitiationView({
