@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { GraduationCap, Briefcase, Award, LogIn, ArrowRight } from 'lucide-react';
-import { useAuth } from '../context/AuthContextCore';
-import { OnboardingCard } from '../features/identity';
+import { useAuth } from '@/context/AuthContextCore';
+import { OnboardingCard } from '@/features/identity';
 
 const ONBOARDING_CARDS = [
   {

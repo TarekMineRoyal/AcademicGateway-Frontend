@@ -1,37 +1,30 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
-import LandingPage from '../pages/LandingPage';
-import LoginPage from '../pages/LoginPage';
-import RegisterPage from '../pages/RegisterPage';
-import StudentProfilePage from '../pages/StudentProfilePage';
-import ProjectMarketplacePage from '../pages/ProjectMarketplacePage';
-import ReviewerDashboardPage from '../pages/ReviewerDashboardPage';
-import AdministratorDashboardPage from '../pages/AdministratorDashboardPage';
-import ProviderDashboardPage from '../pages/ProviderDashboardPage';
-import ProfessorDashboardPage from '../pages/ProfessorDashboardPage';
-import TechSupportDashboardPage from '../pages/TechSupportDashboardPage';
-import ProjectTemplateDetailsPage from '../pages/ProjectTemplateDetailsPage';
-import ProjectWorkspacePage from '../pages/ProjectWorkspacePage';
+import LandingPage from '@/pages/LandingPage';
+import LoginPage from '@/pages/LoginPage';
+import RegisterPage from '@/pages/RegisterPage';
 import ProtectedRoute from './ProtectedRoute';
-import WorkspaceLayout from '../shared/components/WorkspaceLayout';
-import { UserRole } from '../shared/constants/enums';
-import { PlaceholderView, RoleDashboardIndex } from './RouteWrappers';
+import { UserRole } from '@/config/roles';
 
-// Static Router Export allowing network interceptors to control routing outside standard React hooks
 export const router = createBrowserRouter([
+  /* -------------------------------------------------------------------------- */
+  /* Public Unauthenticated Routes                                             */
+  /* -------------------------------------------------------------------------- */
   {
-    path: "/",
+    path: '/',
     element: <LandingPage />
   },
   {
-    path: "/login",
+    path: '/login',
     element: <LoginPage />
   },
   {
-    path: "/register/:role",
+    path: '/register/:role',
     element: <RegisterPage />
   },
 
-  /* Consolidated Dashboard Security Boundary */
+  /* -------------------------------------------------------------------------- */
+  /* Protected Workspace & Dashboard Security Boundary                          */
+  /* -------------------------------------------------------------------------- */
   {
     element: (
       <ProtectedRoute 
@@ -47,183 +40,27 @@ export const router = createBrowserRouter([
     ), 
     children: [
       {
-        path: "/dashboard",
-        element: <WorkspaceLayout />,
-        children: [
-          /* Dynamic Index Route: Renders role-specific dashboard for any authenticated user */
-          {
-            index: true,
-            element: <RoleDashboardIndex />
-          },
-
-          /* Student Specific Sub-routes */
-          {
-            path: "profile",
-            element: (
-              <ProtectedRoute allowedRoles={[UserRole.STUDENT]}>
-                <StudentProfilePage />
-              </ProtectedRoute>
-            )
-          },
-          {
-            path: "marketplace",
-            element: (
-              <ProtectedRoute allowedRoles={[UserRole.STUDENT]}>
-                <ProjectMarketplacePage />
-              </ProtectedRoute>
-            )
-          },
-          {
-            path: "marketplace/:templateId",
-            element: (
-              <ProtectedRoute allowedRoles={[UserRole.STUDENT]}>
-                <ProjectTemplateDetailsPage />
-              </ProtectedRoute>
-            )
-          },
-
-          /* Reviewer Specific Sub-routes */
-          {
-            path: "reviewer",
-            element: (
-              <ProtectedRoute allowedRoles={[UserRole.REVIEWER, UserRole.ADMINISTRATOR]}>
-                <ReviewerDashboardPage />
-              </ProtectedRoute>
-            )
-          },
-
-          /* Professor Specific Sub-routes */
-          {
-            path: "professor",
-            element: (
-              <ProtectedRoute allowedRoles={[UserRole.PROFESSOR]}>
-                <ProfessorDashboardPage />
-              </ProtectedRoute>
-            )
-          },
-          {
-            path: "supervision-requests",
-            element: (
-              <ProtectedRoute allowedRoles={[UserRole.PROFESSOR]}>
-                <PlaceholderView title="Incoming Supervision Vetting Board" />
-              </ProtectedRoute>
-            )
-          },
-          {
-            path: "active-projects",
-            element: (
-              <ProtectedRoute allowedRoles={[UserRole.PROFESSOR]}>
-                <PlaceholderView title="Faculty Mentorship Supervision Console" />
-              </ProtectedRoute>
-            )
-          },
-          {
-            path: "capacity",
-            element: (
-              <ProtectedRoute allowedRoles={[UserRole.PROFESSOR]}>
-                <PlaceholderView title="Threshold Allocation & Capacity Management" />
-              </ProtectedRoute>
-            )
-          },
-
-          /* Provider Specific Sub-routes */
-          {
-            path: "provider",
-            element: (
-              <ProtectedRoute allowedRoles={[UserRole.PROVIDER]}>
-                <ProviderDashboardPage />
-              </ProtectedRoute>
-            )
-          },
-          {
-            path: "propose-template",
-            element: (
-              <ProtectedRoute allowedRoles={[UserRole.PROVIDER]}>
-                <PlaceholderView title="R&D Capability Template Proposer Form" />
-              </ProtectedRoute>
-            )
-          },
-          {
-            path: "my-templates",
-            element: (
-              <ProtectedRoute allowedRoles={[UserRole.PROVIDER]}>
-                <PlaceholderView title="Sponsor Blueprint Proposal Inventory" />
-              </ProtectedRoute>
-            )
-          },
-          {
-            path: "lab-groups",
-            element: (
-              <ProtectedRoute allowedRoles={[UserRole.PROVIDER]}>
-                <PlaceholderView title="Active Co-Managed Experimental Lab Channels" />
-              </ProtectedRoute>
-            )
-          },
-
-          /* Administrator Specific Sub-routes */
-          {
-            path: "administrator",
-            element: (
-              <ProtectedRoute allowedRoles={[UserRole.ADMINISTRATOR]}>
-                <AdministratorDashboardPage />
-              </ProtectedRoute>
-            )
-          },
-          {
-            path: "approve-templates",
-            element: (
-              <ProtectedRoute allowedRoles={[UserRole.ADMINISTRATOR]}>
-                <PlaceholderView title="Global Project Verification Board" />
-              </ProtectedRoute>
-            )
-          },
-          {
-            path: "verify-providers",
-            element: (
-              <ProtectedRoute allowedRoles={[UserRole.ADMINISTRATOR]}>
-                <PlaceholderView title="External Institutional Sponsor Vetting Board" />
-              </ProtectedRoute>
-            )
-          },
-          {
-            path: "users",
-            element: (
-              <ProtectedRoute allowedRoles={[UserRole.ADMINISTRATOR]}>
-                <PlaceholderView title="Global User Core Account Directory" />
-              </ProtectedRoute>
-            )
-          },
-
-          /* Tech Support Specific Sub-routes */
-          {
-            path: "tech-support",
-            element: (
-              <ProtectedRoute allowedRoles={[UserRole.TECH_SUPPORT]}>
-                <TechSupportDashboardPage />
-              </ProtectedRoute>
-            )
-          }
-        ]
-      },
-      {
-        element: <WorkspaceLayout />,
-        children: [
-          {
-            path: "/workspace/projects/:projectInstanceId",
-            element: (
-              <ProtectedRoute allowedRoles={[UserRole.STUDENT, UserRole.PROFESSOR]}>
-                <ProjectWorkspacePage />
-              </ProtectedRoute>
-            )
-          }
-        ]
+        path: '/dashboard',
+        element: (
+          <div className="min-h-screen bg-brand-light flex items-center justify-center p-8">
+            <div className="bg-white p-8 rounded-card shadow-md text-center max-w-md">
+              <h2 className="text-xl font-bold text-slate-800 mb-2">Authenticated Workspace</h2>
+              <p className="text-slate-500 text-sm">
+                Dashboard modules are currently scheduled for migration. Authentication & registration flows are 100% active!
+              </p>
+            </div>
+          </div>
+        )
       }
+      /* Future feature routes (marketplace, profile, supervision, etc.) will be plugged back in here as they are migrated */
     ]
   },
 
-  /* Global Catch-all Redirection Safeguard */
+  /* -------------------------------------------------------------------------- */
+  /* Global Catch-All Fallback                                                 */
+  /* -------------------------------------------------------------------------- */
   {
-    path: "*",
+    path: '*',
     element: <Navigate to="/" replace />
   }
 ]);

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AuthContext, handleTokenHydration } from './AuthContextCore.js';
+import { AuthContext, handleTokenHydration } from '@/context/AuthContextCore.js';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {

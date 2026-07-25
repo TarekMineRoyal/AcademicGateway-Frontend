@@ -1,4 +1,4 @@
-import { LoginForm } from '../features/identity';
+import { LoginForm } from '@/features/identity';
 
 function LoginPage() {
   return (

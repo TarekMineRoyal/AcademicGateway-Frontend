@@ -2,9 +2,9 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query';
 import { RouterProvider } from 'react-router-dom';
-import { router } from './routes/AppRoutes';
-import { AuthProvider } from './context/AuthContext';
-import './index.css';
+import { router } from '@/routes/AppRoutes';
+import { AuthProvider } from '@/context/AuthContext';
+import '@/index.css';
 
 /**
  * Global authentication interceptor outside the React tree.

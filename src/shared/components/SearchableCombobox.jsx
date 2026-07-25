@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
-import useOnClickOutside from '../hooks/useOnClickOutside';
-import useKeyDown from '../hooks/useKeyDown';
-import ComboboxBadge from './ComboboxBadge';
+import useOnClickOutside from '@/shared/hooks/useOnClickOutside';
+import useKeyDown from '@/shared/hooks/useKeyDown';
+import ComboboxBadge from '@/shared/components/ComboboxBadge';
 
 /**
  * SearchableCombobox Component
