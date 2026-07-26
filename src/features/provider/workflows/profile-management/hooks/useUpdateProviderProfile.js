@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { updateProviderProfile } from '../../providerApi';
+import { updateProviderProfile } from '../../../providerApi';
 
 /**
  * Custom mutation hook to handle updating the provider profile.
