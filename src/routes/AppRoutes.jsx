@@ -11,7 +11,7 @@ import RegisterPage from '@/pages/RegisterPage';
 
 // Protected pages loaded lazily (only evaluated when navigating to that route)
 const StudentDashboardPage = lazy(() => import('@/pages/StudentDashboardPage'));
-const StudentProfilePage = lazy(() => import('@/pages/StudentProfilePage'));
+const ProfilePage = lazy(() => import('@/pages/ProfilePage'));
 const WorkspaceLayout = lazy(() => import('@/layouts/WorkspaceLayout'));
 
 export const router = createBrowserRouter([
@@ -71,17 +71,17 @@ export const router = createBrowserRouter([
             )
           },
 
-          /* Student Profile Route */
+          /* Unified Profile Route (Delegates to ProfilePage based on user role) */
           {
             path: 'profile',
             element: (
-              <ProtectedRoute allowedRoles={[UserRole.STUDENT]}>
-                <StudentProfilePage />
+              <ProtectedRoute allowedRoles={[UserRole.STUDENT, UserRole.PROVIDER, UserRole.PROFESSOR]}>
+                <ProfilePage />
               </ProtectedRoute>
             )
-          }
+          },
 
-          /* Future domain sub-routes (professor, provider, admin, marketplace) will plug in here */
+          /* Future domain sub-routes (professor, admin, marketplace) will plug in here */
         ]
       }
     ]

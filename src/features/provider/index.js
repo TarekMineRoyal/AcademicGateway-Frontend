@@ -1,6 +1,4 @@
 // ============================================================================
 // WORKFLOW COMPONENTS (Public Feature Boundary)
 // ============================================================================
-export { default as StudentProfile } from './workflows/profile-management/StudentProfile';
-
-export { useStudentProfileData } from './workflows/profile-management/hooks/useStudentProfileData';
+export { default as ProviderProfile } from './workflows/profile-management/ProviderProfile';
